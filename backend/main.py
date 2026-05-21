@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from routers import categories, products, product_images
+from routers import categories, products, product_images, cart
 from config.database import Base, engine
 
 @asynccontextmanager
@@ -25,6 +25,7 @@ app.add_middleware(
 app.include_router(categories.router)
 app.include_router(products.router)
 app.include_router(product_images.router)
+app.include_router(cart.router)
 
 
 @app.get("/")

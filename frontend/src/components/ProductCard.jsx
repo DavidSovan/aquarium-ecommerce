@@ -1,7 +1,26 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useCart } from '../hooks/useCart';
 
 export function ProductCard({ product }) {
+  const { addItem } = useCart();
+  const [isAdding, setIsAdding] = useState(false);
+
   const formatPrice = (price) => `$${Number(price).toFixed(2)}`;
+
+  const handleAddToCart = async (e) => {
+    e.preventDefault(); // Prevent navigating to detail page
+    if (isAdding || product.stock_quantity === 0) return;
+    
+    setIsAdding(true);
+    try {
+      await addItem(product.id, 1);
+    } catch (err) {
+      console.error('Failed to add to cart:', err);
+    } finally {
+      setIsAdding(false);
+    }
+  };
 
   const discountPercent = product.discount_price
     ? Math.round((1 - product.discount_price / product.price) * 100)
@@ -56,6 +75,14 @@ export function ProductCard({ product }) {
           {product.brand && (
             <p className="text-xs text-gray-400 mt-1">{product.brand}</p>
           )}
+
+          <button
+            onClick={handleAddToCart}
+            disabled={product.stock_quantity === 0 || isAdding}
+            className="w-full mt-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:bg-gray-400"
+          >
+            {isAdding ? 'Adding...' : product.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
+          </button>
         </div>
       </div>
     </Link>

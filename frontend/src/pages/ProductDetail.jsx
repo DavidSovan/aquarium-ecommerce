@@ -1,16 +1,33 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import productService from '../services/productService';
+import { useCart } from '../hooks/useCart';
 
 export function ProductDetail() {
   const { slug } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+  const [isAdding, setIsAdding] = useState(false);
+  const { addItem } = useCart();
 
   useEffect(() => {
     loadProduct();
   }, [slug]);
+
+  const handleAddToCart = async () => {
+    if (!product || isAdding) return;
+    setIsAdding(true);
+    try {
+      await addItem(product.id, quantity);
+      // Optional: show a success message or open the cart drawer
+    } catch (err) {
+      console.error('Failed to add to cart:', err);
+    } finally {
+      setIsAdding(false);
+    }
+  };
 
   const loadProduct = async () => {
     setLoading(true);
@@ -184,6 +201,41 @@ export function ProductDetail() {
                   <div className="text-gray-600 leading-relaxed whitespace-pre-line">{product.description}</div>
                 </div>
               )}
+
+              {/* Add to Cart Section */}
+              <div className="border-t border-gray-100 pt-8 mt-auto">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold transition-colors"
+                      disabled={product.stock_quantity === 0}
+                    >
+                      -
+                    </button>
+                    <span className="w-12 text-center font-medium">{quantity}</span>
+                    <button
+                      onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
+                      className="px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold transition-colors"
+                      disabled={product.stock_quantity === 0 || quantity >= product.stock_quantity}
+                    >
+                      +
+                    </button>
+                  </div>
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={product.stock_quantity === 0 || isAdding}
+                    className="flex-1 px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold transition-all disabled:opacity-50 disabled:bg-gray-400 transform active:scale-95"
+                  >
+                    {isAdding ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                        Adding...
+                      </span>
+                    ) : product.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

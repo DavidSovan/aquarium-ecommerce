@@ -5,6 +5,7 @@ from config.database import Base, engine, SessionLocal
 from models.category import Category
 from models.product import Product
 from models.product_image import ProductImage
+from models.cart import Cart, CartItem
 
 client = TestClient(app)
 
@@ -15,6 +16,8 @@ def setup_module(module):
     db = SessionLocal()
     try:
         db.execute(text("SET FOREIGN_KEY_CHECKS=0"))
+        db.query(CartItem).delete()
+        db.query(Cart).delete()
         db.query(ProductImage).delete()
         db.query(Product).delete()
         db.query(Category).delete()
@@ -356,6 +359,144 @@ def test_set_thumbnail_from_images():
     response = client.put(f"/products/{product_id}", json=update_data)
     assert response.status_code == 200
     assert response.json()["thumbnail"] == "https://example.com/thumb.jpg"
+
+
+# --- Cart ---
+
+def test_add_to_cart():
+    product_data = {"name": "Cart Fish", "price": 10.0, "stock_quantity": 5}
+    prod = client.post("/products", json=product_data).json()
+    product_id = prod["id"]
+
+    response = client.post("/cart/items", json={"product_id": product_id, "quantity": 2})
+    assert response.status_code == 201
+    data = response.json()
+    assert data["total_items"] == 2
+    assert len(data["items"]) == 1
+    assert data["items"][0]["product_id"] == product_id
+    assert data["items"][0]["quantity"] == 2
+    assert data["items"][0]["unit_price"] == 10.0
+    assert data["items"][0]["total_price"] == 20.0
+    assert len(data["id"]) == 36  # UUID length
+    cart_id = data["id"]
+
+    # Clean up
+    client.delete("/cart/clear", params={"cart_id": cart_id})
+
+
+def test_add_to_existing_cart():
+    product_data = {"name": "Cart Fish 2", "price": 15.0, "stock_quantity": 10}
+    prod = client.post("/products", json=product_data).json()
+    product_id = prod["id"]
+
+    cart = client.post("/cart/items", json={"product_id": product_id, "quantity": 1}).json()
+    cart_id = cart["id"]
+
+    response = client.post("/cart/items", json={"cart_id": cart_id, "product_id": product_id, "quantity": 2})
+    assert response.status_code == 201
+    data = response.json()
+    assert data["id"] == cart_id
+    assert data["items"][0]["quantity"] == 3  # 1 + 2
+
+    client.delete("/cart/clear", params={"cart_id": cart_id})
+
+
+def test_add_multiple_products_to_cart():
+    p1 = client.post("/products", json={"name": "P1", "price": 5.0, "stock_quantity": 10}).json()
+    p2 = client.post("/products", json={"name": "P2", "price": 8.0, "stock_quantity": 10}).json()
+
+    cart = client.post("/cart/items", json={"product_id": p1["id"], "quantity": 2}).json()
+    cart_id = cart["id"]
+
+    client.post("/cart/items", json={"cart_id": cart_id, "product_id": p2["id"], "quantity": 3})
+
+    response = client.get("/cart", params={"cart_id": cart_id})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total_items"] == 5
+    assert len(data["items"]) == 2
+    assert abs(data["subtotal"] - (2 * 5.0 + 3 * 8.0)) < 0.01
+
+    client.delete("/cart/clear", params={"cart_id": cart_id})
+
+
+def test_add_to_cart_insufficient_stock():
+    product_data = {"name": "Low Stock Fish", "price": 20.0, "stock_quantity": 1}
+    prod = client.post("/products", json=product_data).json()
+
+    response = client.post("/cart/items", json={"product_id": prod["id"], "quantity": 5})
+    assert response.status_code == 400
+    assert "stock" in response.json()["detail"].lower()
+
+
+def test_add_nonexistent_product_to_cart():
+    response = client.post("/cart/items", json={"product_id": 99999, "quantity": 1})
+    assert response.status_code == 404
+
+
+def test_get_nonexistent_cart():
+    response = client.get("/cart", params={"cart_id": "nonexistent-uuid"})
+    assert response.status_code == 404
+
+
+def test_update_cart_item_quantity():
+    p = client.post("/products", json={"name": "Update Cart Fish", "price": 12.0, "stock_quantity": 10}).json()
+    cart = client.post("/cart/items", json={"product_id": p["id"], "quantity": 1}).json()
+    cart_id = cart["id"]
+    item_id = cart["items"][0]["id"]
+
+    response = client.put(f"/cart/items/{item_id}", json={"cart_id": cart_id, "quantity": 4})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["items"][0]["quantity"] == 4
+    assert data["total_items"] == 4
+
+    client.delete("/cart/clear", params={"cart_id": cart_id})
+
+
+def test_update_nonexistent_cart_item():
+    response = client.put("/cart/items/99999", json={"cart_id": "some-uuid", "quantity": 2})
+    assert response.status_code == 404
+
+
+def test_remove_cart_item():
+    p = client.post("/products", json={"name": "Remove Cart Fish", "price": 7.0, "stock_quantity": 5}).json()
+    cart = client.post("/cart/items", json={"product_id": p["id"], "quantity": 3}).json()
+    cart_id = cart["id"]
+    item_id = cart["items"][0]["id"]
+
+    response = client.delete(f"/cart/items/{item_id}", params={"cart_id": cart_id})
+    assert response.status_code == 200
+    assert len(response.json()["items"]) == 0
+    assert response.json()["total_items"] == 0
+
+    client.delete("/cart/clear", params={"cart_id": cart_id})
+
+
+def test_clear_cart():
+    p = client.post("/products", json={"name": "Clear Cart Fish", "price": 9.0, "stock_quantity": 5}).json()
+    cart = client.post("/cart/items", json={"product_id": p["id"], "quantity": 2}).json()
+    cart_id = cart["id"]
+
+    response = client.delete("/cart/clear", params={"cart_id": cart_id})
+    assert response.status_code == 200
+    assert len(response.json()["items"]) == 0
+    assert response.json()["total_items"] == 0
+    assert response.json()["subtotal"] == 0.0
+
+
+def test_cart_with_discount_price():
+    product_data = {"name": "Discounted Cart Fish", "price": 50.0, "discount_price": 40.0, "stock_quantity": 5}
+    prod = client.post("/products", json=product_data).json()
+
+    cart = client.post("/cart/items", json={"product_id": prod["id"], "quantity": 2}).json()
+    cart_id = cart["id"]
+
+    assert cart["items"][0]["unit_price"] == 40.0
+    assert cart["items"][0]["total_price"] == 80.0
+    assert abs(cart["subtotal"] - 80.0) < 0.01
+
+    client.delete("/cart/clear", params={"cart_id": cart_id})
 
 
 # --- Categories ---
