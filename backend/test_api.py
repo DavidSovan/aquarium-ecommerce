@@ -4,6 +4,7 @@ from main import app
 from config.database import Base, engine, SessionLocal
 from models.category import Category
 from models.product import Product
+from models.product_image import ProductImage
 
 client = TestClient(app)
 
@@ -14,6 +15,7 @@ def setup_module(module):
     db = SessionLocal()
     try:
         db.execute(text("SET FOREIGN_KEY_CHECKS=0"))
+        db.query(ProductImage).delete()
         db.query(Product).delete()
         db.query(Category).delete()
         db.execute(text("SET FOREIGN_KEY_CHECKS=1"))
@@ -229,6 +231,131 @@ def test_product_pagination():
     assert len(data["items"]) == 1
     assert data["skip"] == 0
     assert data["limit"] == 1
+
+
+# --- Product Images ---
+
+def test_upload_image():
+    product_data = {"name": "Image Test Fish", "price": 10.0, "stock_quantity": 5}
+    create_resp = client.post("/products", json=product_data)
+    product_id = create_resp.json()["id"]
+
+    image_data = {"image_url": "https://example.com/fish1.jpg"}
+    response = client.post(f"/products/{product_id}/images", json=image_data)
+    assert response.status_code == 201
+    data = response.json()
+    assert data["image_url"] == "https://example.com/fish1.jpg"
+    assert data["product_id"] == product_id
+    assert data["sort_order"] == 0
+    assert "id" in data
+
+
+def test_upload_multiple_images():
+    product_data = {"name": "Multi Image Fish", "price": 15.0, "stock_quantity": 3}
+    create_resp = client.post("/products", json=product_data)
+    product_id = create_resp.json()["id"]
+
+    img1 = client.post(f"/products/{product_id}/images", json={"image_url": "https://example.com/img1.jpg"}).json()
+    img2 = client.post(f"/products/{product_id}/images", json={"image_url": "https://example.com/img2.jpg"}).json()
+    img3 = client.post(f"/products/{product_id}/images", json={"image_url": "https://example.com/img3.jpg"}).json()
+
+    assert img1["sort_order"] == 0
+    assert img2["sort_order"] == 1
+    assert img3["sort_order"] == 2
+
+
+def test_get_product_images():
+    product_data = {"name": "Gallery Fish", "price": 20.0, "stock_quantity": 4}
+    create_resp = client.post("/products", json=product_data)
+    product_id = create_resp.json()["id"]
+
+    client.post(f"/products/{product_id}/images", json={"image_url": "https://example.com/g1.jpg"})
+    client.post(f"/products/{product_id}/images", json={"image_url": "https://example.com/g2.jpg"})
+
+    response = client.get(f"/products/{product_id}/images")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 2
+
+
+def test_upload_image_to_nonexistent_product():
+    response = client.post("/products/99999/images", json={"image_url": "https://example.com/nope.jpg"})
+    assert response.status_code == 404
+
+
+def test_delete_image():
+    product_data = {"name": "Delete Img Fish", "price": 12.0, "stock_quantity": 2}
+    create_resp = client.post("/products", json=product_data)
+    product_id = create_resp.json()["id"]
+
+    img = client.post(f"/products/{product_id}/images", json={"image_url": "https://example.com/del.jpg"}).json()
+    img_id = img["id"]
+
+    response = client.delete(f"/products/images/{img_id}")
+    assert response.status_code == 200
+    assert response.json()["message"] == "Image deleted successfully"
+
+    response = client.get(f"/products/{product_id}/images")
+    assert len(response.json()) == 0
+
+
+def test_delete_nonexistent_image():
+    response = client.delete("/products/images/99999")
+    assert response.status_code == 404
+
+
+def test_reorder_images():
+    product_data = {"name": "Reorder Fish", "price": 18.0, "stock_quantity": 6}
+    create_resp = client.post("/products", json=product_data)
+    product_id = create_resp.json()["id"]
+
+    img1 = client.post(f"/products/{product_id}/images", json={"image_url": "https://example.com/r1.jpg"}).json()
+    img2 = client.post(f"/products/{product_id}/images", json={"image_url": "https://example.com/r2.jpg"}).json()
+    img3 = client.post(f"/products/{product_id}/images", json={"image_url": "https://example.com/r3.jpg"}).json()
+
+    response = client.put("/products/images/reorder", json={
+        "items": [
+            {"id": img1["id"], "sort_order": 2},
+            {"id": img2["id"], "sort_order": 0},
+            {"id": img3["id"], "sort_order": 1},
+        ]
+    })
+    assert response.status_code == 200
+    assert response.json()["message"] == "Images reordered successfully"
+
+    images = client.get(f"/products/{product_id}/images").json()
+    assert images[0]["id"] == img2["id"]
+    assert images[1]["id"] == img3["id"]
+    assert images[2]["id"] == img1["id"]
+
+
+def test_product_detail_includes_images():
+    product_data = {"name": "Detail Image Fish", "price": 22.0, "stock_quantity": 7}
+    create_resp = client.post("/products", json=product_data)
+    product_id = create_resp.json()["id"]
+
+    client.post(f"/products/{product_id}/images", json={"image_url": "https://example.com/d1.jpg"})
+    client.post(f"/products/{product_id}/images", json={"image_url": "https://example.com/d2.jpg"})
+
+    response = client.get(f"/products/{product_id}")
+    assert response.status_code == 200
+    data = response.json()
+    assert "images" in data
+    assert len(data["images"]) == 2
+    assert data["images"][0]["image_url"] == "https://example.com/d1.jpg"
+
+
+def test_set_thumbnail_from_images():
+    product_data = {"name": "Thumbnail Fish", "price": 25.0, "stock_quantity": 8}
+    create_resp = client.post("/products", json=product_data)
+    product_id = create_resp.json()["id"]
+
+    img = client.post(f"/products/{product_id}/images", json={"image_url": "https://example.com/thumb.jpg"}).json()
+
+    update_data = {"thumbnail": img["image_url"]}
+    response = client.put(f"/products/{product_id}", json=update_data)
+    assert response.status_code == 200
+    assert response.json()["thumbnail"] == "https://example.com/thumb.jpg"
 
 
 # --- Categories ---

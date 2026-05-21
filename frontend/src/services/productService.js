@@ -37,6 +37,22 @@ export const productService = {
   deleteProduct(id) {
     return api.delete(`/products/${id}`);
   },
+
+  getProductImages(productId) {
+    return api.get(`/products/${productId}/images`);
+  },
+
+  uploadImage(productId, data) {
+    return api.post(`/products/${productId}/images`, data);
+  },
+
+  deleteImage(imageId) {
+    return api.delete(`/products/images/${imageId}`);
+  },
+
+  reorderImages(items) {
+    return api.put('/products/images/reorder', { items });
+  },
 };
 
 export default productService;

@@ -83,7 +83,7 @@ export function ProductDetail() {
             {/* Image */}
             <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative">
               {product.thumbnail ? (
-                <img src={product.thumbnail} alt={product.name} className="w-full h-full object-cover" />
+                <img id="main-product-image" src={product.thumbnail} alt={product.name} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400">
                   <svg className="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -187,6 +187,31 @@ export function ProductDetail() {
             </div>
           </div>
         </div>
+
+        {/* Image Gallery */}
+        {product.images && product.images.length > 0 && (
+          <div className="mt-8 bg-white rounded-lg shadow p-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Gallery</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {product.images.map((img) => (
+                <div
+                  key={img.id}
+                  className={`aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer ring-2 ring-transparent hover:ring-blue-500 transition-all ${
+                    product.thumbnail === img.image_url ? 'ring-2 ring-blue-500' : ''
+                  }`}
+                  onClick={() => {
+                    const mainImg = document.getElementById('main-product-image');
+                    if (mainImg) mainImg.src = img.image_url;
+                  }}
+                >
+                  <img src={img.image_url} alt="" className="w-full h-full object-cover"
+                    onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="mt-8">
           <Link to="/shop" className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium">

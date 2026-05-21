@@ -56,8 +56,15 @@ class ProductResponse(ProductBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+class ProductImageRef(BaseModel):
+    id: int
+    image_url: str
+    sort_order: int
+    model_config = ConfigDict(from_attributes=True)
+
 class ProductDetail(ProductResponse):
     category: Optional[CategoryRef] = None
+    images: List[ProductImageRef] = []
 
 ProductDetail.model_rebuild()
 

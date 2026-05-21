@@ -28,6 +28,7 @@ class Product(Base):
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
     category = relationship("Category", backref="products")
+    images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan", order_by="ProductImage.sort_order")
 
     __table_args__ = (
         Index("idx_category_id", "category_id"),

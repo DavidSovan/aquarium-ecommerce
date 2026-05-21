@@ -3,6 +3,7 @@ import { useProductAPI } from '../hooks/useProductAPI';
 import { ProductTable } from '../components/ProductTable';
 import { ProductForm } from '../components/ProductForm';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { ImageGallery } from '../components/ImageGallery';
 import categoryService from '../services/categoryService';
 
 export function AdminProducts() {
@@ -76,18 +77,28 @@ export function AdminProducts() {
   const handleFormSubmit = async (formData) => {
     try {
       if (editingProduct?.id) {
-        await updateProduct(editingProduct.id, formData);
+        const updated = await updateProduct(editingProduct.id, formData);
+        setEditingProduct(updated);
         setFormMessage({ type: 'success', text: 'Product updated successfully!' });
       } else {
-        await createProduct(formData);
+        const created = await createProduct(formData);
+        setEditingProduct(created);
         setFormMessage({ type: 'success', text: 'Product created successfully!' });
       }
-      setShowForm(false);
-      setEditingProduct(null);
       await loadProducts(skip, limit, searchTerm, sortBy, sortOrder);
       setTimeout(() => setFormMessage(null), 3000);
     } catch (err) {
       console.error('Failed to save product:', err);
+    }
+  };
+
+  const handleThumbnailChange = async (imageUrl) => {
+    if (!editingProduct?.id) return;
+    try {
+      const updated = await updateProduct(editingProduct.id, { thumbnail: imageUrl });
+      setEditingProduct(updated);
+    } catch (err) {
+      console.error('Failed to set thumbnail:', err);
     }
   };
 
@@ -161,6 +172,16 @@ export function AdminProducts() {
                 onPageChange={handlePageChange}
                 isLoading={loading}
               />
+            )}
+
+            {showForm && editingProduct?.id && (
+              <div className="mt-8">
+                <ImageGallery
+                  productId={editingProduct.id}
+                  thumbnail={editingProduct.thumbnail}
+                  onThumbnailChange={handleThumbnailChange}
+                />
+              </div>
             )}
           </div>
         </div>
