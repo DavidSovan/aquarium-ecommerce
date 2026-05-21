@@ -1,17 +1,20 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
-import { useCart } from '../hooks/useCart';
+import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
+import { WishlistButton } from './WishlistButton';
 
 export function ProductCard({ product }) {
   const { addItem } = useCart();
+  const { wishlistedIds, toggleItem } = useWishlist();
   const [isAdding, setIsAdding] = useState(false);
 
   const formatPrice = (price) => `$${Number(price).toFixed(2)}`;
 
   const handleAddToCart = async (e) => {
-    e.preventDefault(); // Prevent navigating to detail page
+    e.preventDefault();
     if (isAdding || product.stock_quantity === 0) return;
-    
+
     setIsAdding(true);
     try {
       await addItem(product.id, 1);
@@ -27,7 +30,7 @@ export function ProductCard({ product }) {
     : 0;
 
   return (
-    <Link to={`/product/${product.slug}`} className="block">
+    <Link to={`/product/${product.slug}`} className="block group">
       <div className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden">
         <div className="aspect-square bg-gray-100 relative">
           {product.thumbnail ? (
@@ -41,13 +44,20 @@ export function ProductCard({ product }) {
               </svg>
             </div>
           )}
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <WishlistButton
+              productId={product.id}
+              isWishlisted={wishlistedIds.has(product.id)}
+              onToggle={toggleItem}
+            />
+          </div>
           {discountPercent > 0 && (
             <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
               -{discountPercent}%
             </span>
           )}
           {product.is_featured && (
-            <span className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded">
+            <span className="absolute top-2 left-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded">
               Featured
             </span>
           )}

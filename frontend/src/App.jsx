@@ -4,8 +4,11 @@ import { AdminProducts } from './pages/AdminProducts';
 import { Shop } from './pages/Shop';
 import { ProductDetail } from './pages/ProductDetail';
 import { CartPage } from './pages/CartPage';
+import { WishlistPage } from './pages/WishlistPage';
+import { AddressPage } from './pages/AddressPage';
 import { CartDrawer } from './components/CartDrawer';
 import { useCart, CartProvider } from './context/CartContext';
+import { WishlistProvider } from './context/WishlistContext';
 
 function Layout({ children }) {
   const { cart, itemCount, updateItem, removeItem, isDrawerOpen, openDrawer, closeDrawer } = useCart();
@@ -28,6 +31,12 @@ function Layout({ children }) {
             <Link to="/shop" className="text-gray-600 hover:text-blue-600 font-medium text-sm">Shop</Link>
             <Link to="/admin/categories" className="text-gray-600 hover:text-blue-600 font-medium text-sm">Categories</Link>
             <Link to="/admin/products" className="text-gray-600 hover:text-blue-600 font-medium text-sm">Products</Link>
+            <Link to="/account/addresses" className="text-gray-600 hover:text-blue-600 font-medium text-sm">Addresses</Link>
+            <Link to="/wishlist" className="text-gray-600 hover:text-blue-600">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </Link>
             <button onClick={openDrawer} className="relative text-gray-600 hover:text-blue-600">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
@@ -89,6 +98,7 @@ function Home() {
 function App() {
   return (
     <CartProvider>
+      <WishlistProvider>
       <BrowserRouter>
         <Layout>
           <Routes>
@@ -96,11 +106,14 @@ function App() {
             <Route path="/shop" element={<Shop />} />
             <Route path="/product/:slug" element={<ProductDetail />} />
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/wishlist" element={<WishlistPage />} />
+            <Route path="/account/addresses" element={<AddressPage />} />
             <Route path="/admin/categories" element={<AdminCategories />} />
             <Route path="/admin/products" element={<AdminProducts />} />
           </Routes>
         </Layout>
       </BrowserRouter>
+      </WishlistProvider>
     </CartProvider>
   );
 }

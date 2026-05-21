@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import productService from '../services/productService';
-import { useCart } from '../hooks/useCart';
+import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
+import { WishlistButton } from '../components/WishlistButton';
 
 export function ProductDetail() {
   const { slug } = useParams();
@@ -11,6 +13,7 @@ export function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const { addItem } = useCart();
+  const { wishlistedIds, toggleItem } = useWishlist();
 
   useEffect(() => {
     loadProduct();
@@ -121,15 +124,24 @@ export function ProductDetail() {
               {product.category && (
                 <p className="text-sm text-blue-600 font-medium mb-2">{product.category.name}</p>
               )}
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
 
-              {product.brand && (
-                <p className="text-sm text-gray-500 mb-4">Brand: <span className="font-medium">{product.brand}</span></p>
-              )}
+                  {product.brand && (
+                    <p className="text-sm text-gray-500 mb-4">Brand: <span className="font-medium">{product.brand}</span></p>
+                  )}
 
-              {product.sku && (
-                <p className="text-sm text-gray-500 mb-4">SKU: <span className="font-medium">{product.sku}</span></p>
-              )}
+                  {product.sku && (
+                    <p className="text-sm text-gray-500 mb-4">SKU: <span className="font-medium">{product.sku}</span></p>
+                  )}
+                </div>
+                <WishlistButton
+                  productId={product.id}
+                  isWishlisted={wishlistedIds.has(product.id)}
+                  onToggle={toggleItem}
+                />
+              </div>
 
               <div className="flex items-baseline gap-3 mb-6">
                 <span className="text-4xl font-bold text-blue-600">{formatPrice(product.price)}</span>

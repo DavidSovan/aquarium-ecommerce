@@ -6,6 +6,8 @@ from models.category import Category
 from models.product import Product
 from models.product_image import ProductImage
 from models.cart import Cart, CartItem
+from models.wishlist import Wishlist, WishlistItem
+from models.address import Address as AddressModel
 
 client = TestClient(app)
 
@@ -16,6 +18,9 @@ def setup_module(module):
     db = SessionLocal()
     try:
         db.execute(text("SET FOREIGN_KEY_CHECKS=0"))
+        db.query(AddressModel).delete()
+        db.query(WishlistItem).delete()
+        db.query(Wishlist).delete()
         db.query(CartItem).delete()
         db.query(Cart).delete()
         db.query(ProductImage).delete()
@@ -497,6 +502,221 @@ def test_cart_with_discount_price():
     assert abs(cart["subtotal"] - 80.0) < 0.01
 
     client.delete("/cart/clear", params={"cart_id": cart_id})
+
+
+# --- Wishlist ---
+
+def test_add_to_wishlist():
+    p = client.post("/products", json={"name": "Wish Fish", "price": 10.0, "stock_quantity": 5}).json()
+
+    response = client.post("/wishlist", json={"product_id": p["id"]})
+    assert response.status_code == 201
+    data = response.json()
+    assert len(data["items"]) == 1
+    assert data["items"][0]["product_id"] == p["id"]
+    assert data["items"][0]["product"]["name"] == "Wish Fish"
+    assert len(data["id"]) == 36
+
+    wishlist_id = data["id"]
+    client.delete(f"/wishlist/{p['id']}", params={"wishlist_id": wishlist_id})
+
+
+def test_add_to_existing_wishlist():
+    p1 = client.post("/products", json={"name": "W1", "price": 5.0, "stock_quantity": 5}).json()
+    p2 = client.post("/products", json={"name": "W2", "price": 8.0, "stock_quantity": 5}).json()
+
+    wl = client.post("/wishlist", json={"product_id": p1["id"]}).json()
+    wl_id = wl["id"]
+
+    response = client.post("/wishlist", json={"wishlist_id": wl_id, "product_id": p2["id"]})
+    assert response.status_code == 201
+    assert len(response.json()["items"]) == 2
+
+    client.delete(f"/wishlist/{p1['id']}", params={"wishlist_id": wl_id})
+    client.delete(f"/wishlist/{p2['id']}", params={"wishlist_id": wl_id})
+
+
+def test_add_duplicate_to_wishlist():
+    p = client.post("/products", json={"name": "Dup Wish Fish", "price": 12.0, "stock_quantity": 5}).json()
+    wl = client.post("/wishlist", json={"product_id": p["id"]}).json()
+    wl_id = wl["id"]
+
+    response = client.post("/wishlist", json={"wishlist_id": wl_id, "product_id": p["id"]})
+    assert response.status_code == 400
+
+    client.delete(f"/wishlist/{p['id']}", params={"wishlist_id": wl_id})
+
+
+def test_get_wishlist():
+    p1 = client.post("/products", json={"name": "Get Wish 1", "price": 7.0, "stock_quantity": 5}).json()
+    p2 = client.post("/products", json={"name": "Get Wish 2", "price": 9.0, "stock_quantity": 5}).json()
+
+    wl = client.post("/wishlist", json={"product_id": p1["id"]}).json()
+    wl_id = wl["id"]
+    client.post("/wishlist", json={"wishlist_id": wl_id, "product_id": p2["id"]})
+
+    response = client.get("/wishlist", params={"wishlist_id": wl_id})
+    assert response.status_code == 200
+    assert len(response.json()["items"]) == 2
+    assert response.json()["id"] == wl_id
+
+    client.delete(f"/wishlist/{p1['id']}", params={"wishlist_id": wl_id})
+    client.delete(f"/wishlist/{p2['id']}", params={"wishlist_id": wl_id})
+
+
+def test_remove_from_wishlist():
+    p = client.post("/products", json={"name": "Remove Wish Fish", "price": 6.0, "stock_quantity": 5}).json()
+    wl = client.post("/wishlist", json={"product_id": p["id"]}).json()
+    wl_id = wl["id"]
+
+    response = client.delete(f"/wishlist/{p['id']}", params={"wishlist_id": wl_id})
+    assert response.status_code == 200
+    assert len(response.json()["items"]) == 0
+
+
+def test_add_nonexistent_product_to_wishlist():
+    response = client.post("/wishlist", json={"product_id": 99999})
+    assert response.status_code == 404
+
+
+def test_get_nonexistent_wishlist():
+    response = client.get("/wishlist", params={"wishlist_id": "nonexistent-uuid"})
+    assert response.status_code == 404
+
+
+def test_remove_nonexistent_wishlist_item():
+    response = client.delete("/wishlist/99999", params={"wishlist_id": "some-uuid"})
+    assert response.status_code == 404
+
+
+# --- Addresses ---
+
+USER_ID = "test-user-uuid-1234"
+
+def test_create_address():
+    response = client.post("/addresses", json={
+        "user_id": USER_ID,
+        "full_name": "John Doe",
+        "phone": "+1234567890",
+        "country": "US",
+        "city": "New York",
+        "district": "Manhattan",
+        "address_line": "123 Main St, Apt 4B",
+        "postal_code": "10001",
+        "is_default": True,
+    })
+    assert response.status_code == 201
+    data = response.json()
+    assert data["full_name"] == "John Doe"
+    assert data["phone"] == "+1234567890"
+    assert data["is_default"] == True
+    assert data["user_id"] == USER_ID
+    assert "id" in data
+
+
+def test_list_addresses():
+    response = client.get("/addresses", params={"user_id": USER_ID})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total"] >= 1
+    assert len(data["items"]) >= 1
+
+
+def test_get_address():
+    resp = client.post("/addresses", json={
+        "user_id": USER_ID,
+        "full_name": "Jane Doe",
+        "phone": "+0987654321",
+        "country": "US",
+        "city": "Los Angeles",
+        "address_line": "456 Oak Ave",
+    })
+    addr_id = resp.json()["id"]
+
+    response = client.get(f"/addresses/{addr_id}")
+    assert response.status_code == 200
+    assert response.json()["full_name"] == "Jane Doe"
+
+
+def test_update_address():
+    resp = client.post("/addresses", json={
+        "user_id": USER_ID,
+        "full_name": "Bob Smith",
+        "phone": "+1111111111",
+        "country": "CA",
+        "city": "Toronto",
+        "address_line": "789 Maple St",
+    })
+    addr_id = resp.json()["id"]
+
+    response = client.put(f"/addresses/{addr_id}", json={"full_name": "Robert Smith", "phone": "+2222222222"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["full_name"] == "Robert Smith"
+    assert data["phone"] == "+2222222222"
+
+
+def test_set_default_address():
+    addr1 = client.post("/addresses", json={
+        "user_id": USER_ID,
+        "full_name": "Default Test 1",
+        "phone": "+1",
+        "country": "US",
+        "city": "City1",
+        "address_line": "Addr1",
+        "is_default": True,
+    }).json()
+
+    addr2 = client.post("/addresses", json={
+        "user_id": USER_ID,
+        "full_name": "Default Test 2",
+        "phone": "+2",
+        "country": "US",
+        "city": "City2",
+        "address_line": "Addr2",
+    }).json()
+
+    # Set addr2 as default
+    client.put(f"/addresses/{addr2['id']}", json={"is_default": True})
+
+    # Check addr1 is no longer default
+    r1 = client.get(f"/addresses/{addr1['id']}")
+    assert r1.json()["is_default"] == False
+
+    # Check addr2 is default
+    r2 = client.get(f"/addresses/{addr2['id']}")
+    assert r2.json()["is_default"] == True
+
+
+def test_default_comes_first():
+    resp = client.get("/addresses", params={"user_id": USER_ID})
+    assert resp.status_code == 200
+    items = resp.json()["items"]
+    if len(items) >= 2:
+        assert items[0]["is_default"] == True
+
+
+def test_delete_address():
+    resp = client.post("/addresses", json={
+        "user_id": "delete-test-user",
+        "full_name": "Delete Me",
+        "phone": "+0",
+        "country": "US",
+        "city": "Nowhere",
+        "address_line": "Nowhere Ln",
+    })
+    addr_id = resp.json()["id"]
+
+    response = client.delete(f"/addresses/{addr_id}")
+    assert response.status_code == 200
+
+    response = client.get(f"/addresses/{addr_id}")
+    assert response.status_code == 404
+
+
+def test_address_not_found():
+    response = client.get("/addresses/99999")
+    assert response.status_code == 404
 
 
 # --- Categories ---
