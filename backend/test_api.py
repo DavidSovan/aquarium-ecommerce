@@ -8,6 +8,7 @@ from models.product_image import ProductImage
 from models.cart import Cart, CartItem
 from models.wishlist import Wishlist, WishlistItem
 from models.address import Address as AddressModel
+from models.order import Order, OrderItem
 
 client = TestClient(app)
 
@@ -18,6 +19,8 @@ def setup_module(module):
     db = SessionLocal()
     try:
         db.execute(text("SET FOREIGN_KEY_CHECKS=0"))
+        db.query(OrderItem).delete()
+        db.query(Order).delete()
         db.query(AddressModel).delete()
         db.query(WishlistItem).delete()
         db.query(Wishlist).delete()
@@ -479,7 +482,7 @@ def test_remove_cart_item():
 
 
 def test_clear_cart():
-    p = client.post("/products", json={"name": "Clear Cart Fish", "price": 9.0, "stock_quantity": 5}).json()
+    p = client.post("/products", json={"name": "Clear Cart Test Fish", "price": 9.0, "stock_quantity": 5}).json()
     cart = client.post("/cart/items", json={"product_id": p["id"], "quantity": 2}).json()
     cart_id = cart["id"]
 
@@ -717,6 +720,195 @@ def test_delete_address():
 def test_address_not_found():
     response = client.get("/addresses/99999")
     assert response.status_code == 404
+
+
+# --- Checkout ---
+
+CHECKOUT_USER = "checkout-test-user"
+
+def test_checkout_empty_cart():
+    response = client.post("/checkout", json={
+        "cart_id": "nonexistent-cart",
+        "user_id": CHECKOUT_USER,
+        "shipping_address_id": 1,
+    })
+    assert response.status_code == 404
+
+
+def test_checkout_success():
+    p = client.post("/products", json={"name": "Checkout Fish", "price": 20.0, "stock_quantity": 10}).json()
+    addr = client.post("/addresses", json={
+        "user_id": CHECKOUT_USER,
+        "full_name": "Checkout User",
+        "phone": "+1",
+        "country": "US",
+        "city": "City",
+        "address_line": "123 St",
+    }).json()
+    cart = client.post("/cart/items", json={"product_id": p["id"], "quantity": 3}).json()
+
+    response = client.post("/checkout", json={
+        "cart_id": cart["id"],
+        "user_id": CHECKOUT_USER,
+        "shipping_address_id": addr["id"],
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert data["order_id"] > 0
+    assert abs(data["subtotal"] - 60.0) < 0.01  # 20 * 3
+    assert data["shipping"] == 0.0
+    assert data["discount"] == 0.0
+    assert abs(data["total"] - 60.0) < 0.01
+    assert data["status"] == "pending"
+    assert len(data["items"]) == 1
+    assert data["items"][0]["product_name"] == "Checkout Fish"
+    assert data["items"][0]["quantity"] == 3
+
+
+def test_checkout_with_discount():
+    p = client.post("/products", json={
+        "name": "Discounted Checkout Fish", "price": 50.0, "discount_price": 40.0, "stock_quantity": 5
+    }).json()
+    addr = client.post("/addresses", json={
+        "user_id": CHECKOUT_USER,
+        "full_name": "Discount User",
+        "phone": "+2",
+        "country": "US",
+        "city": "City2",
+        "address_line": "456 St",
+    }).json()
+    cart = client.post("/cart/items", json={"product_id": p["id"], "quantity": 2}).json()
+
+    response = client.post("/checkout", json={
+        "cart_id": cart["id"],
+        "user_id": CHECKOUT_USER,
+        "shipping_address_id": addr["id"],
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert abs(data["subtotal"] - 80.0) < 0.01  # 40 * 2
+    assert abs(data["discount"] - 20.0) < 0.01  # (50-40) * 2
+    assert abs(data["total"] - 80.0) < 0.01
+
+
+def test_checkout_insufficient_stock():
+    p = client.post("/products", json={"name": "Low Stock Checkout", "price": 10.0, "stock_quantity": 2}).json()
+    addr = client.post("/addresses", json={
+        "user_id": CHECKOUT_USER,
+        "full_name": "Stock User",
+        "phone": "+3",
+        "country": "US",
+        "city": "City3",
+        "address_line": "789 St",
+    }).json()
+    cart = client.post("/cart/items", json={"product_id": p["id"], "quantity": 1}).json()
+
+    # Reduce stock
+    client.put(f"/products/{p['id']}", json={"stock_quantity": 0})
+
+    response = client.post("/checkout", json={
+        "cart_id": cart["id"],
+        "user_id": CHECKOUT_USER,
+        "shipping_address_id": addr["id"],
+    })
+    assert response.status_code == 400
+    assert "stock" in response.json()["detail"].lower()
+
+
+def test_checkout_decrements_stock():
+    p = client.post("/products", json={"name": "Stock Dec Fish", "price": 15.0, "stock_quantity": 10}).json()
+    addr = client.post("/addresses", json={
+        "user_id": CHECKOUT_USER,
+        "full_name": "Stock Dec User",
+        "phone": "+4",
+        "country": "US",
+        "city": "City4",
+        "address_line": "101 St",
+    }).json()
+    cart = client.post("/cart/items", json={"product_id": p["id"], "quantity": 3}).json()
+
+    client.post("/checkout", json={
+        "cart_id": cart["id"],
+        "user_id": CHECKOUT_USER,
+        "shipping_address_id": addr["id"],
+    })
+
+    updated = client.get(f"/products/{p['id']}").json()
+    assert updated["stock_quantity"] == 7  # 10 - 3
+
+
+def test_checkout_clears_cart():
+    p = client.post("/products", json={"name": "Clear Cart Fish", "price": 8.0, "stock_quantity": 10}).json()
+    addr = client.post("/addresses", json={
+        "user_id": CHECKOUT_USER,
+        "full_name": "Clear User",
+        "phone": "+5",
+        "country": "US",
+        "city": "City5",
+        "address_line": "202 St",
+    }).json()
+    cart = client.post("/cart/items", json={"product_id": p["id"], "quantity": 2}).json()
+
+    client.post("/checkout", json={
+        "cart_id": cart["id"],
+        "user_id": CHECKOUT_USER,
+        "shipping_address_id": addr["id"],
+    })
+
+    response = client.get("/cart", params={"cart_id": cart["id"]})
+    assert response.status_code == 404
+
+
+def test_checkout_with_billing_address():
+    p = client.post("/products", json={"name": "Billing Test Fish", "price": 25.0, "stock_quantity": 5}).json()
+    shipping_addr = client.post("/addresses", json={
+        "user_id": CHECKOUT_USER,
+        "full_name": "Shipping User",
+        "phone": "+6",
+        "country": "US",
+        "city": "City6",
+        "address_line": "300 St",
+    }).json()
+    billing_addr = client.post("/addresses", json={
+        "user_id": CHECKOUT_USER,
+        "full_name": "Billing User",
+        "phone": "+7",
+        "country": "CA",
+        "city": "Toronto",
+        "address_line": "400 St",
+    }).json()
+    cart = client.post("/cart/items", json={"product_id": p["id"], "quantity": 1}).json()
+
+    response = client.post("/checkout", json={
+        "cart_id": cart["id"],
+        "user_id": CHECKOUT_USER,
+        "shipping_address_id": shipping_addr["id"],
+        "billing_address_id": billing_addr["id"],
+    })
+    assert response.status_code == 200
+    assert response.json()["order_id"] > 0
+
+
+def test_checkout_invalid_billing_address():
+    p = client.post("/products", json={"name": "Invalid Billing Fish", "price": 15.0, "stock_quantity": 5}).json()
+    addr = client.post("/addresses", json={
+        "user_id": CHECKOUT_USER,
+        "full_name": "User",
+        "phone": "+8",
+        "country": "US",
+        "city": "City",
+        "address_line": "St",
+    }).json()
+    cart = client.post("/cart/items", json={"product_id": p["id"], "quantity": 1}).json()
+
+    response = client.post("/checkout", json={
+        "cart_id": cart["id"],
+        "user_id": CHECKOUT_USER,
+        "shipping_address_id": addr["id"],
+        "billing_address_id": 99999,
+    })
+    assert response.status_code == 404
+    assert "billing" in response.json()["detail"].lower()
 
 
 # --- Categories ---
