@@ -754,12 +754,14 @@ def test_checkout_success():
     })
     assert response.status_code == 200
     data = response.json()
-    assert data["order_id"] > 0
-    assert abs(data["subtotal"] - 60.0) < 0.01  # 20 * 3
+    assert data["id"] > 0
+    assert data["order_number"]
+    assert abs(data["subtotal"] - 60.0) < 0.01
     assert data["shipping"] == 0.0
     assert data["discount"] == 0.0
     assert abs(data["total"] - 60.0) < 0.01
-    assert data["status"] == "pending"
+    assert data["order_status"] == "pending"
+    assert data["payment_status"] == "pending"
     assert len(data["items"]) == 1
     assert data["items"][0]["product_name"] == "Checkout Fish"
     assert data["items"][0]["quantity"] == 3
@@ -886,7 +888,7 @@ def test_checkout_with_billing_address():
         "billing_address_id": billing_addr["id"],
     })
     assert response.status_code == 200
-    assert response.json()["order_id"] > 0
+    assert response.json()["id"] > 0
 
 
 def test_checkout_invalid_billing_address():
@@ -1065,3 +1067,412 @@ def test_options_categories():
     assert response.status_code == 200
     assert "access-control-allow-origin" in response.headers
     assert response.headers["access-control-allow-origin"] == origin
+
+
+# --- Orders ---
+
+ORDERS_USER = "orders-test-user"
+
+_order_counter = 0
+
+def _create_order():
+    global _order_counter
+    _order_counter += 1
+    p = client.post("/products", json={"name": f"Order Test Fish {_order_counter}", "price": 15.0, "stock_quantity": 10}).json()
+    addr = client.post("/addresses", json={
+        "user_id": ORDERS_USER,
+        "full_name": "Order User",
+        "phone": "+1",
+        "country": "US",
+        "city": "City",
+        "address_line": "123 St",
+    }).json()
+    cart = client.post("/cart/items", json={"product_id": p["id"], "quantity": 2}).json()
+    order = client.post("/checkout", json={
+        "cart_id": cart["id"],
+        "user_id": ORDERS_USER,
+        "shipping_address_id": addr["id"],
+    }).json()
+    return order
+
+
+def test_list_orders():
+    _create_order()
+    response = client.get("/orders", params={"user_id": ORDERS_USER})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total"] >= 1
+    assert len(data["items"]) >= 1
+    assert data["items"][0]["order_number"]
+    assert data["items"][0]["user_id"] == ORDERS_USER
+
+
+def test_list_orders_empty():
+    response = client.get("/orders", params={"user_id": "nonexistent-user-123"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total"] == 0
+    assert len(data["items"]) == 0
+
+
+def test_list_orders_pagination():
+    for _ in range(3):
+        _create_order()
+    response = client.get("/orders", params={"user_id": ORDERS_USER, "skip": 0, "limit": 2})
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["items"]) == 2
+    assert data["total"] >= 3
+
+
+def test_get_order():
+    order = _create_order()
+    response = client.get(f"/orders/{order['id']}")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == order["id"]
+    assert data["order_number"] == order["order_number"]
+    assert data["order_status"] == "pending"
+    assert data["payment_status"] == "pending"
+
+
+def test_get_nonexistent_order():
+    response = client.get("/orders/99999")
+    assert response.status_code == 404
+
+
+def test_update_order_status():
+    order = _create_order()
+    response = client.put(f"/orders/{order['id']}/status", json={
+        "order_status": "processing"
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert data["order_status"] == "processing"
+
+
+def test_update_payment_status():
+    order = _create_order()
+    response = client.put(f"/orders/{order['id']}/status", json={
+        "payment_status": "paid"
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert data["payment_status"] == "paid"
+
+
+def test_update_both_statuses():
+    order = _create_order()
+    response = client.put(f"/orders/{order['id']}/status", json={
+        "order_status": "shipped",
+        "payment_status": "paid"
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert data["order_status"] == "shipped"
+    assert data["payment_status"] == "paid"
+
+
+def test_update_invalid_order_status():
+    order = _create_order()
+    response = client.put(f"/orders/{order['id']}/status", json={
+        "order_status": "invalid_status"
+    })
+    assert response.status_code == 400
+    assert "Invalid order status" in response.json()["detail"]
+
+
+def test_update_invalid_payment_status():
+    order = _create_order()
+    response = client.put(f"/orders/{order['id']}/status", json={
+        "payment_status": "invalid_status"
+    })
+    assert response.status_code == 400
+    assert "Invalid payment status" in response.json()["detail"]
+
+
+def test_update_nonexistent_order_status():
+    response = client.put("/orders/99999/status", json={
+        "order_status": "processing"
+    })
+    assert response.status_code == 404
+
+
+def test_cancel_order():
+    order = _create_order()
+    response = client.delete(f"/orders/{order['id']}")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["message"] == "Order cancelled successfully"
+    assert data["order_id"] == order["id"]
+    assert "refunded_stock" in data
+
+
+def test_cancel_order_restores_stock():
+    p = client.post("/products", json={"name": "Stock Restore Fish", "price": 10.0, "stock_quantity": 5}).json()
+    addr = client.post("/addresses", json={
+        "user_id": ORDERS_USER,
+        "full_name": "User",
+        "phone": "+1",
+        "country": "US",
+        "city": "City",
+        "address_line": "St",
+    }).json()
+    cart = client.post("/cart/items", json={"product_id": p["id"], "quantity": 2}).json()
+    order = client.post("/checkout", json={
+        "cart_id": cart["id"],
+        "user_id": ORDERS_USER,
+        "shipping_address_id": addr["id"],
+    }).json()
+
+    stock_before_cancel = client.get(f"/products/{p['id']}").json()["stock_quantity"]
+    assert stock_before_cancel == 3  # 5 - 2
+
+    client.delete(f"/orders/{order['id']}")
+
+    stock_after_cancel = client.get(f"/products/{p['id']}").json()["stock_quantity"]
+    assert stock_after_cancel == 5  # Stock restored
+
+
+def test_cancel_already_cancelled_order():
+    order = _create_order()
+    client.delete(f"/orders/{order['id']}")
+    response = client.delete(f"/orders/{order['id']}")
+    assert response.status_code == 400
+    assert "already cancelled" in response.json()["detail"]
+
+
+def test_cannot_cancel_shipped_order():
+    order = _create_order()
+    client.put(f"/orders/{order['id']}/status", json={"order_status": "shipped"})
+    response = client.delete(f"/orders/{order['id']}")
+    assert response.status_code == 400
+    assert "Cannot cancel" in response.json()["detail"]
+
+
+def test_cannot_cancel_delivered_order():
+    order = _create_order()
+    client.put(f"/orders/{order['id']}/status", json={"order_status": "delivered"})
+    response = client.delete(f"/orders/{order['id']}")
+    assert response.status_code == 400
+    assert "Cannot cancel" in response.json()["detail"]
+
+
+def test_cancel_refunds_payment():
+    order = _create_order()
+    client.put(f"/orders/{order['id']}/status", json={"payment_status": "paid"})
+    client.delete(f"/orders/{order['id']}")
+
+    updated_order = client.get(f"/orders/{order['id']}").json()
+    assert updated_order["order_status"] == "cancelled"
+    assert updated_order["payment_status"] == "refunded"
+
+
+def test_cancel_nonexistent_order():
+    response = client.delete("/orders/99999")
+    assert response.status_code == 404
+
+
+# --- Inventory ---
+
+INVENTORY_ADMIN = "inventory-admin-user"
+
+def test_increase_stock():
+    p = client.post("/products", json={"name": "Stock Test Fish", "price": 10.0, "stock_quantity": 5}).json()
+    initial_stock = p["stock_quantity"]
+
+    response = client.post("/inventory/adjustments", json={
+        "product_id": p["id"],
+        "adjustment_type": "increase",
+        "quantity_change": 10,
+        "reason": "Restock order",
+        "adjusted_by": INVENTORY_ADMIN,
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert data["message"] == "Stock adjusted successfully"
+    assert data["quantity_before"] == initial_stock
+    assert data["quantity_after"] == initial_stock + 10
+    assert data["adjustment_type"] == "increase"
+
+    updated = client.get(f"/products/{p['id']}").json()
+    assert updated["stock_quantity"] == initial_stock + 10
+
+
+def test_decrease_stock():
+    p = client.post("/products", json={"name": "Decrease Fish", "price": 12.0, "stock_quantity": 20}).json()
+
+    response = client.post("/inventory/adjustments", json={
+        "product_id": p["id"],
+        "adjustment_type": "decrease",
+        "quantity_change": 5,
+        "reason": "Damaged stock",
+        "adjusted_by": INVENTORY_ADMIN,
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert data["quantity_before"] == 20
+    assert data["quantity_after"] == 15
+
+    updated = client.get(f"/products/{p['id']}").json()
+    assert updated["stock_quantity"] == 15
+
+
+def test_decrease_more_than_available():
+    p = client.post("/products", json={"name": "Limited Fish", "price": 8.0, "stock_quantity": 3}).json()
+
+    response = client.post("/inventory/adjustments", json={
+        "product_id": p["id"],
+        "adjustment_type": "decrease",
+        "quantity_change": 10,
+    })
+    assert response.status_code == 400
+    assert "Cannot decrease stock" in response.json()["detail"]
+
+
+def test_correction_adjustment():
+    p = client.post("/products", json={"name": "Correction Fish", "price": 9.0, "stock_quantity": 10}).json()
+
+    response = client.post("/inventory/adjustments", json={
+        "product_id": p["id"],
+        "adjustment_type": "correction",
+        "quantity_change": 5,
+        "reason": "Count discrepancy",
+        "adjusted_by": INVENTORY_ADMIN,
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert data["adjustment_type"] == "correction"
+
+
+def test_initial_adjustment():
+    p = client.post("/products", json={"name": "Initial Fish", "price": 7.0, "stock_quantity": 0}).json()
+
+    response = client.post("/inventory/adjustments", json={
+        "product_id": p["id"],
+        "adjustment_type": "initial",
+        "quantity_change": 50,
+        "reason": "Initial stock load",
+        "adjusted_by": INVENTORY_ADMIN,
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert data["quantity_before"] == 0
+    assert data["quantity_after"] == 50
+
+
+def test_adjust_nonexistent_product():
+    response = client.post("/inventory/adjustments", json={
+        "product_id": 99999,
+        "adjustment_type": "increase",
+        "quantity_change": 5,
+    })
+    assert response.status_code == 404
+
+
+def test_invalid_adjustment_type():
+    p = client.post("/products", json={"name": "Invalid Type Fish", "price": 10.0, "stock_quantity": 5}).json()
+
+    response = client.post("/inventory/adjustments", json={
+        "product_id": p["id"],
+        "adjustment_type": "invalid_type",
+        "quantity_change": 5,
+    })
+    assert response.status_code == 422
+
+
+def test_get_inventory_logs():
+    p = client.post("/products", json={"name": "Log Test Fish", "price": 11.0, "stock_quantity": 10}).json()
+
+    client.post("/inventory/adjustments", json={
+        "product_id": p["id"],
+        "adjustment_type": "increase",
+        "quantity_change": 5,
+    })
+    client.post("/inventory/adjustments", json={
+        "product_id": p["id"],
+        "adjustment_type": "decrease",
+        "quantity_change": 2,
+    })
+
+    response = client.get("/inventory/logs")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total"] >= 2
+    assert len(data["items"]) >= 2
+
+
+def test_get_inventory_logs_by_product():
+    p = client.post("/products", json={"name": "Filter Fish", "price": 13.0, "stock_quantity": 5}).json()
+
+    client.post("/inventory/adjustments", json={
+        "product_id": p["id"],
+        "adjustment_type": "increase",
+        "quantity_change": 3,
+    })
+
+    response = client.get("/inventory/logs", params={"product_id": p["id"]})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total"] >= 1
+    assert all(item["product_id"] == p["id"] for item in data["items"])
+
+
+def test_get_inventory_logs_by_type():
+    p = client.post("/products", json={"name": "Type Filter Fish", "price": 14.0, "stock_quantity": 8}).json()
+
+    client.post("/inventory/adjustments", json={
+        "product_id": p["id"],
+        "adjustment_type": "increase",
+        "quantity_change": 2,
+    })
+
+    response = client.get("/inventory/logs", params={"adjustment_type": "increase"})
+    assert response.status_code == 200
+    data = response.json()
+    assert all(item["adjustment_type"] == "increase" for item in data["items"])
+
+
+def test_inventory_logs_pagination():
+    response = client.get("/inventory/logs", params={"skip": 0, "limit": 5})
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["items"]) <= 5
+
+
+def test_get_low_stock_alerts():
+    p1 = client.post("/products", json={"name": "Low Stock 1", "price": 5.0, "stock_quantity": 2}).json()
+    p2 = client.post("/products", json={"name": "Low Stock 2", "price": 6.0, "stock_quantity": 3}).json()
+    p3 = client.post("/products", json={"name": "Normal Stock", "price": 7.0, "stock_quantity": 20}).json()
+
+    response = client.get("/inventory/low-stock", params={"threshold": 5})
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) >= 2
+    assert any(item["product_id"] == p1["id"] for item in data)
+    assert any(item["product_id"] == p2["id"] for item in data)
+    assert all(item["product_id"] != p3["id"] for item in data)
+
+
+def test_low_stock_alert_structure():
+    response = client.get("/inventory/low-stock", params={"threshold": 5})
+    assert response.status_code == 200
+    data = response.json()
+    if data:
+        item = data[0]
+        assert "product_id" in item
+        assert "product_name" in item
+        assert "current_stock" in item
+        assert "threshold" in item
+        assert "is_low_stock" in item
+        assert item["is_low_stock"] == True
+
+
+def test_custom_low_stock_threshold():
+    p = client.post("/products", json={"name": "Custom Threshold", "price": 10.0, "stock_quantity": 15}).json()
+
+    response = client.get("/inventory/low-stock", params={"threshold": 20})
+    assert response.status_code == 200
+    data = response.json()
+    assert any(item["product_id"] == p["id"] for item in data)
+

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { AdminCategories } from './pages/AdminCategories';
 import { AdminProducts } from './pages/AdminProducts';
+import { AdminInventory } from './pages/AdminInventory';
 import { Shop } from './pages/Shop';
 import { ProductDetail } from './pages/ProductDetail';
 import { CartPage } from './pages/CartPage';
@@ -31,6 +32,7 @@ function Layout({ children }) {
             <Link to="/shop" className="text-gray-600 hover:text-blue-600 font-medium text-sm">Shop</Link>
             <Link to="/admin/categories" className="text-gray-600 hover:text-blue-600 font-medium text-sm">Categories</Link>
             <Link to="/admin/products" className="text-gray-600 hover:text-blue-600 font-medium text-sm">Products</Link>
+            <Link to="/admin/inventory" className="text-gray-600 hover:text-blue-600 font-medium text-sm">Inventory</Link>
             <Link to="/account/addresses" className="text-gray-600 hover:text-blue-600 font-medium text-sm">Addresses</Link>
             <Link to="/wishlist" className="text-gray-600 hover:text-blue-600">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -110,6 +112,7 @@ function App() {
             <Route path="/account/addresses" element={<AddressPage />} />
             <Route path="/admin/categories" element={<AdminCategories />} />
             <Route path="/admin/products" element={<AdminProducts />} />
+            <Route path="/admin/inventory" element={<AdminInventory />} />
           </Routes>
         </Layout>
       </BrowserRouter>

@@ -10,8 +10,13 @@ from schemas.order import (
     OrderItemResponse,
     OrderResponse,
 )
+import uuid
 
 router = APIRouter(prefix="/checkout", tags=["checkout"])
+
+
+def generate_order_number():
+    return f"ORD-{uuid.uuid4().hex[:12].upper()}"
 
 
 @router.post("", response_model=OrderResponse)
@@ -71,8 +76,10 @@ def checkout(data: CheckoutRequest, db: Session = Depends(get_db)):
     total = round(subtotal + shipping, 2)
 
     order = Order(
+        order_number=generate_order_number(),
         user_id=data.user_id,
-        status="pending",
+        order_status="pending",
+        payment_status="pending",
         subtotal=subtotal,
         shipping=shipping,
         discount=discount,
@@ -99,7 +106,11 @@ def checkout(data: CheckoutRequest, db: Session = Depends(get_db)):
     db.refresh(order)
 
     return OrderResponse(
-        order_id=order.id,
+        id=order.id,
+        order_number=order.order_number,
+        user_id=order.user_id,
+        order_status=order.order_status,
+        payment_status=order.payment_status,
         subtotal=order.subtotal,
         shipping=order.shipping,
         discount=order.discount,
@@ -113,5 +124,10 @@ def checkout(data: CheckoutRequest, db: Session = Depends(get_db)):
             unit_price=item.unit_price,
             total_price=item.total_price,
         ) for item in order.items],
-        status=order.status,
+        shipping_address_id=order.shipping_address_id,
+        billing_address_id=order.billing_address_id,
+        notes=order.notes,
+        created_at=order.created_at,
+        updated_at=order.updated_at,
     )
+

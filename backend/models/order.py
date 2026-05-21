@@ -2,14 +2,17 @@ from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Index
 from sqlalchemy.orm import relationship
 from config.database import Base
+import uuid
 
 
 class Order(Base):
     __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True, index=True)
+    order_number = Column(String(50), unique=True, nullable=False, index=True)
     user_id = Column(String(36), nullable=False, index=True)
-    status = Column(String(50), default="pending", nullable=False)
+    order_status = Column(String(50), default="pending", nullable=False)
+    payment_status = Column(String(50), default="pending", nullable=False)
     subtotal = Column(Float, default=0, nullable=False)
     shipping = Column(Float, default=0, nullable=False)
     discount = Column(Float, default=0, nullable=False)

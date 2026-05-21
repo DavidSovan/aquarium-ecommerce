@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from routers import categories, products, product_images, cart, wishlist, addresses, checkout
+from routers import categories, products, product_images, cart, wishlist, addresses, checkout, orders, inventory
 from config.database import Base, engine
 
 @asynccontextmanager
@@ -29,6 +29,8 @@ app.include_router(cart.router)
 app.include_router(wishlist.router)
 app.include_router(addresses.router)
 app.include_router(checkout.router)
+app.include_router(orders.router)
+app.include_router(inventory.router)
 
 
 @app.get("/")
