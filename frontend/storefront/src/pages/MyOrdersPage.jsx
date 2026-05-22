@@ -51,7 +51,13 @@ export function MyOrdersPage() {
                   </div>
                 ))}
               </div>
-              <div className="flex justify-between font-bold border-t pt-4">
+              {order.coupon_code && (
+                <div className="flex justify-between text-sm text-green-600 border-t pt-2">
+                  <span>Coupon: {order.coupon_code}</span>
+                  <span>-{formatPrice(order.coupon_discount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between font-bold border-t pt-2">
                 <span>Total</span>
                 <span>{formatPrice(order.total)}</span>
               </div>

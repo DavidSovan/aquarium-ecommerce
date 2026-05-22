@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import addressService from '../services/addressService';
 import orderService from '../services/orderService';
+import api from '../services/api';
 
 export function CheckoutPage() {
   const { cart, loading: cartLoading } = useCart();
@@ -14,6 +15,10 @@ export function CheckoutPage() {
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponError, setCouponError] = useState(null);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   useEffect(() => {
     addressService.getAddresses().then(res => {
@@ -22,6 +27,34 @@ export function CheckoutPage() {
       if (defaultAddr) setSelectedAddressId(defaultAddr.id);
     }).catch(() => {});
   }, []);
+
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    setValidatingCoupon(true);
+    setCouponError(null);
+    try {
+      const res = await api.post('/coupons/validate', {
+        code: couponInput.trim(),
+        order_amount: cart.subtotal,
+      });
+      if (res.data.valid) {
+        setAppliedCoupon(res.data);
+        setCouponInput('');
+      } else {
+        setCouponError(res.data.message || 'Invalid coupon');
+        setAppliedCoupon(null);
+      }
+    } catch {
+      setCouponError('Failed to validate coupon');
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponError(null);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,6 +66,7 @@ export function CheckoutPage() {
         cart_id: cart.id,
         shipping_address_id: parseInt(selectedAddressId),
         notes: notes || null,
+        coupon_code: appliedCoupon?.coupon?.code || null,
       });
       navigate(`/orders`);
     } catch (err) {
@@ -108,8 +142,53 @@ export function CheckoutPage() {
                 </div>
               ))}
               <div className="border-t pt-4 flex justify-between font-bold text-lg">
-                <span>Total</span>
+                <span>Subtotal</span>
                 <span>{formatPrice(cart.subtotal)}</span>
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={couponInput}
+                    onChange={e => setCouponInput(e.target.value.toUpperCase())}
+                    placeholder="Coupon code"
+                    className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={!!appliedCoupon}
+                  />
+                  {appliedCoupon ? (
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      className="px-3 py-2 text-sm text-red-600 border border-red-300 rounded-lg hover:bg-red-50"
+                    >
+                      Remove
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleApplyCoupon}
+                      disabled={validatingCoupon || !couponInput.trim()}
+                      className="px-3 py-2 text-sm bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50"
+                    >
+                      {validatingCoupon ? '...' : 'Apply'}
+                    </button>
+                  )}
+                </div>
+                {couponError && (
+                  <p className="mt-1 text-sm text-red-600">{couponError}</p>
+                )}
+                {appliedCoupon && (
+                  <div className="mt-2 flex justify-between text-sm text-green-600">
+                    <span>Coupon: {appliedCoupon.coupon.code}</span>
+                    <span>-{formatPrice(appliedCoupon.discount_amount)}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t pt-4 flex justify-between font-bold text-lg">
+                <span>Total</span>
+                <span>{formatPrice(cart.subtotal - (appliedCoupon?.discount_amount || 0))}</span>
               </div>
               <button
                 type="submit"
