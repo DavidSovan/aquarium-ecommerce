@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from sqlalchemy.orm import Session
 from config.database import get_db
 from models.order import Order, OrderItem
@@ -12,6 +12,7 @@ from schemas.order import (
     OrderItemResponse,
 )
 from dependencies.auth import get_current_user, require_role
+from services.telegram_service import send_telegram_message, format_order_cancelled_notification
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -90,6 +91,7 @@ def update_order_status(
 @router.delete("/{order_id}", response_model=CancelOrderResponse)
 def cancel_order(
     order_id: int,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -110,17 +112,28 @@ def cancel_order(
         )
 
     refunded_stock = {}
+    items_snapshot = []
     for item in order.items:
         product = db.query(Product).filter(Product.id == item.product_id).first()
         if product:
             product.stock_quantity += item.quantity
             refunded_stock[item.product_name] = item.quantity
+        items_snapshot.append({
+            "product_name": item.product_name,
+            "quantity": item.quantity,
+            "total_price": item.total_price,
+        })
 
     order.order_status = "cancelled"
     if order.payment_status == "paid":
         order.payment_status = "refunded"
 
     db.commit()
+
+    customer = db.query(User).filter(User.id == order.user_id).first()
+    msg = format_order_cancelled_notification(order, items_snapshot, customer or current_user)
+    background_tasks.add_task(send_telegram_message, msg)
+
     return CancelOrderResponse(
         message="Order cancelled successfully",
         order_id=order.id,
@@ -138,6 +151,8 @@ def _order_to_response(order: Order) -> OrderResponse:
         subtotal=order.subtotal,
         shipping=order.shipping,
         discount=order.discount,
+        coupon_code=order.coupon_code,
+        coupon_discount=order.coupon_discount,
         total=order.total,
         items=[OrderItemResponse(
             id=item.id,

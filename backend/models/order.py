@@ -16,6 +16,8 @@ class Order(Base):
     subtotal = Column(Float, default=0, nullable=False)
     shipping = Column(Float, default=0, nullable=False)
     discount = Column(Float, default=0, nullable=False)
+    coupon_code = Column(String(50), nullable=True)
+    coupon_discount = Column(Float, default=0, nullable=False)
     total = Column(Float, default=0, nullable=False)
     shipping_address_id = Column(Integer, ForeignKey("addresses.id"), nullable=True)
     billing_address_id = Column(Integer, ForeignKey("addresses.id"), nullable=True)

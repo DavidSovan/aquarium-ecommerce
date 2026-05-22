@@ -8,6 +8,7 @@ class CheckoutRequest(BaseModel):
     shipping_address_id: int
     billing_address_id: Optional[int] = None
     notes: Optional[str] = None
+    coupon_code: Optional[str] = None
 
 
 class UpdateOrderStatusRequest(BaseModel):
@@ -34,6 +35,8 @@ class OrderResponse(BaseModel):
     subtotal: float
     shipping: float
     discount: float
+    coupon_code: Optional[str] = None
+    coupon_discount: float = 0
     total: float
     items: List[OrderItemResponse]
     shipping_address_id: Optional[int] = None
