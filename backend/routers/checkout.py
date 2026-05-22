@@ -5,11 +5,13 @@ from models.cart import Cart, CartItem
 from models.order import Order, OrderItem
 from models.product import Product
 from models.address import Address
+from models.user import User
 from schemas.order import (
     CheckoutRequest,
     OrderItemResponse,
     OrderResponse,
 )
+from dependencies.auth import get_current_user, require_role
 import uuid
 
 router = APIRouter(prefix="/checkout", tags=["checkout"])
@@ -20,7 +22,11 @@ def generate_order_number():
 
 
 @router.post("", response_model=OrderResponse)
-def checkout(data: CheckoutRequest, db: Session = Depends(get_db)):
+def checkout(
+    data: CheckoutRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("customer", "staff", "admin")),
+):
     cart = db.query(Cart).filter(Cart.id == data.cart_id).first()
     if not cart:
         raise HTTPException(status_code=404, detail="Cart not found")
@@ -32,11 +38,15 @@ def checkout(data: CheckoutRequest, db: Session = Depends(get_db)):
     shipping_addr = db.query(Address).filter(Address.id == data.shipping_address_id).first()
     if not shipping_addr:
         raise HTTPException(status_code=404, detail="Shipping address not found")
+    if shipping_addr.user_id != current_user.id and current_user.role not in ("admin", "staff"):
+        raise HTTPException(status_code=403, detail="Not authorized to use this address")
 
     if data.billing_address_id:
         billing_addr = db.query(Address).filter(Address.id == data.billing_address_id).first()
         if not billing_addr:
             raise HTTPException(status_code=404, detail="Billing address not found")
+        if billing_addr.user_id != current_user.id and current_user.role not in ("admin", "staff"):
+            raise HTTPException(status_code=403, detail="Not authorized to use this billing address")
 
     order_items_data = []
     subtotal = 0.0
@@ -77,7 +87,7 @@ def checkout(data: CheckoutRequest, db: Session = Depends(get_db)):
 
     order = Order(
         order_number=generate_order_number(),
-        user_id=data.user_id,
+        user_id=current_user.id,
         order_status="pending",
         payment_status="pending",
         subtotal=subtotal,
@@ -130,4 +140,3 @@ def checkout(data: CheckoutRequest, db: Session = Depends(get_db)):
         created_at=order.created_at,
         updated_at=order.updated_at,
     )
-

@@ -29,6 +29,7 @@ class Product(Base):
 
     category = relationship("Category", backref="products")
     images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan", order_by="ProductImage.sort_order")
+    reviews = relationship("Review", back_populates="product", cascade="all, delete-orphan")
 
     __table_args__ = (
         Index("idx_category_id", "category_id"),

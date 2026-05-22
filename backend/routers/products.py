@@ -6,6 +6,7 @@ from typing import Optional
 from config.database import get_db
 from models.product import Product
 from models.category import Category
+from models.user import User
 from schemas.product import (
     ProductCreate,
     ProductUpdate,
@@ -13,6 +14,8 @@ from schemas.product import (
     ProductDetail,
     ProductListResponse,
 )
+from dependencies.auth import require_role
+from typing import Annotated
 
 router = APIRouter(prefix="/products", tags=["products"])
 
@@ -129,7 +132,11 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("", response_model=ProductResponse, status_code=201)
-def create_product(product: ProductCreate, db: Session = Depends(get_db)):
+def create_product(
+    product: ProductCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "staff")),
+):
     slug = product.slug or generate_slug(product.name)
 
     existing = db.query(Product).filter(Product.slug == slug).first()
@@ -170,7 +177,12 @@ def create_product(product: ProductCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/{product_id}", response_model=ProductResponse)
-def update_product(product_id: int, product: ProductUpdate, db: Session = Depends(get_db)):
+def update_product(
+    product_id: int,
+    product: ProductUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "staff")),
+):
     db_product = db.query(Product).filter(Product.id == product_id).first()
     if not db_product:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -248,7 +260,11 @@ def update_product(product_id: int, product: ProductUpdate, db: Session = Depend
 
 
 @router.delete("/{product_id}")
-def delete_product(product_id: int, db: Session = Depends(get_db)):
+def delete_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "staff")),
+):
     db_product = db.query(Product).filter(Product.id == product_id).first()
     if not db_product:
         raise HTTPException(status_code=404, detail="Product not found")

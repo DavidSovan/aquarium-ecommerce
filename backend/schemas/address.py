@@ -15,7 +15,7 @@ class AddressBase(BaseModel):
 
 
 class AddressCreate(AddressBase):
-    user_id: str = Field(..., min_length=1, max_length=36)
+    pass
 
 
 class AddressUpdate(BaseModel):

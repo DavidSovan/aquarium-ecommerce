@@ -27,6 +27,10 @@ class WishlistItemResponse(BaseModel):
     added_at: datetime
 
 
+class MergeWishlistRequest(BaseModel):
+    guest_wishlist_id: str
+
+
 class WishlistResponse(BaseModel):
     id: str
     items: List[WishlistItemResponse]

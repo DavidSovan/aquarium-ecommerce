@@ -5,7 +5,6 @@ from datetime import datetime
 
 class CheckoutRequest(BaseModel):
     cart_id: str = Field(..., min_length=1, max_length=36)
-    user_id: str = Field(..., min_length=1, max_length=36)
     shipping_address_id: int
     billing_address_id: Optional[int] = None
     notes: Optional[str] = None

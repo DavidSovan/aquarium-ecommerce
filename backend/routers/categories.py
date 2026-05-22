@@ -4,6 +4,7 @@ from sqlalchemy import and_
 import re
 from config.database import get_db
 from models.category import Category
+from models.user import User
 from schemas.category import (
     CategoryCreate,
     CategoryUpdate,
@@ -11,6 +12,7 @@ from schemas.category import (
     CategoryDetail,
     CategoryTreeNode,
 )
+from dependencies.auth import require_role
 
 router = APIRouter(prefix="/categories", tags=["categories"])
 
@@ -69,7 +71,11 @@ def get_category(category_id: int, db: Session = Depends(get_db)):
     return category
 
 @router.post("", response_model=CategoryResponse)
-def create_category(category: CategoryCreate, db: Session = Depends(get_db)):
+def create_category(
+    category: CategoryCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "staff")),
+):
     slug = category.slug or generate_slug(category.name)
 
     existing = db.query(Category).filter(Category.slug == slug).first()
@@ -93,7 +99,12 @@ def create_category(category: CategoryCreate, db: Session = Depends(get_db)):
     return db_category
 
 @router.put("/{category_id}", response_model=CategoryResponse)
-def update_category(category_id: int, category: CategoryUpdate, db: Session = Depends(get_db)):
+def update_category(
+    category_id: int,
+    category: CategoryUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "staff")),
+):
     db_category = db.query(Category).filter(Category.id == category_id).first()
     if not db_category:
         raise HTTPException(status_code=404, detail="Category not found")
@@ -133,7 +144,11 @@ def update_category(category_id: int, category: CategoryUpdate, db: Session = De
     return db_category
 
 @router.delete("/{category_id}")
-def delete_category(category_id: int, db: Session = Depends(get_db)):
+def delete_category(
+    category_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "staff")),
+):
     db_category = db.query(Category).filter(Category.id == category_id).first()
     if not db_category:
         raise HTTPException(status_code=404, detail="Category not found")

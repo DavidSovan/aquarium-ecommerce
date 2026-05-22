@@ -4,17 +4,24 @@ from typing import List
 from config.database import get_db
 from models.product import Product
 from models.product_image import ProductImage
+from models.user import User
 from schemas.product_image import (
     ProductImageCreate,
     ProductImageResponse,
     ReorderRequest,
 )
+from dependencies.auth import require_role
 
 router = APIRouter(prefix="/products", tags=["product-images"])
 
 
 @router.post("/{product_id}/images", response_model=ProductImageResponse, status_code=201)
-def upload_image(product_id: int, data: ProductImageCreate, db: Session = Depends(get_db)):
+def upload_image(
+    product_id: int,
+    data: ProductImageCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "staff")),
+):
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -47,7 +54,11 @@ def get_product_images(product_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/images/reorder")
-def reorder_images(data: ReorderRequest, db: Session = Depends(get_db)):
+def reorder_images(
+    data: ReorderRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "staff")),
+):
     for item in data.items:
         image = db.query(ProductImage).filter(ProductImage.id == item.id).first()
         if not image:
@@ -58,7 +69,11 @@ def reorder_images(data: ReorderRequest, db: Session = Depends(get_db)):
 
 
 @router.delete("/images/{image_id}")
-def delete_image(image_id: int, db: Session = Depends(get_db)):
+def delete_image(
+    image_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "staff")),
+):
     image = db.query(ProductImage).filter(ProductImage.id == image_id).first()
     if not image:
         raise HTTPException(status_code=404, detail="Image not found")

@@ -35,6 +35,10 @@ class CartItemResponse(BaseModel):
     total_price: float
 
 
+class MergeCartRequest(BaseModel):
+    guest_cart_id: str
+
+
 class CartResponse(BaseModel):
     id: str
     items: List[CartItemResponse]

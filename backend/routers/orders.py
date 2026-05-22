@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from config.database import get_db
 from models.order import Order, OrderItem
 from models.product import Product
+from models.user import User
 from schemas.order import (
     OrderResponse,
     OrderListResponse,
@@ -10,6 +11,7 @@ from schemas.order import (
     CancelOrderResponse,
     OrderItemResponse,
 )
+from dependencies.auth import get_current_user, require_role
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -19,15 +21,19 @@ VALID_PAYMENT_STATUSES = {"pending", "paid", "failed", "refunded"}
 
 @router.get("", response_model=OrderListResponse)
 def list_orders(
-    user_id: str = Query(..., min_length=1, max_length=36),
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    total = db.query(Order).filter(Order.user_id == user_id).count()
-    orders = db.query(Order).filter(
-        Order.user_id == user_id
-    ).order_by(Order.created_at.desc()).offset(skip).limit(limit).all()
+    if current_user.role in ("admin", "staff"):
+        total = db.query(Order).count()
+        orders = db.query(Order).order_by(Order.created_at.desc()).offset(skip).limit(limit).all()
+    else:
+        total = db.query(Order).filter(Order.user_id == current_user.id).count()
+        orders = db.query(Order).filter(
+            Order.user_id == current_user.id
+        ).order_by(Order.created_at.desc()).offset(skip).limit(limit).all()
 
     return OrderListResponse(
         total=total,
@@ -36,10 +42,16 @@ def list_orders(
 
 
 @router.get("/{order_id}", response_model=OrderResponse)
-def get_order(order_id: int, db: Session = Depends(get_db)):
+def get_order(
+    order_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
+    if order.user_id != current_user.id and current_user.role not in ("admin", "staff"):
+        raise HTTPException(status_code=403, detail="Not authorized to view this order")
     return _order_to_response(order)
 
 
@@ -47,7 +59,8 @@ def get_order(order_id: int, db: Session = Depends(get_db)):
 def update_order_status(
     order_id: int,
     data: UpdateOrderStatusRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "staff")),
 ):
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
@@ -75,10 +88,17 @@ def update_order_status(
 
 
 @router.delete("/{order_id}", response_model=CancelOrderResponse)
-def cancel_order(order_id: int, db: Session = Depends(get_db)):
+def cancel_order(
+    order_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
+
+    if order.user_id != current_user.id and current_user.role not in ("admin", "staff"):
+        raise HTTPException(status_code=403, detail="Not authorized to cancel this order")
 
     if order.order_status == "cancelled":
         raise HTTPException(status_code=400, detail="Order is already cancelled")

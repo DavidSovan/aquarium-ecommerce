@@ -4,6 +4,7 @@ from typing import Optional
 from config.database import get_db
 from models.product import Product
 from models.inventory import InventoryLog
+from models.user import User
 from schemas.inventory import (
     StockAdjustmentRequest,
     StockAdjustmentResponse,
@@ -11,6 +12,7 @@ from schemas.inventory import (
     InventoryLogsListResponse,
     LowStockAlertResponse,
 )
+from dependencies.auth import require_role
 
 router = APIRouter(prefix="/inventory", tags=["inventory"])
 
@@ -20,7 +22,8 @@ LOW_STOCK_THRESHOLD = 5
 @router.post("/adjustments", response_model=StockAdjustmentResponse)
 def adjust_stock(
     data: StockAdjustmentRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "staff")),
 ):
     product = db.query(Product).filter(Product.id == data.product_id).first()
     if not product:
@@ -51,7 +54,7 @@ def adjust_stock(
         quantity_before=quantity_before,
         quantity_after=quantity_after,
         reason=data.reason,
-        adjusted_by=data.adjusted_by,
+        adjusted_by=current_user.email,
     )
     db.add(log)
     db.commit()
@@ -74,7 +77,8 @@ def get_inventory_logs(
     adjustment_type: Optional[str] = Query(None),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "staff")),
 ):
     query = db.query(InventoryLog)
 
@@ -96,7 +100,8 @@ def get_inventory_logs(
 @router.get("/low-stock", response_model=list[LowStockAlertResponse])
 def get_low_stock_alerts(
     threshold: int = Query(LOW_STOCK_THRESHOLD, ge=1),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "staff")),
 ):
     low_stock_products = db.query(Product).filter(
         Product.stock_quantity <= threshold
@@ -112,4 +117,3 @@ def get_low_stock_alerts(
         )
         for p in low_stock_products
     ]
-
