@@ -5,12 +5,14 @@ import reviewService from '../services/reviewService';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 import { StarRating } from '../components/StarRating';
 import { ReviewList } from '../components/ReviewList';
 import { ReviewForm } from '../components/ReviewForm';
 
 export function ProductDetail() {
   const { slug } = useParams();
+  const { storeName } = useSiteSettings();
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState({ items: [], total: 0, average_rating: 0 });
   const [loading, setLoading] = useState(true);
@@ -18,6 +20,10 @@ export function ProductDetail() {
   const { addItem } = useCart();
   const { addItem: addWishlist, removeItem: removeWishlist, isInWishlist } = useWishlist();
   const { user } = useAuth();
+
+  useEffect(() => {
+    document.title = storeName;
+  }, [storeName]);
 
   useEffect(() => {
     loadProduct();
@@ -28,6 +34,7 @@ export function ProductDetail() {
     try {
       const res = await productService.getProductBySlug(slug);
       setProduct(res.data);
+      document.title = `${res.data.name} - ${storeName}`;
       const revRes = await reviewService.getProductReviews(res.data.id);
       setReviews(revRes.data);
     } catch (err) {

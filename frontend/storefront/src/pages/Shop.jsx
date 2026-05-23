@@ -4,9 +4,15 @@ import categoryService from '../services/categoryService';
 import { ProductCard } from '../components/ProductCard';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
 export function Shop() {
+  const { storeName } = useSiteSettings();
   const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    document.title = `Shop - ${storeName}`;
+  }, [storeName]);
   const [categories, setCategories] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);

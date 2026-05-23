@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider, useCart } from './context/CartContext';
 import { WishlistProvider, useWishlist } from './context/WishlistContext';
+import { SiteSettingsProvider, useSiteSettings } from './context/SiteSettingsContext';
 import { Navbar } from './components/Navbar';
 import { CartDrawer } from './components/CartDrawer';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -19,10 +20,16 @@ import { MyAddressesPage } from './pages/MyAddressesPage';
 import { MyReviewsPage } from './pages/MyReviewsPage';
 
 function Home() {
+  const { storeName } = useSiteSettings();
+
+  useEffect(() => {
+    document.title = storeName;
+  }, [storeName]);
+
   return (
     <div className="min-h-[80vh] bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center">
       <div className="max-w-6xl mx-auto px-4 py-16 text-center">
-        <h1 className="text-5xl font-bold text-gray-900 mb-4">Welcome to Aquarium Store</h1>
+        <h1 className="text-5xl font-bold text-gray-900 mb-4">Welcome to {storeName}</h1>
         <p className="text-xl text-gray-600 mb-8">Discover our collection of aquatic wonders</p>
         <Link to="/shop" className="inline-block px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-lg font-medium">
           Browse Shop
@@ -35,6 +42,11 @@ function Home() {
 function Layout() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const { cart, updateItem, removeItem } = useCart();
+  const { storeName } = useSiteSettings();
+
+  useEffect(() => {
+    document.title = storeName;
+  }, [storeName]);
 
   const handleUpdateQuantity = (itemId, quantity) => {
     if (quantity < 1) {
@@ -78,7 +90,9 @@ export default function App() {
       <AuthProvider>
         <CartProvider>
           <WishlistProvider>
-            <Layout />
+            <SiteSettingsProvider>
+              <Layout />
+            </SiteSettingsProvider>
           </WishlistProvider>
         </CartProvider>
       </AuthProvider>

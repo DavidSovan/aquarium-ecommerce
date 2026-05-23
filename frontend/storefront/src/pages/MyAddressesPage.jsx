@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react';
 import addressService from '../services/addressService';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
 export function MyAddressesPage() {
+  const { storeName } = useSiteSettings();
   const [addresses, setAddresses] = useState([]);
+
+  useEffect(() => {
+    document.title = `My Addresses - ${storeName}`;
+  }, [storeName]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);

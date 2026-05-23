@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -12,9 +13,14 @@ export function Login() {
   const { login } = useAuth();
   const { mergeCart } = useCart();
   const { mergeWishlist } = useWishlist();
+  const { storeName } = useSiteSettings();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get('redirect') || '/';
+
+  useEffect(() => {
+    document.title = `Login - ${storeName}`;
+  }, [storeName]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,7 +41,7 @@ export function Login() {
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-white rounded-lg shadow p-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Login</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">Login to {storeName}</h1>
 
         {error && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">{error}</div>

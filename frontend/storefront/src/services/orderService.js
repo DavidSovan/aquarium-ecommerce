@@ -16,6 +16,10 @@ export const orderService = {
   cancelOrder(id) {
     return api.delete(`/orders/${id}`);
   },
+
+  confirmDelivery(id) {
+    return api.post(`/orders/${id}/confirm-delivery`);
+  },
 };
 
 export default orderService;

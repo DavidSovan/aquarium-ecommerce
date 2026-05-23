@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -8,9 +9,14 @@ export function LoginPage() {
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const { login } = useAuth();
+  const { storeName } = useSiteSettings();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get('redirect') || '/admin';
+
+  useEffect(() => {
+    document.title = `Admin Login - ${storeName}`;
+  }, [storeName]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,7 +35,7 @@ export function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-white rounded-lg shadow p-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Admin Login</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">{storeName} - Admin Login</h1>
         <p className="text-gray-500 mb-6">Sign in with your admin account</p>
 
         {error && (

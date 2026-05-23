@@ -3,9 +3,15 @@ import { Link } from 'react-router-dom';
 import reportService from '../services/reportService';
 import inventoryService from '../services/inventoryService';
 import { StatCard } from '../components/StatCard';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
 export function Dashboard() {
+  const { storeName } = useSiteSettings();
   const [sales, setSales] = useState(null);
+
+  useEffect(() => {
+    document.title = `Dashboard - ${storeName}`;
+  }, [storeName]);
   const [lowStock, setLowStock] = useState([]);
   const [loading, setLoading] = useState(true);
 

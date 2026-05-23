@@ -1,11 +1,18 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
 export function CartPage() {
   const { cart, updateItem, removeItem, loading } = useCart();
   const { user } = useAuth();
+  const { storeName } = useSiteSettings();
   const formatPrice = (p) => `$${Number(p).toFixed(2)}`;
+
+  useEffect(() => {
+    document.title = `Shopping Cart - ${storeName}`;
+  }, [storeName]);
 
   if (loading) {
     return (

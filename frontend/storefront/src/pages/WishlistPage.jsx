@@ -1,11 +1,18 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
 export function WishlistPage() {
+  const { storeName } = useSiteSettings();
   const { wishlist, removeItem, loading } = useWishlist();
   const { addItem } = useCart();
   const formatPrice = (p) => `$${Number(p).toFixed(2)}`;
+
+  useEffect(() => {
+    document.title = `Wishlist - ${storeName}`;
+  }, [storeName]);
 
   if (loading) {
     return (

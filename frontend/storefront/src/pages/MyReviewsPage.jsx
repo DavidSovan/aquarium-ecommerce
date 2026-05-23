@@ -2,9 +2,15 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import productService from '../services/productService';
 import { StarRating } from '../components/StarRating';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
 export function MyReviewsPage() {
+  const { storeName } = useSiteSettings();
   const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    document.title = `My Reviews - ${storeName}`;
+  }, [storeName]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

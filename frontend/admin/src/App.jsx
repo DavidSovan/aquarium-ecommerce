@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { SiteSettingsProvider } from './context/SiteSettingsContext';
 import { AdminLayout } from './components/AdminLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
@@ -49,10 +50,12 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          <Route path="/admin/*" element={<ProtectedRoute><AdminRoutes /></ProtectedRoute>} />
-          <Route path="/*" element={<PublicRoute />} />
-        </Routes>
+        <SiteSettingsProvider>
+          <Routes>
+            <Route path="/admin/*" element={<ProtectedRoute><AdminRoutes /></ProtectedRoute>} />
+            <Route path="/*" element={<PublicRoute />} />
+          </Routes>
+        </SiteSettingsProvider>
       </AuthProvider>
     </BrowserRouter>
   );

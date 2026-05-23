@@ -39,7 +39,7 @@ export function OrderList() {
   const totalPages = Math.ceil(total / limit);
   const currentPage = Math.floor(skip / limit) + 1;
   const formatPrice = (p) => `$${Number(p).toFixed(2)}`;
-  const formatDate = (d) => new Date(d).toLocaleDateString();
+  const formatDate = (d) => new Date(d).toLocaleString();
   const statusColor = (s) => ({ pending: 'bg-yellow-100 text-yellow-800', processing: 'bg-blue-100 text-blue-800', shipped: 'bg-purple-100 text-purple-800', delivered: 'bg-green-100 text-green-800', cancelled: 'bg-red-100 text-red-800' }[s] || 'bg-gray-100');
 
   return (
@@ -99,13 +99,21 @@ export function OrderList() {
       {detailOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setDetailOrder(null)}>
           <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
-            <h2 className="text-xl font-bold mb-4">Order #{detailOrder.order_number}</h2>
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h2 className="text-xl font-bold">Order #{detailOrder.order_number}</h2>
+                <p className="text-sm text-gray-500">{formatDate(detailOrder.created_at)}</p>
+              </div>
+            </div>
             <div className="space-y-4">
               <div className="space-y-2">
                 {detailOrder.items.map(item => (
                   <div key={item.id} className="flex justify-between text-sm"><span>{item.product_name} x{item.quantity}</span><span>{formatPrice(item.total_price)}</span></div>
                 ))}
               </div>
+              {detailOrder.coupon_code && (
+                <div className="flex justify-between text-sm text-green-600"><span>Coupon: {detailOrder.coupon_code}</span><span>-{formatPrice(detailOrder.coupon_discount)}</span></div>
+              )}
               <div className="border-t pt-2 flex justify-between font-bold"><span>Total</span><span>{formatPrice(detailOrder.total)}</span></div>
               <div className="space-y-3">
                 <div>

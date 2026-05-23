@@ -1,8 +1,15 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
 export function ProfilePage() {
   const { user } = useAuth();
+  const { storeName } = useSiteSettings();
+
+  useEffect(() => {
+    document.title = `My Account - ${storeName}`;
+  }, [storeName]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">

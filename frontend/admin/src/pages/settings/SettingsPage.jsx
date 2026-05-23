@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import settingsService from '../../services/settingsService';
+import { useSiteSettings } from '../../context/SiteSettingsContext';
 
 export function SettingsPage() {
+  const { reload } = useSiteSettings();
   const [settings, setSettings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingKey, setEditingKey] = useState(null);
@@ -19,6 +21,7 @@ export function SettingsPage() {
       await settingsService.updateSetting(key, { value: editValue });
       setEditingKey(null);
       loadSettings();
+      reload();
     } catch (err) { alert(err.response?.data?.detail || 'Failed'); }
   };
 

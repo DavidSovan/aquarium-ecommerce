@@ -5,11 +5,17 @@ import { useAuth } from '../context/AuthContext';
 import addressService from '../services/addressService';
 import orderService from '../services/orderService';
 import api from '../services/api';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
 export function CheckoutPage() {
   const { cart, loading: cartLoading } = useCart();
   const { user } = useAuth();
+  const { storeName } = useSiteSettings();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = `Checkout - ${storeName}`;
+  }, [storeName]);
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState('');
   const [notes, setNotes] = useState('');
@@ -68,7 +74,7 @@ export function CheckoutPage() {
         notes: notes || null,
         coupon_code: appliedCoupon?.coupon?.code || null,
       });
-      navigate(`/orders`);
+      navigate(`/orders`, { state: { newOrder: res.data } });
     } catch (err) {
       setError(err.response?.data?.detail || 'Checkout failed');
     } finally {

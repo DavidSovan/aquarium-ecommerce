@@ -1,15 +1,24 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import orderService from '../services/orderService';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
 export function MyOrdersPage() {
+  const location = useLocation();
+  const { storeName } = useSiteSettings();
+
+  useEffect(() => {
+    document.title = `My Orders - ${storeName}`;
+  }, [storeName]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [confirmOrder, setConfirmOrder] = useState(location.state?.newOrder || null);
 
   useEffect(() => {
     orderService.getOrders().then(res => {
       setOrders(res.data.items);
     }).catch(() => {}).finally(() => setLoading(false));
+    window.history.replaceState({}, '');
   }, []);
 
   const formatPrice = (p) => `$${Number(p).toFixed(2)}`;
@@ -20,6 +29,26 @@ export function MyOrdersPage() {
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
+  const handleCancelOrder = async (id) => {
+    if (!window.confirm('Are you sure you want to cancel this order?')) return;
+    try {
+      await orderService.cancelOrder(id);
+      setOrders(prev => prev.map(o => o.id === id ? { ...o, order_status: 'cancelled' } : o));
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Failed to cancel order');
+    }
+  };
+
+  const handleConfirmDelivery = async (id) => {
+    if (!window.confirm('Confirm that you have received your order?')) return;
+    try {
+      const res = await orderService.confirmDelivery(id);
+      setOrders(prev => prev.map(o => o.id === id ? res.data : o));
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Failed to confirm delivery');
+    }
+  };
+
   if (loading) {
     return <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" /></div>;
   }
@@ -27,6 +56,16 @@ export function MyOrdersPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">My Orders</h1>
+
+      {confirmOrder && (
+        <div className="mb-6 p-6 bg-green-100 border border-green-400 text-green-800 rounded-lg">
+          <p className="font-bold text-lg mb-1">Order Confirmed!</p>
+          <p className="text-sm">Order <span className="font-semibold">#{confirmOrder.order_number}</span> has been placed successfully.</p>
+          {confirmOrder.coupon_code && (
+            <p className="text-sm mt-1">Coupon <span className="font-semibold">{confirmOrder.coupon_code}</span> applied — you saved ${Number(confirmOrder.coupon_discount).toFixed(2)}.</p>
+          )}
+        </div>
+      )}
 
       {orders.length === 0 ? (
         <p className="text-gray-500 text-center py-12">No orders yet</p>
@@ -61,9 +100,14 @@ export function MyOrdersPage() {
                 <span>Total</span>
                 <span>{formatPrice(order.total)}</span>
               </div>
-              {order.order_status === 'pending' && (
-                <button onClick={async () => { await orderService.cancelOrder(order.id); setOrders(prev => prev.filter(o => o.id !== order.id)); }} className="mt-4 text-red-500 hover:text-red-600 text-sm">Cancel Order</button>
-              )}
+              <div className="flex gap-4 mt-4">
+                {order.order_status === 'pending' && (
+                  <button onClick={() => handleCancelOrder(order.id)} className="text-red-500 hover:text-red-600 text-sm font-medium">Cancel Order</button>
+                )}
+                {order.order_status === 'shipped' && (
+                  <button onClick={() => handleConfirmDelivery(order.id)} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium transition-colors">Confirm Receipt</button>
+                )}
+              </div>
             </div>
           ))}
         </div>

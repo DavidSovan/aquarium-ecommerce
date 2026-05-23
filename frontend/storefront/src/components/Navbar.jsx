@@ -2,16 +2,18 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
 export function Navbar({ onCartOpen }) {
   const { user, logout } = useAuth();
   const { itemCount } = useCart();
   const { wishlist } = useWishlist();
+  const { storeName } = useSiteSettings();
 
   return (
     <nav className="bg-white shadow-sm">
       <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-        <Link to="/" className="text-2xl font-bold text-blue-600">Aquarium Store</Link>
+        <Link to="/" className="text-2xl font-bold text-blue-600">{storeName}</Link>
         <div className="flex items-center gap-5">
           <Link to="/shop" className="text-gray-600 hover:text-blue-600 font-medium text-sm">Shop</Link>
           {user ? (

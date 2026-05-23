@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
 export function Register() {
   const [email, setEmail] = useState('');
@@ -10,7 +11,12 @@ export function Register() {
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const { register } = useAuth();
+  const { storeName } = useSiteSettings();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = `Create Account - ${storeName}`;
+  }, [storeName]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,7 +35,7 @@ export function Register() {
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-white rounded-lg shadow p-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Create Account</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">Create Account - {storeName}</h1>
 
         {error && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">{error}</div>

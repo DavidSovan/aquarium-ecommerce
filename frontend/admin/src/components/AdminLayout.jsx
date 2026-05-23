@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
 const navItems = [
   { path: '/admin', label: 'Dashboard', icon: '\u2302' },
@@ -16,6 +18,7 @@ const navItems = [
 
 export function AdminLayout({ children }) {
   const { user, logout } = useAuth();
+  const { storeName } = useSiteSettings();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -24,11 +27,29 @@ export function AdminLayout({ children }) {
     navigate('/login');
   };
 
+  const pageTitles = {
+    '/admin': 'Dashboard',
+    '/admin/products': 'Products',
+    '/admin/categories': 'Categories',
+    '/admin/inventory': 'Inventory',
+    '/admin/orders': 'Orders',
+    '/admin/customers': 'Customers',
+    '/admin/coupons': 'Coupons',
+    '/admin/banners': 'Banners',
+    '/admin/reports': 'Reports',
+    '/admin/settings': 'Settings',
+  };
+
+  useEffect(() => {
+    const page = pageTitles[location.pathname] || 'Admin';
+    document.title = `${page} - ${storeName}`;
+  }, [location.pathname, storeName]);
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       <aside className="w-64 bg-gray-900 text-white flex flex-col">
         <div className="p-4 border-b border-gray-700">
-          <h1 className="text-lg font-bold">Admin Panel</h1>
+          <h1 className="text-lg font-bold">{storeName} - Admin</h1>
           <p className="text-sm text-gray-400 mt-1">{user?.email}</p>
         </div>
         <nav className="flex-1 p-4 space-y-1">
