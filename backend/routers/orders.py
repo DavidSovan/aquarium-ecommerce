@@ -12,7 +12,7 @@ from schemas.order import (
     OrderItemResponse,
 )
 from dependencies.auth import get_current_user, require_role
-from services.telegram_service import send_telegram_message, format_order_cancelled_notification
+from services.telegram_service import send_telegram_message, format_order_cancelled_notification, format_order_status_notification
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -44,29 +44,39 @@ def list_orders(
 
 @router.get("/{order_id}", response_model=OrderResponse)
 def get_order(
-    order_id: int,
+    order_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    order = db.query(Order).filter(Order.id == order_id).first()
+    if order_id.isdigit():
+        order = db.query(Order).filter(Order.id == int(order_id)).first()
+    else:
+        order = db.query(Order).filter(Order.order_number == order_id).first()
+
     if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+        raise HTTPException(status_code=404, detail=f"Order '{order_id}' not found")
+    
     if order.user_id != current_user.id and current_user.role not in ("admin", "staff"):
         raise HTTPException(status_code=403, detail="Not authorized to view this order")
     return _order_to_response(order)
 
-
 @router.put("/{order_id}/status", response_model=OrderResponse)
 def update_order_status(
-    order_id: int,
+    order_id: str,
     data: UpdateOrderStatusRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("admin", "staff")),
 ):
-    order = db.query(Order).filter(Order.id == order_id).first()
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+    if order_id.isdigit():
+        order = db.query(Order).filter(Order.id == int(order_id)).first()
+    else:
+        order = db.query(Order).filter(Order.order_number == order_id).first()
 
+    if not order:
+        raise HTTPException(status_code=404, detail=f"Order '{order_id}' not found")
+
+    old_status = order.order_status
     if data.order_status:
         if data.order_status not in VALID_ORDER_STATUSES:
             raise HTTPException(
@@ -85,19 +95,28 @@ def update_order_status(
 
     db.commit()
     db.refresh(order)
-    return _order_to_response(order)
 
+    if data.order_status and data.order_status != old_status:
+        customer = db.query(User).filter(User.id == order.user_id).first()
+        msg = format_order_status_notification(order, old_status, customer or current_user)
+        background_tasks.add_task(send_telegram_message, msg)
+
+    return _order_to_response(order)
 
 @router.delete("/{order_id}", response_model=CancelOrderResponse)
 def cancel_order(
-    order_id: int,
+    order_id: str,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    order = db.query(Order).filter(Order.id == order_id).first()
+    if order_id.isdigit():
+        order = db.query(Order).filter(Order.id == int(order_id)).first()
+    else:
+        order = db.query(Order).filter(Order.order_number == order_id).first()
+
     if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+        raise HTTPException(status_code=404, detail=f"Order '{order_id}' not found")
 
     if order.user_id != current_user.id and current_user.role not in ("admin", "staff"):
         raise HTTPException(status_code=403, detail="Not authorized to cancel this order")
@@ -139,6 +158,45 @@ def cancel_order(
         order_id=order.id,
         refunded_stock=refunded_stock
     )
+
+
+@router.post("/{order_id}/confirm-delivery", response_model=OrderResponse)
+def confirm_delivery(
+    order_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # Try finding by numeric ID first, then by Order Number
+    if order_id.isdigit():
+        order = db.query(Order).filter(Order.id == int(order_id)).first()
+    else:
+        order = db.query(Order).filter(Order.order_number == order_id).first()
+
+    if not order:
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Order '{order_id}' not found"
+        )
+
+    if order.user_id != current_user.id:
+        raise HTTPException(
+            status_code=403, 
+            detail="You are not authorized to confirm this order. It belongs to another user."
+        )
+
+    if order.order_status != "shipped":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot confirm delivery for order in '{order.order_status}' status. It must be 'shipped'."
+        )
+
+    order.order_status = "delivered"
+    if order.payment_status == "pending":
+        order.payment_status = "paid"
+
+    db.commit()
+    db.refresh(order)
+    return _order_to_response(order)
 
 
 def _order_to_response(order: Order) -> OrderResponse:

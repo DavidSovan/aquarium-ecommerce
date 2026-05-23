@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from routers import categories, products, product_images, cart, wishlist, addresses, checkout, orders, inventory, auth, reviews, coupons, banners, reports, settings, customers
 from config.database import Base, engine
+from routers import categories, products, product_images, cart, wishlist, addresses, checkout, orders, inventory, auth, reviews, coupons, banners, reports, settings, customers
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -36,6 +36,7 @@ app.include_router(reviews.router)
 app.include_router(coupons.router)
 app.include_router(banners.router)
 app.include_router(reports.router)
+app.include_router(settings.public_router)
 app.include_router(settings.router)
 app.include_router(customers.router)
 

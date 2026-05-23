@@ -93,3 +93,26 @@ def format_order_cancelled_notification(order, items_snapshot, customer) -> str:
     lines.append(f"<b>Refund Total:</b> ${order.total:.2f}")
 
     return "\n".join(lines)
+
+
+def format_order_status_notification(order, old_status, customer) -> str:
+    emoji = {"processing": "✅", "shipped": "🚚", "delivered": "📦", "cancelled": "❌"}.get(
+        order.order_status, "📋"
+    )
+    lines = [
+        f"{emoji} <b>Order Status Updated</b>",
+        "",
+        f"<b>Order:</b> {order.order_number}",
+        f"<b>Customer:</b> {' '.join(p for p in [customer.first_name, customer.last_name] if p) or 'N/A'}",
+        f"<b>Status:</b> {old_status} → {order.order_status}",
+        f"<b>Payment:</b> {order.payment_status}",
+    ]
+
+    if order.order_status == "processing":
+        lines.append("")
+        lines.append("Your order has been confirmed and is being processed.")
+
+    lines.append("")
+    lines.append(f"<b>Total:</b> ${order.total:.2f}")
+
+    return "\n".join(lines)

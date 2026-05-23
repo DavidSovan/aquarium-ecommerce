@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 from config.database import get_db
 from models.setting import Setting
@@ -10,8 +10,27 @@ from schemas.setting import (
 )
 from dependencies.auth import require_role
 from typing import List
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/settings", tags=["settings"])
+public_router = APIRouter(tags=["settings"])
+
+PUBLIC_KEYS = {"store_name", "store_email"}
+
+
+class PublicSettingsResponse(BaseModel):
+    store_name: str = "Aquarium Store"
+    store_email: str = ""
+
+
+@public_router.get("/settings/public", response_model=PublicSettingsResponse)
+def get_public_settings(response: Response, db: Session = Depends(get_db)):
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    settings = db.query(Setting).filter(Setting.key.in_(PUBLIC_KEYS)).all()
+    result = {}
+    for s in settings:
+        result[s.key] = s.value or ""
+    return PublicSettingsResponse(**result)
 
 
 @router.get("", response_model=List[SettingResponse])
