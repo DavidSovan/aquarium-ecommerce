@@ -3,13 +3,60 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <title>Loading...</title>
+    <style>
+      #app-loading {
+        position: fixed; inset: 0; z-index: 99999;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        background: #f9fafb; color: #111827;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        transition: opacity 0.3s ease;
+      }
+      #app-loading.hidden { opacity: 0; pointer-events: none; }
+      #app-loading .spinner {
+        width: 36px; height: 36px; border: 3px solid #e5e7eb;
+        border-top-color: #2563eb; border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      #app-loading .brand {
+        display: flex; align-items: center; gap: 10px;
+        margin-bottom: 20px;
+      }
+      #app-loading .brand svg { width: 28px; height: 28px; }
+      #app-loading .brand span { font-size: 1.25rem; font-weight: 700; }
+      #app-loading .hint { margin-top: 12px; font-size: 0.8rem; color: #6b7280; }
+    </style>
+    <script>
+      (function() {
+        try {
+          var vars = JSON.parse(localStorage.getItem('theme_css_vars') || '{}');
+          if (Object.keys(vars).length > 0) {
+            Object.keys(vars).forEach(function(k) {
+              document.documentElement.style.setProperty(k, vars[k]);
+            });
+          }
+          var dark = localStorage.getItem('theme_dark_mode');
+          if (dark === 'true') {
+            document.documentElement.classList.add('dark');
+          }
+        } catch(e) {}
+      })();
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="app-loading">
+        <div class="brand">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 6h20M6 6v12M10 6v12M14 6v12M18 6v12M6 18h12" stroke-linecap="round"/>
+          </svg>
+          <span>Store</span>
+        </div>
+        <div class="spinner"></div>
+        <div class="hint">Loading...</div>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

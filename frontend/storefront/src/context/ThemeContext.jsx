@@ -1,6 +1,9 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 
+const CACHE_KEY = 'theme_css_vars';
+const DARK_KEY = 'theme_dark_mode';
+
 const DEFAULT_CSS = {
   '--primary': '#2563eb',
   '--secondary': '#4f46e5',
@@ -33,39 +36,57 @@ const DEFAULT_CSS = {
   '--button-shadow': '0 4px 6px rgba(0,0,0,0.1)',
 };
 
+function readCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return null;
+}
+
+function writeCache(vars, darkMode) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(vars));
+    localStorage.setItem(DARK_KEY, String(!!darkMode));
+  } catch {}
+}
+
+function applyVars(vars, darkMode) {
+  const root = document.documentElement;
+  Object.entries(vars).forEach(([key, value]) => {
+    root.style.setProperty(key, value);
+  });
+  root.classList.toggle('dark', !!darkMode);
+}
+
+const cached = readCache();
+const initialVars = cached || DEFAULT_CSS;
+
 const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
-  const [cssVars, setCssVars] = useState(DEFAULT_CSS);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  const applyTheme = useCallback((vars, darkMode) => {
-    const root = document.documentElement;
-    Object.entries(vars).forEach(([key, value]) => {
-      root.style.setProperty(key, value);
-    });
-    if (darkMode) {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-  }, []);
+  const [cssVars, setCssVars] = useState(initialVars);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    try { return localStorage.getItem(DARK_KEY) === 'true'; } catch { return false; }
+  });
+  const [ready, setReady] = useState(!!cached);
 
   const loadTheme = useCallback(async () => {
     try {
       const res = await api.get('/settings/theme/active');
       const { css_variables, is_dark_mode } = res.data;
-      setCssVars(css_variables);
-      setIsDarkMode(is_dark_mode);
-      applyTheme(css_variables, is_dark_mode);
+      if (css_variables && Object.keys(css_variables).length > 0) {
+        applyVars(css_variables, is_dark_mode);
+        writeCache(css_variables, is_dark_mode);
+        setCssVars(css_variables);
+        setIsDarkMode(is_dark_mode);
+      }
     } catch (err) {
-      console.error('Failed to load theme, using defaults:', err);
-      applyTheme(DEFAULT_CSS, false);
+      console.error('Failed to load theme:', err);
     } finally {
-      setLoading(false);
+      setReady(true);
     }
-  }, [applyTheme]);
+  }, []);
 
   useEffect(() => {
     loadTheme();
@@ -74,7 +95,7 @@ export function ThemeProvider({ children }) {
   }, [loadTheme]);
 
   return (
-    <ThemeContext.Provider value={{ cssVars, isDarkMode, loading, reload: loadTheme }}>
+    <ThemeContext.Provider value={{ cssVars, isDarkMode, ready, reload: loadTheme }}>
       {children}
     </ThemeContext.Provider>
   );
