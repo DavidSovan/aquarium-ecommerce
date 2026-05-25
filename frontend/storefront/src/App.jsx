@@ -4,10 +4,13 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider, useCart } from './context/CartContext';
 import { WishlistProvider, useWishlist } from './context/WishlistContext';
 import { SiteSettingsProvider, useSiteSettings } from './context/SiteSettingsContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { Navbar } from './components/Navbar';
 import { CartDrawer } from './components/CartDrawer';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { HeroSection } from './components/HeroSection';
+import { DynamicSection } from './components/DynamicSection';
+import { Footer } from './components/Footer';
 import { Shop } from './pages/Shop';
 import { ProductDetail } from './pages/ProductDetail';
 import { CartPage } from './pages/CartPage';
@@ -23,7 +26,7 @@ import { MyReviewsPage } from './pages/MyReviewsPage';
 function Layout() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const { cart, updateItem, removeItem } = useCart();
-  const { storeName } = useSiteSettings();
+  const { storeName, homepageSections } = useSiteSettings();
 
   useEffect(() => {
     document.title = storeName;
@@ -37,23 +40,47 @@ function Layout() {
     }
   };
 
+  const hasHero = homepageSections.some(s => s.section_type === 'hero');
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="app" style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      fontFamily: 'var(--font-family)', 
+      backgroundColor: 'var(--bg)', 
+      color: 'var(--text-primary)', 
+      minHeight: '100vh',
+      overflowX: 'hidden'
+    }}>
       <Navbar onCartOpen={() => setIsCartOpen(true)} />
-      <Routes>
-        <Route path="/" element={<HeroSection />} />
-        <Route path="/shop" element={<Shop />} />
-        <Route path="/product/:slug" element={<ProductDetail />} />
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="/wishlist" element={<WishlistPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-        <Route path="/orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
-        <Route path="/addresses" element={<ProtectedRoute><MyAddressesPage /></ProtectedRoute>} />
-        <Route path="/reviews" element={<ProtectedRoute><MyReviewsPage /></ProtectedRoute>} />
-      </Routes>
+      <main style={{ flex: 1 }}>
+        <Routes>
+          <Route path="/" element={
+            <>
+              {hasHero ? (
+                homepageSections
+                  .filter(s => s.is_active)
+                  .sort((a, b) => a.sort_order - b.sort_order)
+                  .map(section => <DynamicSection key={section.id} section={section} />)
+              ) : (
+                <HeroSection />
+              )}
+            </>
+          } />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/product/:slug" element={<ProductDetail />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
+          <Route path="/addresses" element={<ProtectedRoute><MyAddressesPage /></ProtectedRoute>} />
+          <Route path="/reviews" element={<ProtectedRoute><MyReviewsPage /></ProtectedRoute>} />
+        </Routes>
+      </main>
+      <Footer />
       <CartDrawer
         cart={cart}
         isOpen={isCartOpen}
@@ -72,7 +99,9 @@ export default function App() {
         <CartProvider>
           <WishlistProvider>
             <SiteSettingsProvider>
-              <Layout />
+              <ThemeProvider>
+                <Layout />
+              </ThemeProvider>
             </SiteSettingsProvider>
           </WishlistProvider>
         </CartProvider>

@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import settingsService from '../../services/settingsService';
 import { useSiteSettings } from '../../context/SiteSettingsContext';
+
+const SETTINGS_LINKS = [
+  { path: '/admin/settings/theme', label: 'Theme Settings', desc: 'Colors, typography, layout, button styles, and more.' },
+  { path: '/admin/settings/branding', label: 'Branding Settings', desc: 'Store name, logo, favicon, contact info, social links.' },
+  { path: '/admin/settings/homepage', label: 'Homepage Builder', desc: 'Manage hero sections, banners, and homepage content.' },
+  { path: '/admin/banners', label: 'Banners', desc: 'Create and manage promotional banners with scheduling.' },
+  { path: '/admin/cms-blocks', label: 'CMS Blocks', desc: 'Create unlimited content blocks with drag-and-drop ordering.' },
+  { path: '/admin/media', label: 'Media Library', desc: 'Upload images, videos, and manage media assets.' },
+];
 
 export function SettingsPage() {
   const { reload } = useSiteSettings();
@@ -38,7 +48,15 @@ export function SettingsPage() {
     <div>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Settings</h1>
 
-      {/* ── Raw key-value table ─────────────────────────────────────── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        {SETTINGS_LINKS.map(link => (
+          <Link key={link.path} to={link.path} className="bg-white rounded-lg shadow p-5 hover:shadow-md transition-shadow">
+            <h3 className="font-bold text-gray-900">{link.label}</h3>
+            <p className="text-sm text-gray-500 mt-1">{link.desc}</p>
+          </Link>
+        ))}
+      </div>
+
       <div>
         <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
           All Settings (Advanced)

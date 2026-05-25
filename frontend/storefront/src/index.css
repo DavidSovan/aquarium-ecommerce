@@ -1,1 +1,16 @@
 @import "tailwindcss";
+
+.theme-surface { background-color: var(--surface); }
+.theme-text-primary { color: var(--text-primary); }
+.theme-text-secondary { color: var(--text-secondary); }
+.theme-text-link { color: var(--primary); }
+.theme-text-link:hover { color: var(--secondary); }
+.theme-btn-primary { background-color: var(--button-bg); color: var(--button-text); border-radius: var(--button-radius); padding: var(--button-padding); box-shadow: var(--button-shadow); }
+.theme-btn-primary:hover { background-color: var(--button-hover); }
+.theme-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.theme-border { border-color: var(--border); }
+.theme-shadow { box-shadow: var(--box-shadow); }
+.theme-rounded { border-radius: var(--border-radius); }
+.theme-danger { color: var(--error); }
+.theme-danger:hover { color: var(--error); opacity: 0.8; }
+.theme-success { color: var(--success); }

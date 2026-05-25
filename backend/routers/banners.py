@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from datetime import datetime, timezone
 from config.database import get_db
 from models.banner import Banner
 from models.user import User
@@ -21,9 +22,17 @@ def list_banners(db: Session = Depends(get_db)):
 
 @router.get("/active", response_model=list[BannerResponse])
 def list_active_banners(db: Session = Depends(get_db)):
-    banners = db.query(Banner).filter(
-        Banner.is_active == True
-    ).order_by(Banner.sort_order).all()
+    now = datetime.now(timezone.utc)
+    banners = (
+        db.query(Banner)
+        .filter(
+            Banner.is_active == True,
+            (Banner.start_date == None) | (Banner.start_date <= now),
+            (Banner.end_date == None) | (Banner.end_date >= now),
+        )
+        .order_by(Banner.sort_order)
+        .all()
+    )
     return banners
 
 

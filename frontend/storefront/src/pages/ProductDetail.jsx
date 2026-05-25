@@ -66,52 +66,53 @@ export function ProductDetail() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <Link to="/shop" className="text-blue-600 hover:text-blue-700 text-sm mb-4 inline-block">&larr; Back to Shop</Link>
+      <Link to="/shop" className="theme-text-link text-sm mb-4 inline-block no-underline">&larr; Back to Shop</Link>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+        <div className="aspect-square theme-surface theme-rounded overflow-hidden" style={{ backgroundColor: 'color-mix(in srgb, var(--surface), var(--bg) 50%)' }}>
           {product.thumbnail ? (
             <img src={product.thumbnail} alt={product.name} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400">No image</div>
+            <div className="w-full h-full flex items-center justify-center theme-text-secondary">No image</div>
           )}
         </div>
 
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
-          {product.brand && <p className="text-gray-500 mb-4">{product.brand}</p>}
+          <h1 className="text-3xl font-bold theme-text-primary mb-2">{product.name}</h1>
+          {product.brand && <p className="theme-text-secondary mb-4">{product.brand}</p>}
 
           <div className="flex items-center gap-3 mb-4">
-            <span className="text-3xl font-bold text-blue-600">{formatPrice(product.discount_price || product.price)}</span>
+            <span className="text-3xl font-bold theme-text-link">{formatPrice(product.discount_price || product.price)}</span>
             {product.discount_price && (
-              <span className="text-lg text-gray-400 line-through">{formatPrice(product.price)}</span>
+              <span className="text-lg theme-text-secondary line-through">{formatPrice(product.price)}</span>
             )}
           </div>
 
-          <p className={`text-sm font-medium mb-4 ${product.stock_quantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <p className={`text-sm font-medium mb-4 ${product.stock_quantity > 0 ? 'theme-success' : 'theme-danger'}`}>
             {product.stock_quantity > 0 ? `In Stock (${product.stock_quantity})` : 'Out of Stock'}
           </p>
 
           {product.short_description && (
-            <p className="text-gray-600 mb-6">{product.short_description}</p>
+            <p className="theme-text-secondary mb-6">{product.short_description}</p>
           )}
 
           {product.stock_quantity > 0 && (
             <div className="flex items-center gap-4 mb-6">
-              <div className="flex items-center border rounded">
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 hover:bg-gray-100">-</button>
-                <span className="px-4 py-2 font-medium">{quantity}</span>
-                <button onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))} className="px-3 py-2 hover:bg-gray-100">+</button>
+              <div className="flex items-center theme-border theme-rounded">
+                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 hover:opacity-80 theme-text-primary">-</button>
+                <span className="px-4 py-2 font-medium theme-text-primary">{quantity}</span>
+                <button onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))} className="px-3 py-2 hover:opacity-80 theme-text-primary">+</button>
               </div>
               <button
                 onClick={() => addItem(product.id, quantity)}
-                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                className="px-6 py-2.5 theme-btn-primary font-medium no-underline"
               >
                 Add to Cart
               </button>
               <button
                 onClick={() => isInWishlist(product.id) ? removeWishlist(product.id) : addWishlist(product.id)}
-                className={`p-2.5 rounded-lg border ${isInWishlist(product.id) ? 'text-red-500 border-red-200' : 'text-gray-400 border-gray-300'} hover:border-red-200`}
+                className={`p-2.5 theme-rounded theme-border ${isInWishlist(product.id) ? 'theme-danger' : 'theme-text-secondary'}`}
+                style={isInWishlist(product.id) ? { borderColor: 'var(--error)' } : {}}
               >
                 <svg className="w-5 h-5" fill={isInWishlist(product.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -122,15 +123,15 @@ export function ProductDetail() {
 
           {product.description && (
             <div className="prose max-w-none mt-6">
-              <h3 className="font-bold text-lg mb-2">Description</h3>
-              <p className="text-gray-600 whitespace-pre-wrap">{product.description}</p>
+              <h3 className="font-bold text-lg theme-text-primary mb-2">Description</h3>
+              <p className="theme-text-secondary whitespace-pre-wrap">{product.description}</p>
             </div>
           )}
         </div>
       </div>
 
-      <div className="border-t pt-8">
-        <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
+      <div className="theme-border pt-8" style={{ borderTopWidth: 1, borderTopStyle: 'solid' }}>
+        <h2 className="text-2xl font-bold theme-text-primary mb-6">Customer Reviews</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <ReviewList reviews={reviews.items} averageRating={reviews.average_rating} />
           {user && (
@@ -138,7 +139,7 @@ export function ProductDetail() {
           )}
           {!user && (
             <div className="flex items-center justify-center">
-              <Link to={`/login?redirect=/product/${slug}`} className="text-blue-600 hover:text-blue-700">
+              <Link to={`/login?redirect=/product/${slug}`} className="theme-text-link no-underline">
                 Log in to write a review
               </Link>
             </div>

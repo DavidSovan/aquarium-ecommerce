@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 from config.database import get_db
 from models.setting import Setting
+from models.branding import BrandingSettings
 from models.user import User
 from schemas.setting import (
     SettingCreate,
@@ -27,6 +28,7 @@ HOMEPAGE_VIDEO_URL_KEY = "homepage_video_url"
 class PublicSettingsResponse(BaseModel):
     store_name: str = "Aquarium Store"
     store_email: str = ""
+    store_logo: str | None = None
     background_video_enabled: bool = False
     background_video_url: str | None = None
 
@@ -44,9 +46,13 @@ def get_public_settings(response: Response, db: Session = Depends(get_db)):
     if video_url == "":
         video_url = None
 
+    branding = db.query(BrandingSettings).first()
+    store_logo = branding.store_logo if branding else None
+
     return PublicSettingsResponse(
         store_name=result.get("store_name", "Aquarium Store"),
         store_email=result.get("store_email", ""),
+        store_logo=store_logo,
         background_video_enabled=enabled_raw.lower() == "true",
         background_video_url=video_url,
     )

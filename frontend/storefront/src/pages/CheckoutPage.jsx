@@ -94,22 +94,22 @@ export function CheckoutPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
+      <h1 className="text-3xl font-bold theme-text-primary mb-8">Checkout</h1>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">{error}</div>
+        <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 theme-rounded">{error}</div>
       )}
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
-            <h2 className="text-xl font-bold mb-4">Shipping Address</h2>
+            <h2 className="text-xl font-bold theme-text-primary mb-4">Shipping Address</h2>
             {addresses.length === 0 ? (
-              <p className="text-gray-500">No addresses found. Please add one.</p>
+              <p className="theme-text-secondary">No addresses found. Please add one.</p>
             ) : (
               <div className="space-y-3">
                 {addresses.map(addr => (
-                  <label key={addr.id} className={`block p-4 border rounded-lg cursor-pointer ${selectedAddressId == addr.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+                  <label key={addr.id} className={`block p-4 theme-border theme-rounded cursor-pointer ${selectedAddressId == addr.id ? 'border-[var(--primary)] bg-[color-mix(in_srgb,var(--primary)_8%,transparent)]' : 'theme-border'}`}>
                     <input
                       type="radio"
                       name="address"
@@ -118,55 +118,55 @@ export function CheckoutPage() {
                       onChange={e => setSelectedAddressId(e.target.value)}
                       className="sr-only"
                     />
-                    <p className="font-medium">{addr.full_name}</p>
-                    <p className="text-sm text-gray-600">{addr.address_line}</p>
-                    <p className="text-sm text-gray-600">{addr.city}, {addr.country}</p>
-                    <p className="text-sm text-gray-600">{addr.phone}</p>
+                    <p className="font-medium theme-text-primary">{addr.full_name}</p>
+                    <p className="text-sm theme-text-secondary">{addr.address_line}</p>
+                    <p className="text-sm theme-text-secondary">{addr.city}, {addr.country}</p>
+                    <p className="text-sm theme-text-secondary">{addr.phone}</p>
                   </label>
                 ))}
               </div>
             )}
 
             <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Order Notes (optional)</label>
+              <label className="block text-sm font-medium theme-text-primary mb-1">Order Notes (optional)</label>
               <textarea
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 theme-border theme-rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
               />
             </div>
           </div>
 
           <div>
-            <h2 className="text-xl font-bold mb-4">Order Summary</h2>
-            <div className="bg-white rounded-lg shadow p-6 space-y-4">
+            <h2 className="text-xl font-bold theme-text-primary mb-4">Order Summary</h2>
+            <div className="theme-surface theme-shadow theme-rounded p-6 space-y-4">
               {cart.items.map(item => (
-                <div key={item.id} className="flex justify-between text-sm">
+                <div key={item.id} className="flex justify-between text-sm theme-text-primary">
                   <span>{item.product?.name} x{item.quantity}</span>
                   <span className="font-medium">{formatPrice(item.total_price)}</span>
                 </div>
               ))}
-              <div className="border-t pt-4 flex justify-between font-bold text-lg">
+              <div className="theme-border pt-4 flex justify-between font-bold text-lg theme-text-primary" style={{ borderTopWidth: 1, borderTopStyle: 'solid' }}>
                 <span>Subtotal</span>
                 <span>{formatPrice(cart.subtotal)}</span>
               </div>
 
-              <div className="border-t pt-4">
+              <div className="theme-border pt-4" style={{ borderTopWidth: 1, borderTopStyle: 'solid' }}>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={couponInput}
                     onChange={e => setCouponInput(e.target.value.toUpperCase())}
                     placeholder="Coupon code"
-                    className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2 text-sm theme-border theme-rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                     disabled={!!appliedCoupon}
                   />
                   {appliedCoupon ? (
                     <button
                       type="button"
                       onClick={handleRemoveCoupon}
-                      className="px-3 py-2 text-sm text-red-600 border border-red-300 rounded-lg hover:bg-red-50"
+                      className="px-3 py-2 text-sm theme-danger border border-current rounded-lg hover:opacity-80"
                     >
                       Remove
                     </button>
@@ -175,31 +175,31 @@ export function CheckoutPage() {
                       type="button"
                       onClick={handleApplyCoupon}
                       disabled={validatingCoupon || !couponInput.trim()}
-                      className="px-3 py-2 text-sm bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50"
+                      className="px-3 py-2 text-sm theme-btn-primary disabled:opacity-50"
                     >
                       {validatingCoupon ? '...' : 'Apply'}
                     </button>
                   )}
                 </div>
                 {couponError && (
-                  <p className="mt-1 text-sm text-red-600">{couponError}</p>
+                  <p className="mt-1 text-sm theme-danger">{couponError}</p>
                 )}
                 {appliedCoupon && (
-                  <div className="mt-2 flex justify-between text-sm text-green-600">
+                  <div className="mt-2 flex justify-between text-sm theme-success">
                     <span>Coupon: {appliedCoupon.coupon.code}</span>
                     <span>-{formatPrice(appliedCoupon.discount_amount)}</span>
                   </div>
                 )}
               </div>
 
-              <div className="border-t pt-4 flex justify-between font-bold text-lg">
+              <div className="theme-border pt-4 flex justify-between font-bold text-lg theme-text-primary" style={{ borderTopWidth: 1, borderTopStyle: 'solid' }}>
                 <span>Total</span>
                 <span>{formatPrice(cart.subtotal - (appliedCoupon?.discount_amount || 0))}</span>
               </div>
               <button
                 type="submit"
                 disabled={submitting || !selectedAddressId}
-                className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium"
+                className="w-full theme-btn-primary font-medium no-underline"
               >
                 {submitting ? 'Placing Order...' : 'Place Order'}
               </button>

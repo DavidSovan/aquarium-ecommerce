@@ -12,13 +12,16 @@ const navItems = [
   { path: '/admin/customers', label: 'Customers', icon: '\u263A' },
   { path: '/admin/coupons', label: 'Coupons', icon: '\u2605' },
   { path: '/admin/banners', label: 'Banners', icon: '\u263C' },
+  { path: '/admin/media', label: 'Media Library', icon: '\u2601' },
+  { path: '/admin/cms-blocks', label: 'CMS Blocks', icon: '\u25A3' },
+  { path: '/admin/settings/homepage', label: 'Homepage', icon: '\u2302' },
   { path: '/admin/reports', label: 'Reports', icon: '\u2261' },
   { path: '/admin/settings', label: 'Settings', icon: '\u2699' },
 ];
 
 export function AdminLayout({ children }) {
   const { user, logout } = useAuth();
-  const { storeName } = useSiteSettings();
+  const { storeName, storeLogo } = useSiteSettings();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -36,8 +39,11 @@ export function AdminLayout({ children }) {
     '/admin/customers': 'Customers',
     '/admin/coupons': 'Coupons',
     '/admin/banners': 'Banners',
+    '/admin/media': 'Media Library',
+    '/admin/cms-blocks': 'CMS Blocks',
     '/admin/reports': 'Reports',
     '/admin/settings': 'Settings',
+    '/admin/settings/homepage': 'Homepage Builder',
   };
 
   useEffect(() => {
@@ -49,8 +55,14 @@ export function AdminLayout({ children }) {
     <div className="flex min-h-screen bg-gray-100">
       <aside className="w-64 bg-gray-900 text-white flex flex-col">
         <div className="p-4 border-b border-gray-700">
-          <h1 className="text-lg font-bold">{storeName} - Admin</h1>
-          <p className="text-sm text-gray-400 mt-1">{user?.email}</p>
+          <div className="flex items-center gap-3">
+            {storeLogo && <img src={storeLogo} alt={storeName} className="h-8 w-8 rounded object-contain" />}
+            <div>
+              <h1 className="text-lg font-bold leading-tight">{storeName}</h1>
+              <p className="text-xs text-gray-400">Admin</p>
+            </div>
+          </div>
+          <p className="text-sm text-gray-400 mt-2 truncate">{user?.email}</p>
         </div>
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map(item => {

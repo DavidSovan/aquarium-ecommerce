@@ -7,6 +7,15 @@ export const settingsService = {
   getHomepageSettings() {
     return api.get('/settings/homepage');
   },
+  getBranding() {
+    return api.get('/settings/branding/public');
+  },
+  getHomepage() {
+    return api.get('/homepage');
+  },
+  getActiveCMSBlocks() {
+    return api.get('/cms-blocks/active');
+  },
 };
 
 export default settingsService;

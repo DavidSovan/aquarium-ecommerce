@@ -15,6 +15,11 @@ import { BannerList } from './pages/banners/BannerList';
 import { ReportsPage } from './pages/reports/ReportsPage';
 import { SettingsPage } from './pages/settings/SettingsPage';
 import { HomepageSettingsPage } from './pages/settings/HomepageSettingsPage';
+import { ThemeSettings } from './pages/settings/ThemeSettings';
+import { BrandingSettings } from './pages/settings/BrandingSettings';
+import { HomepageBuilder } from './pages/settings/HomepageBuilder';
+import { CMSBlockList } from './pages/cms/CMSBlockList';
+import { MediaLibrary } from './pages/media/MediaLibrary';
 
 function AdminRoutes() {
   return (
@@ -28,9 +33,13 @@ function AdminRoutes() {
         <Route path="customers" element={<CustomerList />} />
         <Route path="coupons" element={<CouponList />} />
         <Route path="banners" element={<BannerList />} />
+        <Route path="media" element={<MediaLibrary />} />
+        <Route path="cms-blocks" element={<CMSBlockList />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="settings" element={<SettingsPage />} />
-        <Route path="settings/homepage" element={<HomepageSettingsPage />} />
+        <Route path="settings/theme" element={<ThemeSettings />} />
+        <Route path="settings/branding" element={<BrandingSettings />} />
+        <Route path="settings/homepage" element={<HomepageBuilder />} />
       </Routes>
     </AdminLayout>
   );

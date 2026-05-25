@@ -6,6 +6,7 @@ const SiteSettingsContext = createContext(null);
 export function SiteSettingsProvider({ children }) {
   const [storeName, setStoreName] = useState('Aquarium Store');
   const [storeEmail, setStoreEmail] = useState('');
+  const [storeLogo, setStoreLogo] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const loadSettings = () => {
@@ -13,6 +14,7 @@ export function SiteSettingsProvider({ children }) {
       .then(res => {
         setStoreName(res.data.store_name || 'Aquarium Store');
         setStoreEmail(res.data.store_email || '');
+        setStoreLogo(res.data.store_logo || null);
       })
       .catch(err => {
         console.error('Failed to load store settings:', err);
@@ -25,7 +27,7 @@ export function SiteSettingsProvider({ children }) {
   }, []);
 
   return (
-    <SiteSettingsContext.Provider value={{ storeName, storeEmail, loading, reload: loadSettings }}>
+    <SiteSettingsContext.Provider value={{ storeName, storeEmail, storeLogo, loading, reload: loadSettings }}>
       {children}
     </SiteSettingsContext.Provider>
   );
