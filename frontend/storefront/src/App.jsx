@@ -7,6 +7,7 @@ import { SiteSettingsProvider, useSiteSettings } from './context/SiteSettingsCon
 import { Navbar } from './components/Navbar';
 import { CartDrawer } from './components/CartDrawer';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { HeroSection } from './components/HeroSection';
 import { Shop } from './pages/Shop';
 import { ProductDetail } from './pages/ProductDetail';
 import { CartPage } from './pages/CartPage';
@@ -18,26 +19,6 @@ import { ProfilePage } from './pages/ProfilePage';
 import { MyOrdersPage } from './pages/MyOrdersPage';
 import { MyAddressesPage } from './pages/MyAddressesPage';
 import { MyReviewsPage } from './pages/MyReviewsPage';
-
-function Home() {
-  const { storeName } = useSiteSettings();
-
-  useEffect(() => {
-    document.title = storeName;
-  }, [storeName]);
-
-  return (
-    <div className="min-h-[80vh] bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center">
-      <div className="max-w-6xl mx-auto px-4 py-16 text-center">
-        <h1 className="text-5xl font-bold text-gray-900 mb-4">Welcome to {storeName}</h1>
-        <p className="text-xl text-gray-600 mb-8">Discover our collection of aquatic wonders</p>
-        <Link to="/shop" className="inline-block px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-lg font-medium">
-          Browse Shop
-        </Link>
-      </div>
-    </div>
-  );
-}
 
 function Layout() {
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -60,7 +41,7 @@ function Layout() {
     <div className="min-h-screen bg-gray-50">
       <Navbar onCartOpen={() => setIsCartOpen(true)} />
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<HeroSection />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/product/:slug" element={<ProductDetail />} />
         <Route path="/cart" element={<CartPage />} />

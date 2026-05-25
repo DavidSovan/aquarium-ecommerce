@@ -14,6 +14,7 @@ import { CouponList } from './pages/coupons/CouponList';
 import { BannerList } from './pages/banners/BannerList';
 import { ReportsPage } from './pages/reports/ReportsPage';
 import { SettingsPage } from './pages/settings/SettingsPage';
+import { HomepageSettingsPage } from './pages/settings/HomepageSettingsPage';
 
 function AdminRoutes() {
   return (
@@ -29,6 +30,7 @@ function AdminRoutes() {
         <Route path="banners" element={<BannerList />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="settings/homepage" element={<HomepageSettingsPage />} />
       </Routes>
     </AdminLayout>
   );

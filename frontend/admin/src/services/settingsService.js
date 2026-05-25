@@ -20,6 +20,14 @@ export const settingsService = {
   deleteSetting(key) {
     return api.delete(`/settings/${key}`);
   },
+
+  getHomepageSettings() {
+    return api.get('/settings/homepage');
+  },
+
+  updateHomepageSettings(data) {
+    return api.put('/settings/homepage', data);
+  },
 };
 
 export default settingsService;
