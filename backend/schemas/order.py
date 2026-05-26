@@ -30,6 +30,8 @@ class OrderResponse(BaseModel):
     id: int
     order_number: str
     user_id: str
+    customer_email: Optional[str] = None
+    customer_name: Optional[str] = None
     order_status: str
     payment_status: str
     subtotal: float
@@ -41,6 +43,7 @@ class OrderResponse(BaseModel):
     items: List[OrderItemResponse]
     shipping_address_id: Optional[int] = None
     billing_address_id: Optional[int] = None
+    is_new: bool = True
     notes: Optional[str] = None
     created_at: datetime
     updated_at: datetime

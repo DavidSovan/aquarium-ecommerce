@@ -21,6 +21,7 @@ class Order(Base):
     total = Column(Float, default=0, nullable=False)
     shipping_address_id = Column(Integer, ForeignKey("addresses.id"), nullable=True)
     billing_address_id = Column(Integer, ForeignKey("addresses.id"), nullable=True)
+    is_new = Column(Integer, default=1, nullable=False)
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)

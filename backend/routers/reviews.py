@@ -11,6 +11,8 @@ from schemas.review import (
     ReviewUpdate,
     ReviewResponse,
     ReviewListResponse,
+    MyReviewResponse,
+    MyReviewListResponse,
 )
 from dependencies.auth import get_current_user, get_optional_user, require_role
 
@@ -45,6 +47,22 @@ def list_product_reviews(
         total=total,
         items=[ReviewResponse.model_validate(r) for r in reviews],
         average_rating=round(float(avg), 1),
+    )
+
+
+@router.get("/my-reviews", response_model=MyReviewListResponse)
+def list_my_reviews(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    query = db.query(Review).filter(Review.user_id == current_user.id)
+    total = query.count()
+    reviews = query.order_by(Review.created_at.desc()).offset(skip).limit(limit).all()
+    return MyReviewListResponse(
+        total=total,
+        items=[MyReviewResponse.model_validate(r) for r in reviews],
     )
 
 

@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import os
+from sqlalchemy import text
 from config.database import Base, engine, SessionLocal
 from models.setting import Setting
 from models.branding import BrandingSettings
@@ -17,6 +18,14 @@ async def lifespan(app: FastAPI):
         Base.metadata.create_all(bind=engine)
     except Exception as e:
         print(f"Warning: Could not create database tables: {e}")
+
+    try:
+        conn = engine.connect()
+        conn.execute(text("ALTER TABLE orders ADD COLUMN is_new INTEGER DEFAULT 1"))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
 
     _DEFAULTS = [
         ("homepage_video_enabled", "false", "Enable background video on storefront homepage"),

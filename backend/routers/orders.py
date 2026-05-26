@@ -24,21 +24,33 @@ VALID_PAYMENT_STATUSES = {"pending", "paid", "failed", "refunded"}
 def list_orders(
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),
+    search: Optional[str] = Query(None, description="Search by order number"),
+    status: Optional[str] = Query(None, description="Filter by order status"),
+    payment_status: Optional[str] = Query(None, description="Filter by payment status"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if current_user.role in ("admin", "staff"):
-        total = db.query(Order).count()
-        orders = db.query(Order).order_by(Order.created_at.desc()).offset(skip).limit(limit).all()
-    else:
-        total = db.query(Order).filter(Order.user_id == current_user.id).count()
-        orders = db.query(Order).filter(
-            Order.user_id == current_user.id
-        ).order_by(Order.created_at.desc()).offset(skip).limit(limit).all()
+    query = db.query(Order)
+
+    if current_user.role not in ("admin", "staff"):
+        query = query.filter(Order.user_id == current_user.id)
+
+    if search:
+        query = query.filter(Order.order_number.ilike(f"%{search}%"))
+    if status:
+        query = query.filter(Order.order_status == status)
+    if payment_status:
+        query = query.filter(Order.payment_status == payment_status)
+
+    total = query.count()
+    orders = query.order_by(Order.created_at.desc()).offset(skip).limit(limit).all()
+
+    user_ids = set(o.user_id for o in orders)
+    users = {u.id: u for u in db.query(User).filter(User.id.in_(user_ids)).all()} if user_ids else {}
 
     return OrderListResponse(
         total=total,
-        items=[_order_to_response(order) for order in orders]
+        items=[_order_to_response(order, users.get(order.user_id)) for order in orders]
     )
 
 
@@ -58,7 +70,8 @@ def get_order(
     
     if order.user_id != current_user.id and current_user.role not in ("admin", "staff"):
         raise HTTPException(status_code=403, detail="Not authorized to view this order")
-    return _order_to_response(order)
+    customer = db.query(User).filter(User.id == order.user_id).first()
+    return _order_to_response(order, customer)
 
 @router.put("/{order_id}/status", response_model=OrderResponse)
 def update_order_status(
@@ -93,15 +106,18 @@ def update_order_status(
             )
         order.payment_status = data.payment_status
 
+    if data.order_status or data.payment_status:
+        order.is_new = False
+
     db.commit()
     db.refresh(order)
 
+    customer = db.query(User).filter(User.id == order.user_id).first()
     if data.order_status and data.order_status != old_status:
-        customer = db.query(User).filter(User.id == order.user_id).first()
         msg = format_order_status_notification(order, old_status, customer or current_user)
         background_tasks.add_task(send_telegram_message, msg)
 
-    return _order_to_response(order)
+    return _order_to_response(order, customer)
 
 @router.delete("/{order_id}", response_model=CancelOrderResponse)
 def cancel_order(
@@ -196,14 +212,23 @@ def confirm_delivery(
 
     db.commit()
     db.refresh(order)
-    return _order_to_response(order)
+    customer = db.query(User).filter(User.id == order.user_id).first()
+    return _order_to_response(order, customer)
 
 
-def _order_to_response(order: Order) -> OrderResponse:
+def _order_to_response(order: Order, user: Optional[User] = None) -> OrderResponse:
+    customer_name = None
+    if user:
+        first = (user.first_name or "").strip()
+        last = (user.last_name or "").strip()
+        customer_name = f"{first} {last}".strip() if first or last else user.email
     return OrderResponse(
         id=order.id,
         order_number=order.order_number,
         user_id=order.user_id,
+        is_new=bool(order.is_new),
+        customer_email=user.email if user else None,
+        customer_name=customer_name,
         order_status=order.order_status,
         payment_status=order.payment_status,
         subtotal=order.subtotal,

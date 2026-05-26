@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import productService from '../services/productService';
 import reviewService from '../services/reviewService';
@@ -10,6 +10,32 @@ import { StarRating } from '../components/StarRating';
 import { ReviewList } from '../components/ReviewList';
 import { ReviewForm } from '../components/ReviewForm';
 
+function LoadingSkeleton() {
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-8 animate-pulse">
+      <div className="h-4 rounded w-32 mb-8" style={{ backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+        <div className="aspect-square theme-rounded" style={{ backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }} />
+        <div className="space-y-4">
+          <div className="h-6 rounded w-24" style={{ backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }} />
+          <div className="h-10 rounded w-3/4" style={{ backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }} />
+          <div className="h-8 rounded w-1/3" style={{ backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }} />
+          <div className="h-4 rounded w-1/4" style={{ backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }} />
+          <div className="space-y-2 pt-4">
+            <div className="h-3 rounded w-full" style={{ backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }} />
+            <div className="h-3 rounded w-5/6" style={{ backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }} />
+            <div className="h-3 rounded w-4/6" style={{ backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }} />
+          </div>
+          <div className="flex gap-3 pt-4">
+            <div className="h-12 rounded-lg w-32" style={{ backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }} />
+            <div className="h-12 rounded-lg w-40" style={{ backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ProductDetail() {
   const { slug } = useParams();
   const { storeName } = useSiteSettings();
@@ -17,6 +43,11 @@ export function ProductDetail() {
   const [reviews, setReviews] = useState({ items: [], total: 0, average_rating: 0 });
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [adding, setAdding] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgZoom, setImgZoom] = useState(false);
+  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
+  const imgRef = useRef(null);
   const { addItem } = useCart();
   const { addItem: addWishlist, removeItem: removeWishlist, isInWishlist } = useWishlist();
   const { user } = useAuth();
@@ -50,100 +81,315 @@ export function ProductDetail() {
     setReviews(revRes.data);
   };
 
-  const formatPrice = (p) => `$${Number(p).toFixed(2)}`;
+  const handleAddToCart = async () => {
+    setAdding(true);
+    await addItem(product.id, quantity);
+    setTimeout(() => setAdding(false), 600);
+  };
 
-  if (loading) {
+  const handleMouseMove = (e) => {
+    if (!imgRef.current || !imgZoom) return;
+    const rect = imgRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomPos({ x, y });
+  };
+
+  const formatPrice = (p) => `$${Number(p).toFixed(2)}`;
+  const hasDiscount = product?.discount_price;
+
+  if (loading) return <LoadingSkeleton />;
+
+  if (!product) {
     return (
-      <div className="flex justify-center py-20">
-        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+      <div className="text-center py-28 px-4">
+        <div className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: 'color-mix(in srgb, var(--border), transparent 50%)' }}>
+          <svg className="w-9 h-9 theme-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h2 className="text-xl font-bold theme-text-primary mb-2">Product not found</h2>
+        <p className="text-sm theme-text-secondary mb-6">The product you're looking for doesn't exist or has been removed.</p>
+        <Link to="/shop" className="theme-btn-primary text-sm font-medium no-underline inline-flex items-center gap-2">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Shop
+        </Link>
       </div>
     );
   }
 
-  if (!product) {
-    return <div className="text-center py-20 text-gray-500">Product not found</div>;
-  }
-
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <Link to="/shop" className="theme-text-link text-sm mb-4 inline-block no-underline">&larr; Back to Shop</Link>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      {/* ── Breadcrumb ──────────────────────────────────────────────────── */}
+      <nav className="flex items-center gap-2 text-sm mb-6 theme-text-secondary">
+        <Link to="/" className="hover:theme-text-link transition-colors no-underline theme-text-secondary">Home</Link>
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+        <Link to="/shop" className="hover:theme-text-link transition-colors no-underline theme-text-secondary">Shop</Link>
+        {product.category && (
+          <>
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+            <span className="theme-text-primary font-medium">{product.category.name}</span>
+          </>
+        )}
+      </nav>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-        <div className="aspect-square theme-surface theme-rounded overflow-hidden" style={{ backgroundColor: 'color-mix(in srgb, var(--surface), var(--bg) 50%)' }}>
-          {product.thumbnail ? (
-            <img src={product.thumbnail} alt={product.name} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center theme-text-secondary">No image</div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-14 mb-14">
+        {/* ── Image ─────────────────────────────────────────────────────── */}
+        <div className="relative">
+          <div
+            ref={imgRef}
+            className="relative aspect-square theme-rounded overflow-hidden cursor-crosshair"
+            style={{ backgroundColor: 'color-mix(in srgb, var(--surface), var(--bg) 50%)' }}
+            onMouseEnter={() => setImgZoom(true)}
+            onMouseLeave={() => setImgZoom(false)}
+            onMouseMove={handleMouseMove}
+          >
+            {product.thumbnail ? (
+              <>
+                {!imgLoaded && (
+                  <div className="absolute inset-0 animate-pulse" style={{ backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }} />
+                )}
+                <img
+                  ref={imgRef}
+                  src={product.thumbnail}
+                  alt={product.name}
+                  onLoad={() => setImgLoaded(true)}
+                  className="w-full h-full object-cover transition-opacity duration-300"
+                  style={{ opacity: imgLoaded ? 1 : 0 }}
+                />
+                {imgZoom && (
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      backgroundImage: `url(${product.thumbnail})`,
+                      backgroundSize: '200%',
+                      backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
+                      backgroundRepeat: 'no-repeat',
+                    }}
+                  />
+                )}
+              </>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center theme-text-secondary text-sm">No image available</div>
+            )}
+          </div>
+          {hasDiscount && (
+            <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider"
+              style={{
+                backgroundColor: 'var(--error)',
+                color: '#fff',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+              }}>
+              {Math.round((1 - product.discount_price / product.price) * 100)}% OFF
+            </div>
           )}
+          <button
+            onClick={() => isInWishlist(product.id) ? removeWishlist(product.id) : addWishlist(product.id)}
+            className="absolute top-3 right-3 p-2.5 rounded-full transition-all duration-200 hover:scale-110 active:scale-90 backdrop-blur-sm"
+            style={{
+              backgroundColor: isInWishlist ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.85)',
+              color: isInWishlist ? 'var(--error)' : 'var(--text-secondary)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            }}
+            aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+          >
+            <svg className="w-5 h-5" fill={isInWishlist ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </button>
         </div>
 
-        <div>
-          <h1 className="text-3xl font-bold theme-text-primary mb-2">{product.name}</h1>
-          {product.brand && <p className="theme-text-secondary mb-4">{product.brand}</p>}
+        {/* ── Product info ──────────────────────────────────────────────── */}
+        <div className="flex flex-col">
+          {product.brand && (
+            <p className="text-xs uppercase tracking-widest font-semibold theme-text-secondary mb-2">{product.brand}</p>
+          )}
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold theme-text-primary leading-tight mb-3">
+            {product.name}
+          </h1>
 
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-3xl font-bold theme-text-link">{formatPrice(product.discount_price || product.price)}</span>
-            {product.discount_price && (
-              <span className="text-lg theme-text-secondary line-through">{formatPrice(product.price)}</span>
+          {/* Rating */}
+          {reviews.average_rating > 0 && (
+            <div className="flex items-center gap-2 mb-4">
+              <StarRating rating={Math.round(reviews.average_rating)} readonly />
+              <span className="text-sm theme-text-secondary">
+                {reviews.average_rating.toFixed(1)} ({reviews.total} {reviews.total === 1 ? 'review' : 'reviews'})
+              </span>
+            </div>
+          )}
+
+          {/* Price */}
+          <div className="flex items-baseline gap-3 mb-4">
+            <span className="text-3xl sm:text-4xl font-extrabold" style={{ color: hasDiscount ? 'var(--error)' : 'var(--text-primary)' }}>
+              {formatPrice(product.discount_price || product.price)}
+            </span>
+            {hasDiscount && (
+              <>
+                <span className="text-lg theme-text-secondary line-through">{formatPrice(product.price)}</span>
+                <span className="text-sm font-semibold px-2 py-0.5 rounded-md"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, var(--error) 15%, transparent)',
+                    color: 'var(--error)',
+                  }}>
+                  Save {formatPrice(product.price - product.discount_price)}
+                </span>
+              </>
             )}
           </div>
 
-          <p className={`text-sm font-medium mb-4 ${product.stock_quantity > 0 ? 'theme-success' : 'theme-danger'}`}>
-            {product.stock_quantity > 0 ? `In Stock (${product.stock_quantity})` : 'Out of Stock'}
-          </p>
+          {/* Stock */}
+          <div className="flex items-center gap-3 mb-6">
+            <span className="flex items-center gap-1.5 text-sm font-medium"
+              style={{ color: product.stock_quantity > 0 ? 'var(--success)' : 'var(--error)' }}>
+              <span style={{
+                width: 7, height: 7, borderRadius: '50%', display: 'inline-block',
+                backgroundColor: product.stock_quantity > 0 ? 'var(--success)' : 'var(--error)',
+              }} />
+              {product.stock_quantity > 0 ? `In Stock (${product.stock_quantity} available)` : 'Out of Stock'}
+            </span>
+            {product.sku && (
+              <span className="text-xs theme-text-secondary">SKU: {product.sku}</span>
+            )}
+          </div>
 
+          {/* Short description */}
           {product.short_description && (
-            <p className="theme-text-secondary mb-6">{product.short_description}</p>
+            <p className="theme-text-secondary leading-relaxed mb-6 text-sm sm:text-base">
+              {product.short_description}
+            </p>
           )}
 
+          {/* Actions */}
           {product.stock_quantity > 0 && (
-            <div className="flex items-center gap-4 mb-6">
-              <div className="flex items-center theme-border theme-rounded">
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 hover:opacity-80 theme-text-primary">-</button>
-                <span className="px-4 py-2 font-medium theme-text-primary">{quantity}</span>
-                <button onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))} className="px-3 py-2 hover:opacity-80 theme-text-primary">+</button>
+            <div className="flex flex-wrap items-center gap-3 mb-6">
+              <div className="inline-flex items-center theme-rounded overflow-hidden"
+                style={{ border: '1px solid color-mix(in srgb, var(--border), transparent 30%)' }}>
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="px-3.5 py-2.5 transition-colors hover:opacity-70 theme-text-primary font-medium text-sm"
+                  disabled={quantity <= 1}
+                  style={{ opacity: quantity <= 1 ? 0.4 : 1 }}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
+                  </svg>
+                </button>
+                <span className="px-5 py-2.5 font-semibold text-sm theme-text-primary min-w-[48px] text-center select-none"
+                  style={{ borderLeft: '1px solid color-mix(in srgb, var(--border), transparent 30%)', borderRight: '1px solid color-mix(in srgb, var(--border), transparent 30%)' }}>
+                  {quantity}
+                </span>
+                <button
+                  onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
+                  className="px-3.5 py-2.5 transition-colors hover:opacity-70 theme-text-primary font-medium text-sm"
+                  disabled={quantity >= product.stock_quantity}
+                  style={{ opacity: quantity >= product.stock_quantity ? 0.4 : 1 }}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </button>
               </div>
               <button
-                onClick={() => addItem(product.id, quantity)}
-                className="px-6 py-2.5 theme-btn-primary font-medium no-underline"
+                onClick={handleAddToCart}
+                disabled={adding}
+                className="flex-1 sm:flex-none px-8 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 active:scale-[0.97] disabled:opacity-60 flex items-center justify-center gap-2"
+                style={{
+                  backgroundColor: 'var(--button-bg)',
+                  color: 'var(--button-text)',
+                  boxShadow: '0 4px 12px color-mix(in srgb, var(--button-bg) 40%, transparent)',
+                }}
               >
-                Add to Cart
-              </button>
-              <button
-                onClick={() => isInWishlist(product.id) ? removeWishlist(product.id) : addWishlist(product.id)}
-                className={`p-2.5 theme-rounded theme-border ${isInWishlist(product.id) ? 'theme-danger' : 'theme-text-secondary'}`}
-                style={isInWishlist(product.id) ? { borderColor: 'var(--error)' } : {}}
-              >
-                <svg className="w-5 h-5" fill={isInWishlist(product.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
+                {adding ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
+                    </svg>
+                    Add to Cart
+                  </>
+                )}
               </button>
             </div>
           )}
 
-          {product.description && (
-            <div className="prose max-w-none mt-6">
-              <h3 className="font-bold text-lg theme-text-primary mb-2">Description</h3>
-              <p className="theme-text-secondary whitespace-pre-wrap">{product.description}</p>
-            </div>
-          )}
+          {/* Trust badges */}
+          <div className="flex flex-wrap gap-4 mt-auto pt-6"
+            style={{ borderTop: '1px solid color-mix(in srgb, var(--border), transparent 60%)' }}>
+            {[
+              { icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', label: 'Secure Checkout' },
+              { icon: 'M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z', label: 'Free Shipping' },
+              { icon: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15', label: 'Easy Returns' },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-2 text-xs theme-text-secondary">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5} style={{ color: 'var(--primary)' }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
+                </svg>
+                {item.label}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="theme-border pt-8" style={{ borderTopWidth: 1, borderTopStyle: 'solid' }}>
-        <h2 className="text-2xl font-bold theme-text-primary mb-6">Customer Reviews</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {/* ── Full description ───────────────────────────────────────────── */}
+      {product.description && (
+        <div className="mb-14 theme-surface theme-rounded p-6 sm:p-8"
+          style={{ border: '1px solid color-mix(in srgb, var(--border), transparent 50%)' }}>
+          <h2 className="text-lg sm:text-xl font-bold theme-text-primary mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} style={{ color: 'var(--primary)' }}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Description
+          </h2>
+          <div className="theme-text-secondary leading-relaxed whitespace-pre-wrap text-sm sm:text-base" style={{ lineHeight: '1.8' }}>
+            {product.description}
+          </div>
+        </div>
+      )}
+
+      {/* ── Reviews ─────────────────────────────────────────────────────── */}
+      <div style={{ borderTop: '1px solid color-mix(in srgb, var(--border), transparent 50%)' }} className="pt-8">
+        <h2 className="text-lg sm:text-xl font-bold theme-text-primary mb-8 flex items-center gap-2">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} style={{ color: 'var(--primary)' }}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+          </svg>
+          Customer Reviews
+          {reviews.total > 0 && (
+            <span className="text-sm font-normal theme-text-secondary ml-1">({reviews.total})</span>
+          )}
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
           <ReviewList reviews={reviews.items} averageRating={reviews.average_rating} />
-          {user && (
-            <ReviewForm onSubmit={handleReviewSubmit} />
-          )}
-          {!user && (
-            <div className="flex items-center justify-center">
-              <Link to={`/login?redirect=/product/${slug}`} className="theme-text-link no-underline">
-                Log in to write a review
-              </Link>
-            </div>
-          )}
+          <div>
+            {user ? (
+              <ReviewForm onSubmit={handleReviewSubmit} />
+            ) : (
+              <div className="flex flex-col items-center justify-center p-8 theme-rounded text-center"
+                style={{ border: '1px dashed color-mix(in srgb, var(--border), transparent 30%)' }}>
+                <svg className="w-10 h-10 mb-3 theme-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <p className="text-sm theme-text-secondary mb-3">Share your experience with this product</p>
+                <Link to={`/login?redirect=/product/${slug}`} className="theme-btn-primary text-sm font-medium no-underline">
+                  Write a Review
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

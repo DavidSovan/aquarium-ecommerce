@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+import { mediaUrl } from '../utils/mediaUrl';
 
 const isVideoUrl = (url) => /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url);
 
@@ -47,7 +48,7 @@ export function HeroSection() {
           <>
             <video
               ref={videoRef}
-              src={backgroundVideoUrl}
+              src={mediaUrl(backgroundVideoUrl)}
               autoPlay loop muted playsInline preload="auto"
               onCanPlay={() => setVideoReady(true)}
               onError={() => setVideoError(true)}
@@ -57,7 +58,7 @@ export function HeroSection() {
           </>
         ) : (
           <>
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${backgroundVideoUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${mediaUrl(backgroundVideoUrl)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(12,20,69,0.72) 0%, rgba(10,36,99,0.55) 50%, rgba(0,0,0,0.60) 100%)' }} />
           </>
         )

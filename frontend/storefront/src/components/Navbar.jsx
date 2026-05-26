@@ -1,13 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { useWishlist } from '../context/WishlistContext';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 
 export function Navbar({ onCartOpen }) {
   const { user, logout } = useAuth();
   const { itemCount } = useCart();
-  const { wishlist } = useWishlist();
   const { storeName, storeLogo } = useSiteSettings();
 
   return (
@@ -26,16 +24,6 @@ export function Navbar({ onCartOpen }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <Link to="/profile" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500, textDecoration: 'none' }}>
                 {user.first_name || user.email}
-              </Link>
-              <Link to="/wishlist" style={{ color: 'var(--text-secondary)', position: 'relative', textDecoration: 'none' }}>
-                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-                {wishlist?.items?.length > 0 && (
-                  <span style={{ position: 'absolute', top: -8, right: -8, backgroundColor: 'var(--error)', color: '#ffffff', fontSize: 10, width: 16, height: 16, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {wishlist.items.length}
-                  </span>
-                )}
               </Link>
               <button onClick={logout} style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer' }}>Logout</button>
             </div>

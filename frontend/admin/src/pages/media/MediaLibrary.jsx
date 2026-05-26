@@ -1,6 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import mediaService from '../../services/mediaService';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { API_BASE_URL } from '../../services/api';
+
+const toFullUrl = (url) => {
+  if (!url) return url;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  if (url.startsWith('/')) return `${API_BASE_URL}${url}`;
+  return url;
+};
 
 export function MediaLibrary() {
   const [items, setItems] = useState([]);
@@ -54,8 +62,9 @@ export function MediaLibrary() {
 
   const copyUrl = async (url) => {
     try {
-      await navigator.clipboard.writeText(url);
-      setCopiedId(url);
+      const full = toFullUrl(url);
+      await navigator.clipboard.writeText(full);
+      setCopiedId(full);
       setTimeout(() => setCopiedId(null), 2000);
     } catch {}
   };
@@ -134,11 +143,11 @@ export function MediaLibrary() {
             <div key={item.id} className="bg-white rounded-lg shadow overflow-hidden group relative">
               {item.media_type === 'image' ? (
                 <div className="h-32 bg-gray-100 flex items-center justify-center overflow-hidden">
-                  <img src={item.url} alt={item.alt_text} className="w-full h-full object-cover" loading="lazy" />
+                  <img src={toFullUrl(item.url)} alt={item.alt_text} className="w-full h-full object-cover" loading="lazy" />
                 </div>
               ) : item.media_type === 'video' ? (
                 <div className="h-32 bg-gray-100 flex items-center justify-center">
-                  <video src={item.url} className="w-full h-full object-cover" />
+                  <video src={toFullUrl(item.url)} className="w-full h-full object-cover" />
                 </div>
               ) : (
                 <div className="h-32 bg-gray-100 flex items-center justify-center text-gray-400">

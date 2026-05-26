@@ -5,6 +5,10 @@ export const reviewService = {
     return api.get(`/reviews/product/${productId}`, { params });
   },
 
+  getMyReviews(params = {}) {
+    return api.get('/reviews/my-reviews', { params });
+  },
+
   createReview(productId, data) {
     return api.post(`/reviews/product/${productId}`, data);
   },

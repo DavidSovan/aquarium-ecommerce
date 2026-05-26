@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { mediaUrl } from '../utils/mediaUrl';
 
 const isVideoUrl = (url) => /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url);
 const isYoutubeUrl = (url) => /(youtube\.com|youtu\.be)/i.test(url);
@@ -44,7 +45,7 @@ export function DynamicSection({ section }) {
         {section.hero_bg_video_url ? (
           <>
             <video
-              src={section.hero_bg_video_url}
+              src={mediaUrl(section.hero_bg_video_url)}
               autoPlay
               loop
               muted
@@ -55,7 +56,7 @@ export function DynamicSection({ section }) {
           </>
         ) : section.hero_bg_image ? (
           <>
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${section.hero_bg_image})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${mediaUrl(section.hero_bg_image)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
             <div style={overlayStyle} />
           </>
         ) : (
@@ -110,7 +111,7 @@ export function DynamicSection({ section }) {
           )}
           {(section.hero_bg_image || section.bg_image) && (
             <div style={{ textAlign: 'center' }}>
-              <img src={section.hero_bg_image || section.bg_image} alt={section.hero_title || ''} style={{ maxWidth: '100%', height: 'auto', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }} />
+              <img src={mediaUrl(section.hero_bg_image || section.bg_image)} alt={section.hero_title || ''} style={{ maxWidth: '100%', height: 'auto', borderRadius: 'var(--border-radius)', boxShadow: 'var(--box-shadow)' }} />
             </div>
           )}
         </div>
