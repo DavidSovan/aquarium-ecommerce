@@ -3,6 +3,14 @@ import { Link, useLocation } from 'react-router-dom';
 import orderService from '../services/orderService';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 
+const STATUS_META = {
+  pending:    { label: 'Pending',    bg: 'var(--warning)', color: '#ffffff' },
+  processing: { label: 'Processing', bg: 'var(--primary)', color: '#ffffff' },
+  shipped:    { label: 'Shipped',    bg: 'var(--accent)',  color: '#ffffff' },
+  delivered:  { label: 'Delivered',  bg: 'var(--success)', color: '#ffffff' },
+  cancelled:  { label: 'Cancelled',  bg: 'var(--error)',   color: '#ffffff' },
+};
+
 export function MyOrdersPage() {
   const location = useLocation();
   const { storeName } = useSiteSettings();
@@ -22,12 +30,7 @@ export function MyOrdersPage() {
   }, []);
 
   const formatPrice = (p) => `$${Number(p).toFixed(2)}`;
-  const formatDate = (d) => new Date(d).toLocaleDateString();
-
-  const statusColor = (status) => {
-    const colors = { pending: 'bg-yellow-100 text-yellow-800', processing: 'bg-blue-100 text-blue-800', shipped: 'bg-purple-100 text-purple-800', delivered: 'bg-green-100 text-green-800', cancelled: 'bg-red-100 text-red-800' };
-    return colors[status] || 'bg-gray-100 text-gray-800';
-  };
+  const formatDate = (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   const handleCancelOrder = async (id) => {
     if (!window.confirm('Are you sure you want to cancel this order?')) return;
@@ -50,66 +53,78 @@ export function MyOrdersPage() {
   };
 
   if (loading) {
-    return <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" /></div>;
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '5rem 0' }}>
+        <div style={{ width: 32, height: 32, border: '4px solid var(--border)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">My Orders</h1>
+    <div style={{ maxWidth: 800, margin: '0 auto', padding: '2rem 1rem' }}>
+      <h1 className="theme-text-primary" style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '2rem' }}>My Orders</h1>
 
       {confirmOrder && (
-        <div className="mb-6 p-6 bg-green-100 border border-green-400 text-green-800 rounded-lg">
-          <p className="font-bold text-lg mb-1">Order Confirmed!</p>
-          <p className="text-sm">Order <span className="font-semibold">#{confirmOrder.order_number}</span> has been placed successfully.</p>
+        <div style={{ marginBottom: '1.5rem', padding: '1.5rem', backgroundColor: 'color-mix(in srgb, var(--success) 15%, transparent)', border: '1px solid var(--success)', borderRadius: 'var(--radius)', color: 'var(--success)' }}>
+          <p style={{ fontWeight: 700, fontSize: '1.125rem', marginBottom: '0.25rem' }}>Order Confirmed!</p>
+          <p style={{ fontSize: '0.875rem' }}>Order <strong>#{confirmOrder.order_number}</strong> has been placed successfully.</p>
           {confirmOrder.coupon_code && (
-            <p className="text-sm mt-1">Coupon <span className="font-semibold">{confirmOrder.coupon_code}</span> applied — you saved ${Number(confirmOrder.coupon_discount).toFixed(2)}.</p>
+            <p style={{ fontSize: '0.875rem', marginTop: '0.25rem' }}>Coupon <strong>{confirmOrder.coupon_code}</strong> applied — you saved ${Number(confirmOrder.coupon_discount).toFixed(2)}.</p>
           )}
         </div>
       )}
 
       {orders.length === 0 ? (
-        <p className="text-gray-500 text-center py-12">No orders yet</p>
+        <div style={{ textAlign: 'center', padding: '3rem 0' }}>
+          <p className="theme-text-secondary" style={{ marginBottom: '1rem' }}>No orders yet.</p>
+          <Link to="/shop" className="theme-btn-primary" style={{ padding: '0.625rem 1.5rem', borderRadius: 'var(--button-radius)', textDecoration: 'none', display: 'inline-block', fontSize: '0.875rem' }}>
+            Browse Products
+          </Link>
+        </div>
       ) : (
-        <div className="space-y-4">
-          {orders.map(order => (
-            <div key={order.id} className="bg-white rounded-lg shadow p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <p className="text-sm text-gray-500">Order #{order.order_number}</p>
-                  <p className="text-sm text-gray-500">{formatDate(order.created_at)}</p>
-                </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColor(order.order_status)}`}>
-                  {order.order_status}
-                </span>
-              </div>
-              <div className="space-y-2 mb-4">
-                {order.items.map(item => (
-                  <div key={item.id} className="flex justify-between text-sm">
-                    <span>{item.product_name} x{item.quantity}</span>
-                    <span>{formatPrice(item.total_price)}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {orders.map(order => {
+            const sm = STATUS_META[order.order_status] || STATUS_META.pending;
+            return (
+              <div key={order.id} className="theme-surface theme-border theme-rounded" style={{ padding: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                  <div>
+                    <p className="theme-text-secondary" style={{ fontSize: '0.875rem' }}>Order #{order.order_number}</p>
+                    <p className="theme-text-secondary" style={{ fontSize: '0.875rem' }}>{formatDate(order.created_at)}</p>
                   </div>
-                ))}
-              </div>
-              {order.coupon_code && (
-                <div className="flex justify-between text-sm text-green-600 border-t pt-2">
-                  <span>Coupon: {order.coupon_code}</span>
-                  <span>-{formatPrice(order.coupon_discount)}</span>
+                  <span style={{ padding: '0.25rem 0.75rem', borderRadius: 999, fontSize: '0.75rem', fontWeight: 600, backgroundColor: sm.bg, color: sm.color }}>
+                    {sm.label}
+                  </span>
                 </div>
-              )}
-              <div className="flex justify-between font-bold border-t pt-2">
-                <span>Total</span>
-                <span>{formatPrice(order.total)}</span>
-              </div>
-              <div className="flex gap-4 mt-4">
-                {order.order_status === 'pending' && (
-                  <button onClick={() => handleCancelOrder(order.id)} className="text-red-500 hover:text-red-600 text-sm font-medium">Cancel Order</button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
+                  {order.items.map(item => (
+                    <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
+                      <span className="theme-text-primary">{item.product_name} x{item.quantity}</span>
+                      <span className="theme-text-secondary">{formatPrice(item.total_price)}</span>
+                    </div>
+                  ))}
+                </div>
+                {order.coupon_code && (
+                  <div className="theme-success" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', borderTop: '1px solid var(--border)', paddingTop: '0.5rem' }}>
+                    <span>Coupon: {order.coupon_code}</span>
+                    <span>-{formatPrice(order.coupon_discount)}</span>
+                  </div>
                 )}
-                {order.order_status === 'shipped' && (
-                  <button onClick={() => handleConfirmDelivery(order.id)} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium transition-colors">Confirm Receipt</button>
-                )}
+                <div className="theme-border" style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, paddingTop: '0.5rem', marginTop: order.coupon_code ? '0.5rem' : '0', borderTop: order.coupon_code ? 'none' : '1px solid var(--border)' }}>
+                  <span className="theme-text-primary">Total</span>
+                  <span className="theme-text-primary">{formatPrice(order.total)}</span>
+                </div>
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                  {order.order_status === 'pending' && (
+                    <button onClick={() => handleCancelOrder(order.id)} className="theme-danger" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, padding: 0 }}>Cancel Order</button>
+                  )}
+                  {order.order_status === 'shipped' && (
+                    <button onClick={() => handleConfirmDelivery(order.id)} className="theme-btn-primary" style={{ border: 'none', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.875rem', fontWeight: 600 }}>Confirm Receipt</button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

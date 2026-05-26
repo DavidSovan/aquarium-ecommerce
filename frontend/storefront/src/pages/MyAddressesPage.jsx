@@ -48,35 +48,51 @@ export function MyAddressesPage() {
     } catch {}
   };
 
-  if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" /></div>;
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '5rem 0' }}>
+        <div style={{ width: 32, height: 32, border: '4px solid var(--border)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">My Addresses</h1>
-        <button onClick={() => { setShowForm(true); setEditing(null); setForm({ full_name: '', phone: '', country: '', city: '', address_line: '', postal_code: '', is_default: false }); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">+ Add Address</button>
+    <div style={{ maxWidth: 800, margin: '0 auto', padding: '2rem 1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <h1 className="theme-text-primary" style={{ fontSize: '1.75rem', fontWeight: 700 }}>My Addresses</h1>
+        <button onClick={() => { setShowForm(true); setEditing(null); setForm({ full_name: '', phone: '', country: '', city: '', address_line: '', postal_code: '', is_default: false }); }}
+          className="theme-btn-primary" style={{ border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, padding: '0.5rem 1rem' }}>
+          + Add Address
+        </button>
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowForm(false)}>
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
-            <h2 className="text-xl font-bold mb-4">{editing ? 'Edit Address' : 'New Address'}</h2>
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <input placeholder="Full Name" value={form.full_name} onChange={e => setForm({...form, full_name: e.target.value})} required className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              <input placeholder="Phone" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} required className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              <div className="grid grid-cols-2 gap-3">
-                <input placeholder="Country" value={form.country} onChange={e => setForm({...form, country: e.target.value})} required className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                <input placeholder="City" value={form.city} onChange={e => setForm({...form, city: e.target.value})} required className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }} onClick={() => setShowForm(false)}>
+          <div className="theme-surface theme-border theme-rounded" style={{ padding: '1.5rem', maxWidth: 448, width: '100%', margin: '0 1rem' }} onClick={e => e.stopPropagation()}>
+            <h2 className="theme-text-primary" style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem' }}>{editing ? 'Edit Address' : 'New Address'}</h2>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <input placeholder="Full Name" value={form.full_name} onChange={e => setForm({...form, full_name: e.target.value})} required
+                style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: '0.875rem', background: 'var(--surface)', color: 'var(--text-primary)', outline: 'none' }} />
+              <input placeholder="Phone" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} required
+                style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: '0.875rem', background: 'var(--surface)', color: 'var(--text-primary)', outline: 'none' }} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                <input placeholder="Country" value={form.country} onChange={e => setForm({...form, country: e.target.value})} required
+                  style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: '0.875rem', background: 'var(--surface)', color: 'var(--text-primary)', outline: 'none' }} />
+                <input placeholder="City" value={form.city} onChange={e => setForm({...form, city: e.target.value})} required
+                  style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: '0.875rem', background: 'var(--surface)', color: 'var(--text-primary)', outline: 'none' }} />
               </div>
-              <input placeholder="Address Line" value={form.address_line} onChange={e => setForm({...form, address_line: e.target.value})} required className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              <input placeholder="Postal Code" value={form.postal_code} onChange={e => setForm({...form, postal_code: e.target.value})} className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              <label className="flex items-center gap-2 text-sm">
+              <input placeholder="Address Line" value={form.address_line} onChange={e => setForm({...form, address_line: e.target.value})} required
+                style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: '0.875rem', background: 'var(--surface)', color: 'var(--text-primary)', outline: 'none' }} />
+              <input placeholder="Postal Code" value={form.postal_code} onChange={e => setForm({...form, postal_code: e.target.value})}
+                style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: '0.875rem', background: 'var(--surface)', color: 'var(--text-primary)', outline: 'none' }} />
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                 <input type="checkbox" checked={form.is_default} onChange={e => setForm({...form, is_default: e.target.checked})} />
                 Set as default address
               </label>
-              <div className="flex gap-3 pt-2">
-                <button type="submit" className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save</button>
-                <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
+              <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.5rem' }}>
+                <button type="submit" className="theme-btn-primary" style={{ flex: 1, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem', padding: '0.5rem' }}>Save</button>
+                <button type="button" onClick={() => setShowForm(false)}
+                  style={{ flex: 1, padding: '0.5rem', border: '1px solid var(--border)', borderRadius: 'var(--button-radius)', cursor: 'pointer', fontSize: '0.875rem', background: 'transparent', color: 'var(--text-secondary)' }}>Cancel</button>
               </div>
             </form>
           </div>
@@ -84,19 +100,23 @@ export function MyAddressesPage() {
       )}
 
       {addresses.length === 0 ? (
-        <p className="text-gray-500 text-center py-12">No addresses saved</p>
+        <p className="theme-text-secondary" style={{ textAlign: 'center', padding: '3rem 0' }}>No addresses saved</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
           {addresses.map(addr => (
-            <div key={addr.id} className="bg-white rounded-lg shadow p-6 relative">
-              {addr.is_default && <span className="absolute top-2 right-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Default</span>}
-              <p className="font-medium">{addr.full_name}</p>
-              <p className="text-sm text-gray-600">{addr.address_line}</p>
-              <p className="text-sm text-gray-600">{addr.city}, {addr.country}</p>
-              <p className="text-sm text-gray-600">{addr.phone}</p>
-              <div className="flex gap-3 mt-4">
-                <button onClick={() => { setEditing(addr); setForm(addr); setShowForm(true); }} className="text-blue-600 hover:text-blue-700 text-sm">Edit</button>
-                <button onClick={() => handleDelete(addr.id)} className="text-red-500 hover:text-red-600 text-sm">Delete</button>
+            <div key={addr.id} className="theme-surface theme-border theme-rounded" style={{ padding: '1.5rem', position: 'relative' }}>
+              {addr.is_default && (
+                <span style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', fontSize: '0.75rem', backgroundColor: 'var(--primary)', color: '#ffffff', padding: '0.125rem 0.5rem', borderRadius: 999, fontWeight: 600 }}>
+                  Default
+                </span>
+              )}
+              <p className="theme-text-primary" style={{ fontWeight: 600 }}>{addr.full_name}</p>
+              <p className="theme-text-secondary" style={{ fontSize: '0.875rem' }}>{addr.address_line}</p>
+              <p className="theme-text-secondary" style={{ fontSize: '0.875rem' }}>{addr.city}, {addr.country}</p>
+              <p className="theme-text-secondary" style={{ fontSize: '0.875rem' }}>{addr.phone}</p>
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+                <button onClick={() => { setEditing(addr); setForm(addr); setShowForm(true); }} className="theme-text-link" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', padding: 0 }}>Edit</button>
+                <button onClick={() => handleDelete(addr.id)} className="theme-danger" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', padding: 0 }}>Delete</button>
               </div>
             </div>
           ))}
