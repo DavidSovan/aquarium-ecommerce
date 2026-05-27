@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import themeService from '../../services/themeService';
 import mediaService from '../../services/mediaService';
+import { toFullUrl } from '../../utils/mediaUrl';
 
 const COLOR_FIELDS = [
   { key: 'primary_color', label: 'Primary Color' },
@@ -71,7 +72,7 @@ function ThemePreview({ theme }) {
     <div className="sticky top-6">
       <SectionCard title="Live Preview">
         {theme.preview_image && (
-          <img src={theme.preview_image} alt="Theme preview" className="w-full h-32 object-cover rounded-lg mb-4 border" />
+          <img src={toFullUrl(theme.preview_image)} alt="Theme preview" className="w-full h-32 object-cover rounded-lg mb-4 border" />
         )}
         <div className="space-y-3 p-4 rounded-lg" style={{ backgroundColor: theme.surface_color, border: `1px solid ${theme.border_color}` }}>
           <div className="flex gap-2">
@@ -126,7 +127,7 @@ function MediaPicker({ value, onSelect, onClear }) {
             <div className="grid grid-cols-4 gap-3">
               {mediaItems.map(m => (
                 <div key={m.id} className="cursor-pointer border rounded-lg overflow-hidden hover:border-blue-500" onClick={() => { onSelect(m.url); setShowMediaLib(false); }}>
-                  <img src={m.url} alt={m.alt_text} className="w-full h-24 object-cover" />
+                  <img src={toFullUrl(m.url)} alt={m.alt_text} className="w-full h-24 object-cover" />
                   <p className="text-xs text-gray-500 truncate p-1">{m.original_name}</p>
                 </div>
               ))}
@@ -159,7 +160,7 @@ function ThemeCard({ theme, isSelected, onClick, onActivate, onDuplicate, onDele
     >
       {theme.preview_image ? (
         <div className="h-28 overflow-hidden">
-          <img src={theme.preview_image} alt={theme.name} className="w-full h-full object-cover" />
+          <img src={toFullUrl(theme.preview_image)} alt={theme.name} className="w-full h-full object-cover" />
         </div>
       ) : (
         <div className="h-28 flex items-center justify-center" style={{ backgroundColor: theme.background_color }}>

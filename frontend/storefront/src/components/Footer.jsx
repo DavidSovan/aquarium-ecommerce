@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+import { mediaUrl } from '../utils/mediaUrl';
 
 export function Footer() {
   const { storeName, storeLogo, footerLogo, copyrightText, contactEmail, contactPhone, contactAddress, socialLinks } = useSiteSettings();
@@ -9,8 +10,8 @@ export function Footer() {
       <div style={{ maxWidth: 'var(--container-width)', margin: '0 auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '2rem', marginBottom: '2rem' }}>
           <div>
-            {footerLogo && <img src={footerLogo} alt={storeName} style={{ height: 40, marginBottom: '0.75rem', objectFit: 'contain' }} />}
-            {!footerLogo && storeLogo && <img src={storeLogo} alt={storeName} style={{ height: 40, marginBottom: '0.75rem', objectFit: 'contain' }} />}
+            {footerLogo && <img src={mediaUrl(footerLogo)} alt={storeName} style={{ height: 40, marginBottom: '0.75rem', objectFit: 'contain' }} />}
+            {!footerLogo && storeLogo && <img src={mediaUrl(storeLogo)} alt={storeName} style={{ height: 40, marginBottom: '0.75rem', objectFit: 'contain' }} />}
             <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#ffffff', marginBottom: '0.5rem' }}>{storeName}</h3>
             <p style={{ fontSize: '0.875rem', opacity: 0.7 }}>Premium aquatic products for enthusiasts and professionals.</p>
           </div>

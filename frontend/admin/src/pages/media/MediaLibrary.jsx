@@ -19,6 +19,8 @@ export function MediaLibrary() {
   const [copiedId, setCopiedId] = useState(null);
   const [showUrlModal, setShowUrlModal] = useState(false);
   const [urlForm, setUrlForm] = useState({ url: '', media_type: 'image', folder: '/' });
+  const [lastUploaded, setLastUploaded] = useState(null);
+  const dismissTimer = useRef(null);
   const fileRef = useRef(null);
 
   useEffect(() => { load(); }, []);
@@ -38,8 +40,15 @@ export function MediaLibrary() {
     if (!files.length) return;
     setUploading(true);
     try {
+      let last;
       for (const file of files) {
-        await mediaService.upload(file);
+        const res = await mediaService.upload(file);
+        last = res.data;
+      }
+      if (last) {
+        setLastUploaded(last);
+        if (dismissTimer.current) clearTimeout(dismissTimer.current);
+        dismissTimer.current = setTimeout(() => setLastUploaded(null), 8000);
       }
       await load();
     } catch (err) { alert('Upload failed'); }
@@ -135,6 +144,23 @@ export function MediaLibrary() {
         </div>
       )}
 
+      {lastUploaded && (
+        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="text-sm text-green-700 truncate">{toFullUrl(lastUploaded.url)}</span>
+          </div>
+          <div className="flex gap-2 flex-shrink-0">
+            <button onClick={() => copyUrl(lastUploaded.url)} className="text-xs px-2.5 py-1 rounded bg-green-600 text-white hover:bg-green-700">
+              {copiedId === toFullUrl(lastUploaded.url) ? 'Copied!' : 'Copy URL'}
+            </button>
+            <button onClick={() => setLastUploaded(null)} className="text-xs px-2 py-1 rounded text-green-600 hover:bg-green-100">Dismiss</button>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="text-center py-20 text-gray-500">Loading media...</div>
       ) : (
@@ -162,7 +188,7 @@ export function MediaLibrary() {
                 </div>
                 <div className="flex gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button onClick={() => copyUrl(item.url)} className="text-xs text-blue-600 hover:text-blue-700">
-                    {copiedId === item.url ? 'Copied!' : 'Copy URL'}
+                    {copiedId === toFullUrl(item.url) ? 'Copied!' : 'Copy URL'}
                   </button>
                   <button onClick={() => setDeleteTarget(item)} className="text-xs text-red-600 hover:text-red-700">Delete</button>
                 </div>

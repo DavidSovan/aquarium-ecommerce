@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import brandingService from '../../services/brandingService';
 import mediaService from '../../services/mediaService';
+import { toFullUrl } from '../../utils/mediaUrl';
 
 const SOCIAL_FIELDS = [
   { key: 'social_facebook', label: 'Facebook URL', icon: 'f' },
@@ -28,7 +29,7 @@ function MediaPicker({ label, value, onSelect, onClear }) {
         <button type="button" onClick={() => setShowMediaLib(true)} className="px-3 py-2 bg-gray-100 border rounded-lg text-sm hover:bg-gray-200">Browse</button>
         {value && <button type="button" onClick={onClear} className="px-3 py-2 text-red-500 hover:text-red-700 text-sm">Clear</button>}
       </div>
-      {value && <img src={value} alt={label} className="mt-2 h-16 w-auto object-contain border rounded" />}
+      {value && <img src={toFullUrl(value)} alt={label} className="mt-2 h-16 w-auto object-contain border rounded" />}
 
       {showMediaLib && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowMediaLib(false)}>
@@ -37,7 +38,7 @@ function MediaPicker({ label, value, onSelect, onClear }) {
             <div className="grid grid-cols-4 gap-3">
               {mediaItems.map(m => (
                 <div key={m.id} className="cursor-pointer border rounded-lg overflow-hidden hover:border-blue-500" onClick={() => { onSelect(m.url); setShowMediaLib(false); }}>
-                  <img src={m.url} alt={m.alt_text} className="w-full h-24 object-cover" />
+                  <img src={toFullUrl(m.url)} alt={m.alt_text} className="w-full h-24 object-cover" />
                   <p className="text-xs text-gray-500 truncate p-1">{m.original_name}</p>
                 </div>
               ))}
@@ -143,7 +144,7 @@ export function BrandingSettings() {
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b">Preview</h2>
             <div className="p-6 border rounded-lg text-center space-y-3">
-              {form.store_logo && <img src={form.store_logo} alt="Logo" className="h-12 mx-auto object-contain" />}
+              {form.store_logo && <img src={toFullUrl(form.store_logo)} alt="Logo" className="h-12 mx-auto object-contain" />}
               <h3 className="text-xl font-bold">{form.store_name || 'Store Name'}</h3>
               {form.contact_email && <p className="text-sm text-gray-500">{form.contact_email}</p>}
               {form.contact_phone && <p className="text-sm text-gray-500">{form.contact_phone}</p>}

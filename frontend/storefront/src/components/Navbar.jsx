@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+import { mediaUrl } from '../utils/mediaUrl';
 
 export function Navbar({ onCartOpen }) {
   const { user, logout } = useAuth();
@@ -13,7 +14,7 @@ export function Navbar({ onCartOpen }) {
       <div style={{ maxWidth: 'var(--container-width)', margin: '0 auto', padding: '0 1rem', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
           {storeLogo ? (
-            <img src={storeLogo} alt={storeName} style={{ height: 32, objectFit: 'contain' }} />
+            <img src={mediaUrl(storeLogo)} alt={storeName} style={{ height: 32, objectFit: 'contain' }} />
           ) : (
             <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--primary)' }}>{storeName}</span>
           )}
