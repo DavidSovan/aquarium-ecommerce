@@ -1,7 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import orderService from '../services/orderService';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+import { useAuth } from '../context/AuthContext';
+import wsService from '../services/websocket';
+import { OrderTimeline } from '../components/orders/OrderTimeline';
 
 const STATUS_META = {
   pending:    { label: 'Pending',    bg: 'var(--warning)', color: '#ffffff' },
@@ -11,9 +14,39 @@ const STATUS_META = {
   cancelled:  { label: 'Cancelled',  bg: 'var(--error)',   color: '#ffffff' },
 };
 
+function Toast({ message, type, onClose }) {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 4000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  const bgColor = type === 'error' ? 'var(--error)' : 'var(--success)';
+
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: '1.5rem',
+      right: '1.5rem',
+      zIndex: 9999,
+      backgroundColor: bgColor,
+      color: '#fff',
+      padding: '0.75rem 1.25rem',
+      borderRadius: 'var(--radius)',
+      fontSize: '0.875rem',
+      fontWeight: 500,
+      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+      maxWidth: '24rem',
+      animation: 'slideInUp 0.3s ease-out',
+    }}>
+      {message}
+    </div>
+  );
+}
+
 export function MyOrdersPage() {
   const location = useLocation();
   const { storeName } = useSiteSettings();
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     document.title = `My Orders - ${storeName}`;
@@ -21,6 +54,7 @@ export function MyOrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [confirmOrder, setConfirmOrder] = useState(location.state?.newOrder || null);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     orderService.getOrders().then(res => {
@@ -28,6 +62,31 @@ export function MyOrdersPage() {
     }).catch(() => {}).finally(() => setLoading(false));
     window.history.replaceState({}, '');
   }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const token = localStorage.getItem('aquarium_token');
+    if (token) {
+      wsService.connect(token);
+    }
+
+    const unsubscribe = wsService.on('order_status_updated', (data) => {
+      setOrders(prev => prev.map(o =>
+        o.id === data.order_id
+          ? { ...o, order_status: data.current_status, payment_status: data.payment_status ?? o.payment_status }
+          : o
+      ));
+      setToast({ message: data.message, type: 'info' });
+    });
+
+    return () => {
+      unsubscribe();
+      wsService.disconnect();
+    };
+  }, [isAuthenticated]);
+
+  const clearToast = useCallback(() => setToast(null), []);
 
   const formatPrice = (p) => `$${Number(p).toFixed(2)}`;
   const formatDate = (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -87,7 +146,7 @@ export function MyOrdersPage() {
             const sm = STATUS_META[order.order_status] || STATUS_META.pending;
             return (
               <div key={order.id} className="theme-surface theme-border theme-rounded" style={{ padding: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
                   <div>
                     <p className="theme-text-secondary" style={{ fontSize: '0.875rem' }}>Order #{order.order_number}</p>
                     <p className="theme-text-secondary" style={{ fontSize: '0.875rem' }}>{formatDate(order.created_at)}</p>
@@ -95,6 +154,9 @@ export function MyOrdersPage() {
                   <span style={{ padding: '0.25rem 0.75rem', borderRadius: 999, fontSize: '0.75rem', fontWeight: 600, backgroundColor: sm.bg, color: sm.color }}>
                     {sm.label}
                   </span>
+                </div>
+                <div style={{ marginBottom: '0.75rem' }}>
+                  <OrderTimeline currentStatus={order.order_status} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
                   {order.items.map(item => (
@@ -126,6 +188,10 @@ export function MyOrdersPage() {
             );
           })}
         </div>
+      )}
+
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onClose={clearToast} />
       )}
     </div>
   );

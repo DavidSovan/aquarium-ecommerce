@@ -117,6 +117,24 @@ export function CartPage() {
                     <span className="font-bold text-base sm:text-lg theme-text-primary flex-shrink-0">{formatPrice(item.total_price)}</span>
                   </div>
                   <p className="text-sm theme-text-secondary mt-0.5">{formatPrice(item.unit_price)} each</p>
+                  {item.customizations && (
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {item.customizations.map((c, i) => {
+                        const label = c.value_text
+                          ? `Notes`
+                          : Object.values(item.product?.options?.find(o => o.id === c.option_id)?.values?.filter(v => v.id === c.value_id) || []).map(v => v.value).join(', ');
+                        return (
+                          <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs"
+                            style={{
+                              backgroundColor: 'color-mix(in srgb, var(--primary) 10%, transparent)',
+                              color: 'var(--primary)',
+                            }}>
+                            {c.value_text ? `Notes: ${c.value_text.substring(0, 30)}${c.value_text.length > 30 ? '...' : ''}` : label || `Option selected`}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
                   <div className="flex items-center justify-between mt-3 sm:mt-4">
                     <div className="inline-flex items-center theme-rounded overflow-hidden"
                       style={{ border: '1px solid color-mix(in srgb, var(--border), transparent 30%)' }}>

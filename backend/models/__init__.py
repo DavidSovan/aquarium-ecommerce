@@ -16,6 +16,7 @@ from .branding import BrandingSettings
 from .homepage import HomepageSection
 from .cms_block import CMSBlock
 from .media import MediaLibrary, MediaType
+from .product_option import ProductOption, ProductOptionValue
 
 __all__ = [
     "Category", "Product", "ProductImage", "Cart", "CartItem",
@@ -23,5 +24,6 @@ __all__ = [
     "InventoryLog", "AdjustmentType", "User", "Review", "Coupon",
     "Banner", "Setting", "ThemeSettings", "BrandingSettings",
     "HomepageSection", "CMSBlock", "MediaLibrary", "MediaType",
+    "ProductOption", "ProductOptionValue",
 ]
 

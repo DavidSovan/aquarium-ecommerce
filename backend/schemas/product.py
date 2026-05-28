@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 from datetime import datetime
+from .customization import ProductOptionResponse
 
 class CategoryRef(BaseModel):
     id: int
@@ -26,6 +27,7 @@ class ProductBase(BaseModel):
     height: Optional[float] = Field(None, ge=0)
     is_featured: bool = False
     is_active: bool = True
+    is_customizable: bool = False
 
 class ProductCreate(ProductBase):
     pass
@@ -48,6 +50,7 @@ class ProductUpdate(BaseModel):
     height: Optional[float] = Field(None, ge=0)
     is_featured: Optional[bool] = None
     is_active: Optional[bool] = None
+    is_customizable: Optional[bool] = None
 
 class ProductResponse(ProductBase):
     id: int
@@ -65,6 +68,7 @@ class ProductImageRef(BaseModel):
 class ProductDetail(ProductResponse):
     category: Optional[CategoryRef] = None
     images: List[ProductImageRef] = []
+    options: List[ProductOptionResponse] = []
 
 ProductDetail.model_rebuild()
 

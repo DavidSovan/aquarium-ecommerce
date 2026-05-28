@@ -24,7 +24,7 @@ function LoadingSkeleton() {
 }
 
 export function CheckoutPage() {
-  const { cart, loading: cartLoading } = useCart();
+  const { cart, loading: cartLoading, clearCart } = useCart();
   const { user } = useAuth();
   const { storeName } = useSiteSettings();
   const navigate = useNavigate();
@@ -90,6 +90,7 @@ export function CheckoutPage() {
         notes: notes || null,
         coupon_code: appliedCoupon?.coupon?.code || null,
       });
+      clearCart();
       navigate(`/orders`, { state: { newOrder: res.data } });
     } catch (err) {
       setError(err.response?.data?.detail || 'Checkout failed');

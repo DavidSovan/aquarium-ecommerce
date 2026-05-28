@@ -7,6 +7,7 @@ from config.database import get_db
 from models.product import Product
 from models.category import Category
 from models.user import User
+from models.product_option import ProductOption
 from schemas.product import (
     ProductCreate,
     ProductUpdate,
@@ -115,12 +116,20 @@ def get_featured_products(db: Session = Depends(get_db)):
     return products
 
 
+def _load_product_options(db: Session, product: Product):
+    if product.is_customizable:
+        product.options = db.query(ProductOption).filter(
+            ProductOption.product_id == product.id
+        ).order_by(ProductOption.sort_order).all()
+    return product
+
+
 @router.get("/slug/{slug}", response_model=ProductDetail)
 def get_product_by_slug(slug: str, db: Session = Depends(get_db)):
     product = db.query(Product).filter(Product.slug == slug).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-    return product
+    return _load_product_options(db, product)
 
 
 @router.get("/{product_id}", response_model=ProductDetail)
@@ -128,7 +137,7 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-    return product
+    return _load_product_options(db, product)
 
 
 @router.post("", response_model=ProductResponse, status_code=201)
@@ -169,6 +178,7 @@ def create_product(
         height=product.height,
         is_featured=product.is_featured,
         is_active=product.is_active,
+        is_customizable=product.is_customizable,
     )
     db.add(db_product)
     db.commit()
@@ -201,12 +211,15 @@ def update_product(
         db_product.slug = generate_slug(product.name)
 
     if product.sku is not None:
-        existing_sku = db.query(Product).filter(
-            and_(Product.sku == product.sku, Product.id != product_id)
-        ).first()
-        if existing_sku:
-            raise HTTPException(status_code=400, detail="SKU already exists")
-        db_product.sku = product.sku
+        if product.sku.strip() == "":
+            db_product.sku = None
+        else:
+            existing_sku = db.query(Product).filter(
+                and_(Product.sku == product.sku, Product.id != product_id)
+            ).first()
+            if existing_sku:
+                raise HTTPException(status_code=400, detail="SKU already exists")
+            db_product.sku = product.sku
 
     if product.category_id is not None:
         if product.category_id == 0:
@@ -253,6 +266,9 @@ def update_product(
 
     if product.is_active is not None:
         db_product.is_active = product.is_active
+
+    if product.is_customizable is not None:
+        db_product.is_customizable = product.is_customizable
 
     db.commit()
     db.refresh(db_product)

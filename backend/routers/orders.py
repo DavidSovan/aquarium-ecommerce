@@ -13,6 +13,8 @@ from schemas.order import (
 )
 from dependencies.auth import get_current_user, require_role
 from services.telegram_service import send_telegram_message, format_order_cancelled_notification, format_order_status_notification
+from websocket.connection_manager import manager
+from websocket.events import build_order_status_event
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -116,6 +118,9 @@ def update_order_status(
     if data.order_status and data.order_status != old_status:
         msg = format_order_status_notification(order, old_status, customer or current_user)
         background_tasks.add_task(send_telegram_message, msg)
+        event = build_order_status_event(order.id, order.order_number, old_status, order.order_status, order.payment_status)
+        background_tasks.add_task(manager.broadcast_to_user, str(order.user_id), event)
+        background_tasks.add_task(manager.broadcast_to_admins, event)
 
     return _order_to_response(order, customer)
 
@@ -146,6 +151,7 @@ def cancel_order(
             detail=f"Cannot cancel order with status '{order.order_status}'"
         )
 
+    old_status = order.order_status
     refunded_stock = {}
     items_snapshot = []
     for item in order.items:
@@ -168,6 +174,9 @@ def cancel_order(
     customer = db.query(User).filter(User.id == order.user_id).first()
     msg = format_order_cancelled_notification(order, items_snapshot, customer or current_user)
     background_tasks.add_task(send_telegram_message, msg)
+    event = build_order_status_event(order.id, order.order_number, old_status, order.order_status, order.payment_status)
+    background_tasks.add_task(manager.broadcast_to_user, str(order.user_id), event)
+    background_tasks.add_task(manager.broadcast_to_admins, event)
 
     return CancelOrderResponse(
         message="Order cancelled successfully",
@@ -179,6 +188,7 @@ def cancel_order(
 @router.post("/{order_id}/confirm-delivery", response_model=OrderResponse)
 def confirm_delivery(
     order_id: str,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -206,6 +216,7 @@ def confirm_delivery(
             detail=f"Cannot confirm delivery for order in '{order.order_status}' status. It must be 'shipped'."
         )
 
+    old_status = order.order_status
     order.order_status = "delivered"
     if order.payment_status == "pending":
         order.payment_status = "paid"
@@ -213,6 +224,9 @@ def confirm_delivery(
     db.commit()
     db.refresh(order)
     customer = db.query(User).filter(User.id == order.user_id).first()
+    event = build_order_status_event(order.id, order.order_number, old_status, order.order_status, order.payment_status)
+    background_tasks.add_task(manager.broadcast_to_user, str(order.user_id), event)
+    background_tasks.add_task(manager.broadcast_to_admins, event)
     return _order_to_response(order, customer)
 
 
@@ -245,6 +259,7 @@ def _order_to_response(order: Order, user: Optional[User] = None) -> OrderRespon
             quantity=item.quantity,
             unit_price=item.unit_price,
             total_price=item.total_price,
+            customizations=item.customizations,
         ) for item in order.items],
         shipping_address_id=order.shipping_address_id,
         billing_address_id=order.billing_address_id,

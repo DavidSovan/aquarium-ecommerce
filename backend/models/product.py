@@ -24,12 +24,14 @@ class Product(Base):
     height = Column(Float, nullable=True)
     is_featured = Column(Boolean, default=False, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
+    is_customizable = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
     category = relationship("Category", backref="products")
     images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan", order_by="ProductImage.sort_order")
     reviews = relationship("Review", back_populates="product", cascade="all, delete-orphan")
+    options = relationship("ProductOption", back_populates="product", cascade="all, delete-orphan", order_by="ProductOption.sort_order")
 
     __table_args__ = (
         Index("idx_category_id", "category_id"),

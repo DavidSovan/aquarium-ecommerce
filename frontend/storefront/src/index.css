@@ -14,3 +14,8 @@
 .theme-danger { color: var(--error); }
 .theme-danger:hover { color: var(--error); opacity: 0.8; }
 .theme-success { color: var(--success); }
+
+@keyframes slideInUp {
+  from { transform: translateY(1rem); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}

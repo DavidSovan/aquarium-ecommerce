@@ -5,8 +5,10 @@ export const cartService = {
     return api.get('/cart', { params: { cart_id: cartId } });
   },
 
-  addItem(cartId, productId, quantity) {
-    return api.post('/cart/items', { cart_id: cartId, product_id: productId, quantity });
+  addItem(cartId, productId, quantity, customizations = null) {
+    const data = { cart_id: cartId, product_id: productId, quantity };
+    if (customizations) data.customizations = customizations;
+    return api.post('/cart/items', data);
   },
 
   updateItem(itemId, cartId, quantity) {

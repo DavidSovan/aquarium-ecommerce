@@ -1,5 +1,7 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import orderService from '../../services/orderService';
+import { useAuth } from '../../context/AuthContext';
+import wsService from '../../services/websocket';
 
 const ORDER_STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 const PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'refunded'];
@@ -31,11 +33,20 @@ export function OrderList() {
   const [detailOrder, setDetailOrder] = useState(null);
   const [updating, setUpdating] = useState(null);
   const [toast, setToast] = useState(null);
+  const { isAuthenticated } = useAuth();
+  const toastTimer = useRef(null);
 
-  const showToast = (message, type = 'success') => {
+  const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 3000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    };
+  }, []);
 
   useEffect(() => { loadOrders(); }, [skip, statusFilter, paymentFilter, search]);
 
@@ -52,6 +63,63 @@ export function OrderList() {
     } catch {} finally { setLoading(false); }
   };
 
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const token = localStorage.getItem('aquarium_token');
+    if (token) {
+      wsService.connect(token);
+    }
+
+    const unsubNewOrder = wsService.on('new_order', (data) => {
+      showToast(`New order received: ${data.order_number}`, 'success');
+      setOrders(prev => {
+        const exists = prev.some(o => o.id === data.order_id);
+        if (exists) return prev;
+        const newOrder = {
+          id: data.order_id,
+          order_number: data.order_number,
+          customer_name: data.customer_name,
+          total: data.total,
+          created_at: data.created_at,
+          order_status: 'pending',
+          payment_status: 'pending',
+          is_new: true,
+          items: [],
+          subtotal: 0,
+          shipping: 0,
+          discount: 0,
+          coupon_code: null,
+          coupon_discount: 0,
+          shipping_address_id: null,
+          billing_address_id: null,
+          notes: null,
+          user_id: null,
+          customer_email: null,
+          updated_at: data.created_at,
+        };
+        return [newOrder, ...prev].slice(0, limit);
+      });
+      setTotal(prev => prev + 1);
+    });
+
+    const unsubStatusUpdate = wsService.on('order_status_updated', (data) => {
+      setOrders(prev => prev.map(o =>
+        o.id === data.order_id
+          ? { ...o, order_status: data.current_status, payment_status: data.payment_status ?? o.payment_status }
+          : o
+      ));
+      if (data.current_status === 'delivered') {
+        showToast(`Order ${data.order_number} delivered`, 'success');
+      }
+    });
+
+    return () => {
+      unsubNewOrder();
+      unsubStatusUpdate();
+    };
+  }, [isAuthenticated, showToast, limit]);
+
   const updateOrderStatus = useCallback(async (orderId, data) => {
     setUpdating(orderId);
     try {
@@ -64,7 +132,7 @@ export function OrderList() {
     } catch (err) {
       showToast(err.response?.data?.detail || 'Update failed', 'error');
     } finally { setUpdating(null); }
-  }, [detailOrder?.id]);
+  }, [detailOrder?.id, showToast]);
 
   const handleInlineStatusChange = (orderId, newStatus) => {
     updateOrderStatus(orderId, { order_status: newStatus });
@@ -89,7 +157,7 @@ export function OrderList() {
       {/* Toast */}
       {toast && (
         <div className={`fixed top-4 right-4 z-[100] px-4 py-3 rounded-lg shadow-lg text-sm font-medium transition-all animate-in slide-in-from-right ${toast.type === 'error' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`}>
-          {toast.type === 'error' ? '⚠ ' : '✓ '}{toast.message}
+          {toast.type === 'error' ? '\u26A0 ' : '\u2713 '}{toast.message}
         </div>
       )}
 
@@ -168,7 +236,7 @@ export function OrderList() {
                         </div>
                       </td>
                       <td className="px-5 py-4">
-                        <div className="text-sm font-medium text-gray-900">{order.customer_name || order.user_id?.slice(0, 8) || '—'}</div>
+                        <div className="text-sm font-medium text-gray-900">{order.customer_name || order.user_id?.slice(0, 8) || '\u2014'}</div>
                         {order.customer_email && <div className="text-xs text-gray-500">{order.customer_email}</div>}
                       </td>
                       <td className="px-5 py-4 text-sm text-gray-500 whitespace-nowrap">{formatDate(order.created_at)}</td>
@@ -184,7 +252,7 @@ export function OrderList() {
                               disabled={updating === order.id}
                               className="opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md disabled:opacity-30"
                             >
-                              {updating === order.id ? '...' : `→ ${STATUS_META[next].label}`}
+                              {updating === order.id ? '...' : `\u2192 ${STATUS_META[next].label}`}
                             </button>
                           )}
                           <div className="relative inline-block">
@@ -254,9 +322,9 @@ export function OrderList() {
           </span>
           <div className="flex gap-1.5">
             <button onClick={() => setSkip(0)} disabled={currentPage <= 1}
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">«</button>
+              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">{'\u00AB'}</button>
             <button onClick={() => setSkip(Math.max(0, skip - limit))} disabled={currentPage <= 1}
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">‹</button>
+              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">{'\u2039'}</button>
             {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
               let p;
               if (totalPages <= 7) {
@@ -276,9 +344,9 @@ export function OrderList() {
               );
             })}
             <button onClick={() => setSkip(skip + limit)} disabled={currentPage >= totalPages}
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">›</button>
+              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">{'\u203A'}</button>
             <button onClick={() => setSkip((totalPages - 1) * limit)} disabled={currentPage >= totalPages}
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">»</button>
+              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">{'\u00BB'}</button>
           </div>
         </div>
       )}
@@ -343,7 +411,7 @@ export function OrderList() {
               <div>
                 <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Customer</h3>
                 <div className="bg-gray-50 rounded-lg p-3 text-sm">
-                  <p className="font-medium text-gray-900">{detailOrder.customer_name || '—'}</p>
+                  <p className="font-medium text-gray-900">{detailOrder.customer_name || '\u2014'}</p>
                   {detailOrder.customer_email && <p className="text-gray-500">{detailOrder.customer_email}</p>}
                   <p className="text-gray-400 text-xs mt-1">ID: {detailOrder.user_id}</p>
                 </div>

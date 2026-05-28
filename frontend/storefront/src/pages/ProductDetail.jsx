@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import productService from '../services/productService';
 import reviewService from '../services/reviewService';
@@ -9,6 +9,180 @@ import { useSiteSettings } from '../context/SiteSettingsContext';
 import { StarRating } from '../components/StarRating';
 import { ReviewList } from '../components/ReviewList';
 import { ReviewForm } from '../components/ReviewForm';
+
+function CustomizationPanel({ options, onCustomizationsChange, basePrice }) {
+  const [selections, setSelections] = useState({});
+  const [errors, setErrors] = useState({});
+
+  const handleSelectChange = (option, valueId) => {
+    const newSelections = { ...selections };
+    if (valueId === '' || Number.isNaN(Number(valueId))) {
+      delete newSelections[option.id];
+    } else {
+      newSelections[option.id] = { option_id: option.id, value_id: Number(valueId) };
+    }
+    setSelections(newSelections);
+    setErrors({ ...errors, [option.id]: '' });
+    onCustomizationsChange(Object.values(newSelections));
+  };
+
+  const handleTextChange = (option, value) => {
+    const newSelections = { ...selections, [option.id]: { option_id: option.id, value_text: value } };
+    setSelections(newSelections);
+    if (value.trim()) setErrors({ ...errors, [option.id]: '' });
+    onCustomizationsChange(Object.values(newSelections));
+  };
+
+  const totalModifier = useMemo(() => {
+    let total = 0;
+    Object.values(selections).forEach(sel => {
+      if (sel.value_id) {
+        for (const opt of options) {
+          const val = opt.values?.find(v => v.id === sel.value_id);
+          if (val) total += val.price_modifier;
+        }
+      }
+    });
+    return total;
+  }, [selections, options]);
+
+  const finalPrice = basePrice + totalModifier;
+
+  const selectedImage = useMemo(() => {
+    for (const sel of Object.values(selections)) {
+      if (sel.value_id) {
+        for (const opt of options) {
+          const val = opt.values?.find(v => v.id === sel.value_id);
+          if (val?.image_url) return val.image_url;
+        }
+      }
+    }
+    return null;
+  }, [selections, options]);
+
+  return (
+    <div className="mb-6 theme-surface theme-rounded p-4 sm:p-6"
+      style={{ border: '1px solid color-mix(in srgb, var(--border), transparent 50%)' }}>
+      <h3 className="text-base font-bold theme-text-primary mb-4 flex items-center gap-2">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} style={{ color: 'var(--primary)' }}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        Customize Your Product
+      </h3>
+
+      {selectedImage && (
+        <div className="mb-4">
+          <img src={selectedImage} alt="Preview" className="w-full max-h-48 object-contain rounded-lg" style={{ backgroundColor: 'color-mix(in srgb, var(--surface), var(--bg) 50%)' }} />
+        </div>
+      )}
+
+      <div className="space-y-4">
+        {options.map(opt => (
+          <div key={opt.id}>
+            <label className="block text-sm font-medium theme-text-primary mb-1.5">
+              {opt.name}
+              {opt.is_required && <span className="text-red-500 ml-1">*</span>}
+            </label>
+
+            {(opt.type === 'dropdown' || opt.type === 'color') && (
+              <select
+                value={selections[opt.id]?.value_id || ''}
+                onChange={e => handleSelectChange(opt, e.target.value)}
+                className="w-full px-3 py-2 rounded-lg text-sm theme-surface theme-text-primary"
+                style={{
+                  border: `1px solid ${errors[opt.id] ? 'var(--error)' : 'color-mix(in srgb, var(--border), transparent 30%)'}`,
+                }}
+              >
+                <option value="">-- Select {opt.name} --</option>
+                {opt.values?.map(val => (
+                  <option key={val.id} value={val.id}>
+                    {val.value}{val.price_modifier !== 0 ? ` (${val.price_modifier > 0 ? '+' : ''}$${Math.abs(val.price_modifier).toFixed(2)})` : ''}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {opt.type === 'color' && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {opt.values?.map(val => (
+                  <button
+                    key={val.id}
+                    onClick={() => handleSelectChange(opt, val.id)}
+                    className="w-10 h-10 rounded-full border-2 transition-all"
+                    style={{
+                      backgroundColor: val.value,
+                      borderColor: selections[opt.id]?.value_id === val.id ? 'var(--primary)' : 'transparent',
+                      boxShadow: selections[opt.id]?.value_id === val.id ? '0 0 0 2px var(--primary)' : 'none',
+                    }}
+                    title={`${val.value}${val.price_modifier !== 0 ? ` (${val.price_modifier > 0 ? '+' : ''}$${Math.abs(val.price_modifier).toFixed(2)})` : ''}`}
+                  />
+                ))}
+              </div>
+            )}
+
+            {opt.type === 'text' && (
+              <textarea
+                value={selections[opt.id]?.value_text || ''}
+                onChange={e => handleTextChange(opt, e.target.value)}
+                placeholder={`Enter ${opt.name}`}
+                rows={3}
+                className="w-full px-3 py-2 rounded-lg text-sm theme-surface theme-text-primary"
+                style={{
+                  border: `1px solid ${errors[opt.id] ? 'var(--error)' : 'color-mix(in srgb, var(--border), transparent 30%)'}`,
+                  resize: 'vertical',
+                }}
+              />
+            )}
+
+            {opt.type === 'dimensions' && (
+              <select
+                value={selections[opt.id]?.value_id || ''}
+                onChange={e => handleSelectChange(opt, e.target.value)}
+                className="w-full px-3 py-2 rounded-lg text-sm theme-surface theme-text-primary"
+                style={{
+                  border: `1px solid color-mix(in srgb, var(--border), transparent 30%)`,
+                }}
+              >
+                <option value="">-- Select Size --</option>
+                {opt.values?.map(val => (
+                  <option key={val.id} value={val.id}>
+                    {val.value}{val.price_modifier !== 0 ? ` (${val.price_modifier > 0 ? '+' : ''}$${Math.abs(val.price_modifier).toFixed(2)})` : ''}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {errors[opt.id] && (
+              <p className="text-xs mt-1" style={{ color: 'var(--error)' }}>{errors[opt.id]}</p>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Price summary */}
+      <div className="mt-4 pt-3" style={{ borderTop: '1px solid color-mix(in srgb, var(--border), transparent 50%)' }}>
+        <div className="flex justify-between text-sm theme-text-secondary mb-1">
+          <span>Base Price</span>
+          <span>${basePrice.toFixed(2)}</span>
+        </div>
+        {totalModifier !== 0 && (
+          <div className="flex justify-between text-sm theme-text-secondary mb-1">
+            <span>Customization</span>
+            <span style={{ color: totalModifier > 0 ? 'var(--success)' : 'var(--error)' }}>
+              {totalModifier > 0 ? '+' : ''}${totalModifier.toFixed(2)}
+            </span>
+          </div>
+        )}
+        <div className="flex justify-between font-bold theme-text-primary text-lg mt-1 pt-1"
+          style={{ borderTop: '1px solid color-mix(in srgb, var(--border), transparent 50%)' }}>
+          <span>Final Price</span>
+          <span>${finalPrice.toFixed(2)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function LoadingSkeleton() {
   return (
@@ -44,6 +218,8 @@ export function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
+  const [customizations, setCustomizations] = useState([]);
+  const [customizationErrors, setCustomizationErrors] = useState([]);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [imgZoom, setImgZoom] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
@@ -82,9 +258,31 @@ export function ProductDetail() {
   };
 
   const handleAddToCart = async () => {
+    if (product.is_customizable) {
+      const errors = [];
+      for (const opt of product.options || []) {
+        if (opt.is_required) {
+          const sel = customizations.find(c => c.option_id === opt.id);
+          if (!sel || (!sel.value_id && !sel.value_text)) {
+            errors.push(`${opt.name} is required`);
+          }
+        }
+      }
+      if (errors.length > 0) {
+        setCustomizationErrors(errors);
+        return;
+      }
+    }
+    setCustomizationErrors([]);
     setAdding(true);
-    await addItem(product.id, quantity);
+    const custData = customizations.length > 0 ? customizations : null;
+    await addItem(product.id, quantity, custData);
     setTimeout(() => setAdding(false), 600);
+  };
+
+  const handleCustomizationsChange = (selections) => {
+    setCustomizations(selections);
+    setCustomizationErrors([]);
   };
 
   const handleMouseMove = (e) => {
@@ -157,7 +355,6 @@ export function ProductDetail() {
                   <div className="absolute inset-0 animate-pulse" style={{ backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }} />
                 )}
                 <img
-                  ref={imgRef}
                   src={product.thumbnail}
                   alt={product.name}
                   onLoad={() => setImgLoaded(true)}
@@ -264,6 +461,33 @@ export function ProductDetail() {
             <p className="theme-text-secondary leading-relaxed mb-6 text-sm sm:text-base">
               {product.short_description}
             </p>
+          )}
+
+          {/* ── Customization Panel ─────────────────────────────────────── */}
+          {product.is_customizable && product.options?.length > 0 && (
+            <CustomizationPanel
+              options={product.options}
+              onCustomizationsChange={handleCustomizationsChange}
+              basePrice={product.discount_price || product.price}
+            />
+          )}
+
+          {product.is_customizable && customizationErrors.length > 0 && (
+            <div className="mb-4 p-3 rounded-lg text-sm"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--error) 10%, transparent)',
+                color: 'var(--error)',
+                border: '1px solid color-mix(in srgb, var(--error) 30%, transparent)',
+              }}>
+              {customizationErrors.map((err, i) => (
+                <p key={i} className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  {err}
+                </p>
+              ))}
+            </div>
           )}
 
           {/* Actions */}

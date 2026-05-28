@@ -36,6 +36,34 @@ export const productService = {
   reorderImages(items) {
     return api.put('/products/images/reorder', { items });
   },
+
+  toggleCustomizable(productId) {
+    return api.put(`/products/${productId}/customizable`);
+  },
+
+  createOption(productId, data) {
+    return api.post(`/products/${productId}/options`, data);
+  },
+
+  updateOption(optionId, data) {
+    return api.put(`/products/options/${optionId}`, data);
+  },
+
+  deleteOption(optionId) {
+    return api.delete(`/products/options/${optionId}`);
+  },
+
+  createOptionValue(optionId, data) {
+    return api.post(`/products/options/${optionId}/values`, data);
+  },
+
+  updateOptionValue(valueId, data) {
+    return api.put(`/products/options/values/${valueId}`, data);
+  },
+
+  deleteOptionValue(valueId) {
+    return api.delete(`/products/options/values/${valueId}`);
+  },
 };
 
 export default productService;

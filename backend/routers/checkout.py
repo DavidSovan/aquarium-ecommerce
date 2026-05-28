@@ -4,6 +4,7 @@ from config.database import get_db
 from models.cart import Cart, CartItem
 from models.order import Order, OrderItem
 from models.product import Product
+from models.product_option import ProductOptionValue
 from models.address import Address
 from models.user import User
 from models.coupon import Coupon
@@ -14,6 +15,8 @@ from schemas.order import (
 )
 from dependencies.auth import get_current_user, require_role
 from services.telegram_service import send_telegram_message, format_order_notification
+from websocket.connection_manager import manager
+from websocket.events import build_new_order_event
 from datetime import datetime, timezone
 import uuid
 
@@ -69,7 +72,18 @@ def checkout(
 
         unit_price = product.discount_price if product.discount_price else product.price
         original_price = product.price
-        total_price = round(unit_price * cart_item.quantity, 2)
+
+        modifier = 0.0
+        if cart_item.customizations:
+            for sel in cart_item.customizations:
+                val_id = sel.get("value_id")
+                if val_id:
+                    val = db.query(ProductOptionValue).filter(ProductOptionValue.id == val_id).first()
+                    if val:
+                        modifier += val.price_modifier
+
+        effective_unit_price = round(unit_price + modifier, 2)
+        total_price = round(effective_unit_price * cart_item.quantity, 2)
         original_total = round(original_price * cart_item.quantity, 2)
 
         subtotal += total_price
@@ -80,10 +94,10 @@ def checkout(
             "product_name": product.name,
             "product_sku": product.sku,
             "quantity": cart_item.quantity,
-            "unit_price": unit_price,
+            "unit_price": effective_unit_price,
             "total_price": total_price,
+            "customizations": cart_item.customizations,
         })
-
     subtotal = round(subtotal, 2)
     discount = round(total_original - subtotal, 2)
     shipping = 0.0
@@ -143,7 +157,8 @@ def checkout(
     db.flush()
 
     for item_data in order_items_data:
-        order_item = OrderItem(order_id=order.id, **item_data)
+        cust = item_data.pop("customizations", None)
+        order_item = OrderItem(order_id=order.id, **item_data, customizations=cust)
         db.add(order_item)
 
         product = db.query(Product).filter(Product.id == item_data["product_id"]).first()
@@ -160,6 +175,18 @@ def checkout(
     shipping_addr = db.query(Address).filter(Address.id == order.shipping_address_id).first()
     msg = format_order_notification(order, order.items, customer, shipping_addr)
     background_tasks.add_task(send_telegram_message, msg)
+
+    first = (customer.first_name or "").strip()
+    last = (customer.last_name or "").strip()
+    customer_name = f"{first} {last}".strip() if first or last else customer.email
+    new_order_event = build_new_order_event(
+        order_id=order.id,
+        order_number=order.order_number,
+        customer_name=customer_name,
+        total=order.total,
+        created_at=order.created_at,
+    )
+    background_tasks.add_task(manager.broadcast_to_admins, new_order_event)
 
     return OrderResponse(
         id=order.id,
@@ -181,6 +208,7 @@ def checkout(
             quantity=item.quantity,
             unit_price=item.unit_price,
             total_price=item.total_price,
+            customizations=item.customizations,
         ) for item in order.items],
         shipping_address_id=order.shipping_address_id,
         billing_address_id=order.billing_address_id,

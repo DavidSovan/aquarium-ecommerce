@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Index
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Index, JSON
 from sqlalchemy.orm import relationship
 from config.database import Base
 import uuid
@@ -46,6 +46,7 @@ class OrderItem(Base):
     quantity = Column(Integer, default=1, nullable=False)
     unit_price = Column(Float, default=0, nullable=False)
     total_price = Column(Float, default=0, nullable=False)
+    customizations = Column(JSON, nullable=True)
 
     order = relationship("Order", back_populates="items")
     product = relationship("Product")

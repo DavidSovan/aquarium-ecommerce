@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -10,10 +11,14 @@ from models.branding import BrandingSettings
 from models.theme import ThemeSettings
 from routers import categories, products, product_images, cart, wishlist, addresses, checkout, orders, inventory, auth, reviews, coupons, banners, reports, settings, customers
 from routers import theme as theme_router, branding as branding_router, homepage_sections, cms_blocks, media_library
+from routers import ws as ws_router
+from routers import customization
+from websocket.connection_manager import manager
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    manager.set_loop(asyncio.get_event_loop())
     try:
         Base.metadata.create_all(bind=engine)
     except Exception as e:
@@ -22,6 +27,30 @@ async def lifespan(app: FastAPI):
     try:
         conn = engine.connect()
         conn.execute(text("ALTER TABLE orders ADD COLUMN is_new INTEGER DEFAULT 1"))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    try:
+        conn = engine.connect()
+        conn.execute(text("ALTER TABLE products ADD COLUMN is_customizable BOOLEAN DEFAULT FALSE"))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    try:
+        conn = engine.connect()
+        conn.execute(text("ALTER TABLE cart_items ADD COLUMN customizations JSON NULL"))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    try:
+        conn = engine.connect()
+        conn.execute(text("ALTER TABLE order_items ADD COLUMN customizations JSON NULL"))
         conn.commit()
         conn.close()
     except Exception:
@@ -94,6 +123,8 @@ app.include_router(homepage_sections.router)
 app.include_router(cms_blocks.public_router)
 app.include_router(cms_blocks.router)
 app.include_router(media_library.router)
+app.include_router(ws_router.router)
+app.include_router(customization.router)
 
 
 @app.get("/")

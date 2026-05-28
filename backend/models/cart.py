@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 import uuid
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Index
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Index, JSON
 from sqlalchemy.orm import relationship
 from config.database import Base
 
@@ -23,6 +23,7 @@ class CartItem(Base):
     cart_id = Column(String(36), ForeignKey("carts.id", ondelete="CASCADE"), nullable=False, index=True)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     quantity = Column(Integer, default=1, nullable=False)
+    customizations = Column(JSON, nullable=True)
     added_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     cart = relationship("Cart", back_populates="items")

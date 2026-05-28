@@ -38,10 +38,10 @@ export function CartProvider({ children }) {
     fetchCart();
   }, [fetchCart]);
 
-  const addItem = useCallback(async (productId, quantity = 1) => {
+  const addItem = useCallback(async (productId, quantity = 1, customizations = null) => {
     setLoading(true);
     try {
-      const res = await cartService.addItem(getCartId(), productId, quantity);
+      const res = await cartService.addItem(getCartId(), productId, quantity, customizations);
       setCart(res.data);
       if (res.data.id) setCartId(res.data.id);
     } finally {
@@ -86,10 +86,15 @@ export function CartProvider({ children }) {
     }
   }, []);
 
+  const clearCart = useCallback(() => {
+    setCart(null);
+    localStorage.removeItem(CART_ID_KEY);
+  }, []);
+
   const itemCount = cart?.items?.reduce((sum, i) => sum + i.quantity, 0) || 0;
 
   return (
-    <CartContext.Provider value={{ cart, loading, itemCount, fetchCart, addItem, updateItem, removeItem, mergeCart }}>
+    <CartContext.Provider value={{ cart, loading, itemCount, fetchCart, addItem, updateItem, removeItem, mergeCart, clearCart }}>
       {children}
     </CartContext.Provider>
   );
