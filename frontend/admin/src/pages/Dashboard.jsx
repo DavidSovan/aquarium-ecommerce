@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import reportService from '../services/reportService';
 import inventoryService from '../services/inventoryService';
 import orderService from '../services/orderService';
 import { StatCard } from '../components/StatCard';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+import { useAuth } from '../context/AuthContext';
+import wsService from '../services/websocket';
 
 const quickActions = [
   {
@@ -69,11 +71,15 @@ const STATUS_META = {
 
 export function Dashboard() {
   const { storeName } = useSiteSettings();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [sales, setSales] = useState(null);
   const [customerSummary, setCustomerSummary] = useState(null);
   const [lowStock, setLowStock] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
+  const [newOrderIds, setNewOrderIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
+  const prevNewCount = useRef(0);
 
   useEffect(() => {
     document.title = `Dashboard - ${storeName}`;
@@ -89,9 +95,45 @@ export function Dashboard() {
       setSales(salesRes.data);
       setCustomerSummary(custRes.data);
       setLowStock(lowStockRes.data);
-      setRecentOrders(ordersRes.data.items || []);
+      const items = ordersRes.data.items || [];
+      setRecentOrders(items);
+      setNewOrderIds(new Set(items.filter(o => o.is_new).map(o => o.id)));
     }).catch(() => {}).finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const token = localStorage.getItem('aquarium_token');
+    if (token) wsService.connect(token);
+
+    const unsub = wsService.on('new_order', (data) => {
+      setRecentOrders(prev => {
+        const exists = prev.some(o => o.id === data.order_id);
+        if (exists) return prev;
+        const newOrder = {
+          id: data.order_id,
+          order_number: data.order_number,
+          customer_name: data.customer_name,
+          total: data.total,
+          created_at: data.created_at,
+          order_status: 'pending',
+        };
+        return [newOrder, ...prev].slice(0, 5);
+      });
+      setNewOrderIds(prev => new Set(prev).add(data.order_id));
+    });
+
+    return () => { unsub(); };
+  }, [isAuthenticated]);
+
+  const handleTouchOrder = useCallback((orderId) => {
+    setNewOrderIds(prev => {
+      const next = new Set(prev);
+      next.delete(orderId);
+      return next;
+    });
+    navigate('/admin/orders');
+  }, [navigate]);
 
   if (loading) {
     return (
@@ -182,10 +224,17 @@ export function Dashboard() {
         {/* Recent Orders */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <h2 className="text-base font-bold text-gray-900">Recent Orders</h2>
-            <Link to="/admin/orders" className="text-xs font-medium text-blue-600 hover:text-blue-700">
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-bold text-gray-900">Recent Orders</h2>
+              {newOrderIds.size > 0 && (
+                <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold text-white bg-blue-500 rounded-full animate-pulse">
+                  {newOrderIds.size} new
+                </span>
+              )}
+            </div>
+            <button onClick={() => { setNewOrderIds(new Set()); navigate('/admin/orders'); }} className="text-xs font-medium text-blue-600 hover:text-blue-700">
               View all &rarr;
-            </Link>
+            </button>
           </div>
           {recentOrders.length === 0 ? (
             <div className="text-center py-12">
@@ -197,11 +246,23 @@ export function Dashboard() {
           ) : (
             <div className="divide-y divide-gray-100">
               {recentOrders.map(order => {
+                const isNew = newOrderIds.has(order.id);
                 const statusClass = STATUS_META[order.order_status] || 'bg-gray-50 text-gray-700';
                 return (
-                  <Link key={order.id} to="/admin/orders" className="flex items-center justify-between px-5 py-3 hover:bg-gray-50/50 transition-colors group">
+                  <button
+                    key={order.id}
+                    onClick={() => handleTouchOrder(order.id)}
+                    className={`w-full flex items-center justify-between px-5 py-3 transition-colors group text-left ${
+                      isNew ? 'bg-blue-50/50 hover:bg-blue-50' : 'hover:bg-gray-50/50'
+                    }`}
+                  >
                     <div className="flex items-center gap-3 min-w-0">
                       <span className="font-medium text-sm text-gray-900">{order.order_number}</span>
+                      {isNew && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none text-white bg-blue-500 animate-pulse">
+                          NEW
+                        </span>
+                      )}
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ring-1 ring-inset ${statusClass}`}>
                         {order.order_status}
                       </span>
@@ -210,7 +271,7 @@ export function Dashboard() {
                       <span className="text-sm font-semibold text-gray-900">{formatPrice(order.total)}</span>
                       <span className="text-xs text-gray-400">{formatDate(order.created_at)}</span>
                     </div>
-                  </Link>
+                  </button>
                 );
               })}
             </div>
