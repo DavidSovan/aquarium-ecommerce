@@ -13,6 +13,7 @@ import { ReviewForm } from '../components/ReviewForm';
 function CustomizationPanel({ options, onCustomizationsChange, basePrice }) {
   const [selections, setSelections] = useState({});
   const [errors, setErrors] = useState({});
+  const [animating, setAnimating] = useState(null);
 
   const handleSelectChange = (option, valueId) => {
     const newSelections = { ...selections };
@@ -20,6 +21,8 @@ function CustomizationPanel({ options, onCustomizationsChange, basePrice }) {
       delete newSelections[option.id];
     } else {
       newSelections[option.id] = { option_id: option.id, value_id: Number(valueId) };
+      setAnimating(option.id);
+      setTimeout(() => setAnimating(null), 400);
     }
     setSelections(newSelections);
     setErrors({ ...errors, [option.id]: '' });
@@ -60,41 +63,74 @@ function CustomizationPanel({ options, onCustomizationsChange, basePrice }) {
     return null;
   }, [selections, options]);
 
-  return (
-    <div className="mb-6 theme-surface theme-rounded p-4 sm:p-6"
-      style={{ border: '1px solid color-mix(in srgb, var(--border), transparent 50%)' }}>
-      <h3 className="text-base font-bold theme-text-primary mb-4 flex items-center gap-2">
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} style={{ color: 'var(--primary)' }}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-        Customize Your Product
-      </h3>
+  const totalSelected = Object.keys(selections).length;
+  const requiredCount = options.filter(o => o.is_required).length;
+  const requiredFilled = options.filter(o => o.is_required && selections[o.id]?.value_id).length;
 
+  return (
+    <div className="mb-6 theme-surface theme-rounded overflow-hidden"
+      style={{ border: '1px solid color-mix(in srgb, var(--border), transparent 50%)' }}>
+      {/* Header */}
+      <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3"
+        style={{ borderBottom: '1px solid color-mix(in srgb, var(--border), transparent 50%)' }}>
+        <h3 className="text-base font-bold theme-text-primary flex items-center gap-2">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} style={{ color: 'var(--primary)' }}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          Customize Your Product
+        </h3>
+        <p className="text-xs theme-text-secondary mt-0.5">
+          {totalSelected}/{options.length} selected
+          {requiredCount > 0 && ` (${requiredFilled}/${requiredCount} required)`}
+        </p>
+      </div>
+
+      {/* Preview image */}
       {selectedImage && (
-        <div className="mb-4">
-          <img src={selectedImage} alt="Preview" className="w-full max-h-48 object-contain rounded-lg" style={{ backgroundColor: 'color-mix(in srgb, var(--surface), var(--bg) 50%)' }} />
+        <div className="px-4 sm:px-6 pt-4">
+          <div className="relative rounded-lg overflow-hidden" style={{ backgroundColor: 'color-mix(in srgb, var(--surface), var(--bg) 50%)' }}>
+            <img src={selectedImage} alt="Preview" className="w-full max-h-48 object-contain" />
+            <div className="absolute top-2 left-2 px-2 py-0.5 rounded text-xs font-medium theme-surface theme-text-secondary" style={{ backdropFilter: 'blur(4px)' }}>
+              Preview
+            </div>
+          </div>
         </div>
       )}
 
-      <div className="space-y-4">
+      {/* Options */}
+      <div className="px-4 sm:px-6 py-4 space-y-5">
         {options.map(opt => (
-          <div key={opt.id}>
-            <label className="block text-sm font-medium theme-text-primary mb-1.5">
+          <div key={opt.id}
+            className={`transition-all duration-300 ${animating === opt.id ? 'scale-[1.01]' : ''}`}
+            style={{ transformOrigin: 'left center' }}>
+            <label className="flex items-center gap-1.5 text-sm font-medium theme-text-primary mb-2">
               {opt.name}
-              {opt.is_required && <span className="text-red-500 ml-1">*</span>}
+              {opt.is_required && (
+                <span className="inline-flex items-center gap-0.5 text-xs text-red-500 font-normal">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" /></svg>
+                  Required
+                </span>
+              )}
+              {selections[opt.id]?.value_id && !errors[opt.id] && (
+                <svg className="w-3.5 h-3.5 ml-auto" style={{ color: 'var(--success)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              )}
             </label>
 
-            {(opt.type === 'dropdown' || opt.type === 'color') && (
+            {/* Dropdown select */}
+            {(opt.type === 'dropdown' || (opt.type === 'color' && !opt.values?.some(v => v.value.startsWith('#')))) && (
               <select
                 value={selections[opt.id]?.value_id || ''}
                 onChange={e => handleSelectChange(opt, e.target.value)}
-                className="w-full px-3 py-2 rounded-lg text-sm theme-surface theme-text-primary"
+                className="w-full px-3 py-2.5 rounded-lg text-sm theme-surface theme-text-primary transition-shadow focus:ring-2 outline-none"
                 style={{
                   border: `1px solid ${errors[opt.id] ? 'var(--error)' : 'color-mix(in srgb, var(--border), transparent 30%)'}`,
+                  '--tw-ring-color': errors[opt.id] ? 'var(--error)' : 'var(--primary)',
                 }}
               >
-                <option value="">-- Select {opt.name} --</option>
+                <option value="">— Choose {opt.name} —</option>
                 {opt.values?.map(val => (
                   <option key={val.id} value={val.id}>
                     {val.value}{val.price_modifier !== 0 ? ` (${val.price_modifier > 0 ? '+' : ''}$${Math.abs(val.price_modifier).toFixed(2)})` : ''}
@@ -103,48 +139,68 @@ function CustomizationPanel({ options, onCustomizationsChange, basePrice }) {
               </select>
             )}
 
+            {/* Color swatches */}
             {opt.type === 'color' && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {opt.values?.map(val => (
-                  <button
-                    key={val.id}
-                    onClick={() => handleSelectChange(opt, val.id)}
-                    className="w-10 h-10 rounded-full border-2 transition-all"
-                    style={{
-                      backgroundColor: val.value,
-                      borderColor: selections[opt.id]?.value_id === val.id ? 'var(--primary)' : 'transparent',
-                      boxShadow: selections[opt.id]?.value_id === val.id ? '0 0 0 2px var(--primary)' : 'none',
-                    }}
-                    title={`${val.value}${val.price_modifier !== 0 ? ` (${val.price_modifier > 0 ? '+' : ''}$${Math.abs(val.price_modifier).toFixed(2)})` : ''}`}
-                  />
-                ))}
+              <div className="flex flex-wrap gap-2.5">
+                {opt.values?.map(val => {
+                  const selected = selections[opt.id]?.value_id === val.id;
+                  return (
+                    <button
+                      key={val.id}
+                      onClick={() => handleSelectChange(opt, val.id)}
+                      className="relative transition-all duration-200 hover:scale-110 active:scale-95"
+                      style={{ width: 44, height: 44 }}
+                      title={`${val.value}${val.price_modifier !== 0 ? ` (${val.price_modifier > 0 ? '+' : ''}$${Math.abs(val.price_modifier).toFixed(2)})` : ''}`}
+                    >
+                      <span
+                        className="block w-full h-full rounded-full border-2 transition-all duration-200"
+                        style={{
+                          backgroundColor: val.value.startsWith('#') || val.value.startsWith('rgb') ? val.value : undefined,
+                          borderColor: selected ? 'var(--primary)' : 'color-mix(in srgb, var(--border), transparent 30%)',
+                          boxShadow: selected ? `0 0 0 3px var(--primary), 0 2px 8px rgba(0,0,0,0.15)` : '0 1px 3px rgba(0,0,0,0.08)',
+                        }}
+                      />
+                      {selected && (
+                        <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <svg className="w-5 h-5" style={{ color: '#fff', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
 
+            {/* Text input */}
             {opt.type === 'text' && (
               <textarea
                 value={selections[opt.id]?.value_text || ''}
                 onChange={e => handleTextChange(opt, e.target.value)}
-                placeholder={`Enter ${opt.name}`}
+                placeholder={`Enter your ${opt.name.toLowerCase()}`}
                 rows={3}
-                className="w-full px-3 py-2 rounded-lg text-sm theme-surface theme-text-primary"
+                className="w-full px-3 py-2.5 rounded-lg text-sm theme-surface theme-text-primary transition-shadow focus:ring-2 outline-none"
                 style={{
                   border: `1px solid ${errors[opt.id] ? 'var(--error)' : 'color-mix(in srgb, var(--border), transparent 30%)'}`,
                   resize: 'vertical',
+                  minHeight: 72,
                 }}
               />
             )}
 
+            {/* Dimensions */}
             {opt.type === 'dimensions' && (
               <select
                 value={selections[opt.id]?.value_id || ''}
                 onChange={e => handleSelectChange(opt, e.target.value)}
-                className="w-full px-3 py-2 rounded-lg text-sm theme-surface theme-text-primary"
+                className="w-full px-3 py-2.5 rounded-lg text-sm theme-surface theme-text-primary transition-shadow focus:ring-2 outline-none"
                 style={{
-                  border: `1px solid color-mix(in srgb, var(--border), transparent 30%)`,
+                  border: `1px solid ${errors[opt.id] ? 'var(--error)' : 'color-mix(in srgb, var(--border), transparent 30%)'}`,
+                  '--tw-ring-color': errors[opt.id] ? 'var(--error)' : 'var(--primary)',
                 }}
               >
-                <option value="">-- Select Size --</option>
+                <option value="">— Choose {opt.name} —</option>
                 {opt.values?.map(val => (
                   <option key={val.id} value={val.id}>
                     {val.value}{val.price_modifier !== 0 ? ` (${val.price_modifier > 0 ? '+' : ''}$${Math.abs(val.price_modifier).toFixed(2)})` : ''}
@@ -154,30 +210,37 @@ function CustomizationPanel({ options, onCustomizationsChange, basePrice }) {
             )}
 
             {errors[opt.id] && (
-              <p className="text-xs mt-1" style={{ color: 'var(--error)' }}>{errors[opt.id]}</p>
+              <p className="flex items-center gap-1 text-xs mt-1.5" style={{ color: 'var(--error)' }}>
+                <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" /></svg>
+                {errors[opt.id]}
+              </p>
             )}
           </div>
         ))}
       </div>
 
       {/* Price summary */}
-      <div className="mt-4 pt-3" style={{ borderTop: '1px solid color-mix(in srgb, var(--border), transparent 50%)' }}>
-        <div className="flex justify-between text-sm theme-text-secondary mb-1">
-          <span>Base Price</span>
-          <span>${basePrice.toFixed(2)}</span>
-        </div>
-        {totalModifier !== 0 && (
-          <div className="flex justify-between text-sm theme-text-secondary mb-1">
-            <span>Customization</span>
-            <span style={{ color: totalModifier > 0 ? 'var(--success)' : 'var(--error)' }}>
-              {totalModifier > 0 ? '+' : ''}${totalModifier.toFixed(2)}
-            </span>
+      <div className="px-4 sm:px-6 py-4" style={{ borderTop: '1px solid color-mix(in srgb, var(--border), transparent 50%)' }}>
+        <div className="space-y-1.5">
+          <div className="flex justify-between text-sm">
+            <span className="theme-text-secondary">Base Price</span>
+            <span className="theme-text-primary">${basePrice.toFixed(2)}</span>
           </div>
-        )}
-        <div className="flex justify-between font-bold theme-text-primary text-lg mt-1 pt-1"
+          {totalModifier !== 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="theme-text-secondary">Customizations</span>
+              <span className="font-medium" style={{ color: totalModifier > 0 ? 'var(--success, #22c55e)' : 'var(--error)' }}>
+                {totalModifier > 0 ? '+' : ''}${totalModifier.toFixed(2)}
+              </span>
+            </div>
+          )}
+        </div>
+        <div className="flex justify-between font-bold text-base sm:text-lg theme-text-primary mt-2.5 pt-2.5"
           style={{ borderTop: '1px solid color-mix(in srgb, var(--border), transparent 50%)' }}>
-          <span>Final Price</span>
-          <span>${finalPrice.toFixed(2)}</span>
+          <span>Total</span>
+          <span className="transition-all duration-300" style={{ color: 'var(--primary)' }}>
+            ${finalPrice.toFixed(2)}
+          </span>
         </div>
       </div>
     </div>

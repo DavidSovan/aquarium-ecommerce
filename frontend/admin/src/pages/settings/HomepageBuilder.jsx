@@ -155,6 +155,7 @@ function SectionEditor({ section, onChange, onDelete }) {
 export function HomepageBuilder() {
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newSectionType, setNewSectionType] = useState('hero');
@@ -162,10 +163,14 @@ export function HomepageBuilder() {
   useEffect(() => { load(); }, []);
 
   const load = async () => {
+    setError(null);
     try {
       const res = await homepageService.list();
       setSections(res.data);
-    } catch {} finally { setLoading(false); }
+    } catch (err) {
+      const msg = err.response?.data?.detail || err.message || 'Failed to load sections';
+      setError(msg);
+    } finally { setLoading(false); }
   };
 
   const handleSectionChange = useCallback((id, key, value) => {
@@ -178,7 +183,10 @@ export function HomepageBuilder() {
       const res = await homepageService.create({ ...EMPTY_SECTION, section_type: newSectionType, sort_order: nextOrder });
       setSections(prev => [...prev, res.data]);
       setShowAddModal(false);
-    } catch {}
+    } catch (err) {
+      const msg = err.response?.data?.detail || err.message || 'Failed to add section';
+      setError(msg);
+    }
   };
 
   const handleDeleteSection = async (section) => {
@@ -186,16 +194,23 @@ export function HomepageBuilder() {
     try {
       await homepageService.delete(section.id);
       setSections(prev => prev.filter(s => s.id !== section.id));
-    } catch {}
+    } catch (err) {
+      const msg = err.response?.data?.detail || err.message || 'Failed to delete section';
+      setError(msg);
+    }
   };
 
   const handleSave = async () => {
     setSaving(true);
+    setError(null);
     try {
       for (const section of sections) {
         await homepageService.update(section.id, section);
       }
-    } catch (err) { alert('Failed to save'); }
+    } catch (err) {
+      const msg = err.response?.data?.detail || err.message || 'Failed to save';
+      setError(msg);
+    }
     finally { setSaving(false); }
   };
 
@@ -219,6 +234,13 @@ export function HomepageBuilder() {
 
   return (
     <div>
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="ml-2 text-red-700 hover:text-red-900 font-bold">&times;</button>
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Homepage Builder</h1>
