@@ -155,7 +155,7 @@ function CustomizationPanel({ options, onCustomizationsChange, basePrice }) {
                       <span
                         className="block w-full h-full rounded-full border-2 transition-all duration-200"
                         style={{
-                          backgroundColor: val.value.startsWith('#') || val.value.startsWith('rgb') ? val.value : undefined,
+                          backgroundColor: val.value,
                           borderColor: selected ? 'var(--primary)' : 'color-mix(in srgb, var(--border), transparent 30%)',
                           boxShadow: selected ? `0 0 0 3px var(--primary), 0 2px 8px rgba(0,0,0,0.15)` : '0 1px 3px rgba(0,0,0,0.08)',
                         }}
