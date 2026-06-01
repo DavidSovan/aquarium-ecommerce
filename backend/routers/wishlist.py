@@ -54,8 +54,9 @@ def get_wishlist(
             return build_wishlist_response(wl)
 
     if wishlist_id:
-        wl = get_wishlist_or_404(db, wishlist_id)
-        return build_wishlist_response(wl)
+        wl = db.query(Wishlist).filter(Wishlist.id == wishlist_id).first()
+        if wl:
+            return build_wishlist_response(wl)
 
     return WishlistResponse(id="", items=[])
 

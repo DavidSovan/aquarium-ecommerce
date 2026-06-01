@@ -584,7 +584,10 @@ def test_add_nonexistent_product_to_wishlist():
 
 def test_get_nonexistent_wishlist():
     response = client.get("/wishlist", params={"wishlist_id": "nonexistent-uuid"})
-    assert response.status_code == 404
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == ""
+    assert data["items"] == []
 
 
 def test_remove_nonexistent_wishlist_item():
