@@ -12,7 +12,7 @@ from schemas.order import (
     OrderItemResponse,
 )
 from dependencies.auth import get_current_user, require_role
-from services.telegram_service import send_telegram_message, format_order_cancelled_notification, format_order_status_notification
+from services.telegram_service import send_telegram_message, format_order_cancelled_notification, format_order_status_notification, format_order_status_for_customer
 from websocket.connection_manager import manager
 from websocket.events import build_order_status_event
 
@@ -122,6 +122,10 @@ def update_order_status(
         background_tasks.add_task(manager.broadcast_to_user, str(order.user_id), event)
         background_tasks.add_task(manager.broadcast_to_admins, event)
 
+        if customer and customer.telegram_chat_id:
+            user_msg = format_order_status_for_customer(order, old_status)
+            background_tasks.add_task(send_telegram_message, user_msg, customer.telegram_chat_id)
+
     return _order_to_response(order, customer)
 
 @router.delete("/{order_id}", response_model=CancelOrderResponse)
@@ -178,6 +182,10 @@ def cancel_order(
     background_tasks.add_task(manager.broadcast_to_user, str(order.user_id), event)
     background_tasks.add_task(manager.broadcast_to_admins, event)
 
+    if customer and customer.telegram_chat_id:
+        user_msg = format_order_status_for_customer(order, old_status)
+        background_tasks.add_task(send_telegram_message, user_msg, customer.telegram_chat_id)
+
     return CancelOrderResponse(
         message="Order cancelled successfully",
         order_id=order.id,
@@ -227,6 +235,11 @@ def confirm_delivery(
     event = build_order_status_event(order.id, order.order_number, old_status, order.order_status, order.payment_status)
     background_tasks.add_task(manager.broadcast_to_user, str(order.user_id), event)
     background_tasks.add_task(manager.broadcast_to_admins, event)
+
+    if customer and customer.telegram_chat_id:
+        user_msg = format_order_status_for_customer(order, old_status)
+        background_tasks.add_task(send_telegram_message, user_msg, customer.telegram_chat_id)
+
     return _order_to_response(order, customer)
 
 

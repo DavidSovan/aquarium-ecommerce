@@ -14,7 +14,7 @@ from schemas.order import (
     OrderResponse,
 )
 from dependencies.auth import get_current_user, require_role
-from services.telegram_service import send_telegram_message, format_order_notification
+from services.telegram_service import send_telegram_message, format_order_notification, format_order_confirmation
 from websocket.connection_manager import manager
 from websocket.events import build_new_order_event
 from datetime import datetime, timezone
@@ -175,6 +175,10 @@ def checkout(
     shipping_addr = db.query(Address).filter(Address.id == order.shipping_address_id).first()
     msg = format_order_notification(order, order.items, customer, shipping_addr)
     background_tasks.add_task(send_telegram_message, msg)
+
+    if customer.telegram_chat_id:
+        user_msg = format_order_confirmation(order, order.items, customer)
+        background_tasks.add_task(send_telegram_message, user_msg, customer.telegram_chat_id)
 
     first = (customer.first_name or "").strip()
     last = (customer.last_name or "").strip()
