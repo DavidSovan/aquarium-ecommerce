@@ -56,6 +56,14 @@ async def lifespan(app: FastAPI):
     except Exception:
         pass
 
+    try:
+        conn = engine.connect()
+        conn.execute(text("ALTER TABLE orders ADD COLUMN payment_method VARCHAR(50) DEFAULT 'COD' NOT NULL"))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
     _DEFAULTS = [
         ("homepage_video_enabled", "false", "Enable background video on storefront homepage"),
         ("homepage_video_url", "", "Direct MP4 URL for homepage background video"),

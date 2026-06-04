@@ -138,11 +138,15 @@ def checkout(
 
     total = round(subtotal + shipping - coupon_discount, 2)
 
+    payment_method = getattr(data, 'payment_method', 'COD') or 'COD'
+    payment_status = "pending_integration" if payment_method == "ONLINE_PAYMENT" else "pending"
+
     order = Order(
         order_number=generate_order_number(),
         user_id=current_user.id,
         order_status="pending",
-        payment_status="pending",
+        payment_method=payment_method,
+        payment_status=payment_status,
         subtotal=subtotal,
         shipping=shipping,
         discount=discount,
@@ -197,6 +201,7 @@ def checkout(
         order_number=order.order_number,
         user_id=order.user_id,
         order_status=order.order_status,
+        payment_method=order.payment_method,
         payment_status=order.payment_status,
         subtotal=order.subtotal,
         shipping=order.shipping,

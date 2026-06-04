@@ -4,7 +4,13 @@ import { useAuth } from '../../context/AuthContext';
 import wsService from '../../services/websocket';
 
 const ORDER_STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
-const PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'refunded'];
+const PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'refunded', 'pending_integration'];
+const PAYMENT_METHODS = ['COD', 'ONLINE_PAYMENT'];
+
+const PAYMENT_METHOD_LABELS = {
+  COD: 'COD',
+  ONLINE_PAYMENT: 'Online',
+};
 
 const STATUS_META = {
   pending:    { label: 'Pending',    dot: 'bg-yellow-400', bg: 'bg-yellow-50', text: 'text-yellow-700', ring: 'ring-yellow-600/20' },
@@ -15,10 +21,11 @@ const STATUS_META = {
 };
 
 const PAYMENT_META = {
-  pending:  { label: 'Pending',  bg: 'bg-gray-100 text-gray-700' },
-  paid:     { label: 'Paid',     bg: 'bg-green-100 text-green-700' },
-  failed:   { label: 'Failed',   bg: 'bg-red-100 text-red-700' },
-  refunded: { label: 'Refunded', bg: 'bg-orange-100 text-orange-700' },
+  pending:             { label: 'Pending',             bg: 'bg-gray-100 text-gray-700' },
+  paid:                { label: 'Paid',                bg: 'bg-green-100 text-green-700' },
+  failed:              { label: 'Failed',              bg: 'bg-red-100 text-red-700' },
+  refunded:            { label: 'Refunded',            bg: 'bg-orange-100 text-orange-700' },
+  pending_integration: { label: 'Pending Integration', bg: 'bg-yellow-100 text-yellow-700' },
 };
 
 export function OrderList() {
@@ -30,6 +37,7 @@ export function OrderList() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [paymentFilter, setPaymentFilter] = useState('');
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState('');
   const [detailOrder, setDetailOrder] = useState(null);
   const [updating, setUpdating] = useState(null);
   const [toast, setToast] = useState(null);
@@ -48,7 +56,7 @@ export function OrderList() {
     };
   }, []);
 
-  useEffect(() => { loadOrders(); }, [skip, statusFilter, paymentFilter, search]);
+  useEffect(() => { loadOrders(); }, [skip, statusFilter, paymentFilter, paymentMethodFilter, search]);
 
   const loadOrders = async () => {
     setLoading(true);
@@ -56,6 +64,7 @@ export function OrderList() {
       const params = { skip, limit };
       if (statusFilter) params.status = statusFilter;
       if (paymentFilter) params.payment_status = paymentFilter;
+      if (paymentMethodFilter) params.payment_method = paymentMethodFilter;
       if (search) params.search = search;
       const res = await orderService.listOrders(params);
       setOrders(res.data.items);
@@ -184,6 +193,11 @@ export function OrderList() {
           <option value="">All Statuses</option>
           {ORDER_STATUSES.map(s => <option key={s} value={s}>{STATUS_META[s].label}</option>)}
         </select>
+        <select value={paymentMethodFilter} onChange={e => { setPaymentMethodFilter(e.target.value); setSkip(0); }}
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">All Methods</option>
+          {PAYMENT_METHODS.map(m => <option key={m} value={m}>{PAYMENT_METHOD_LABELS[m]}</option>)}
+        </select>
         <select value={paymentFilter} onChange={e => { setPaymentFilter(e.target.value); setSkip(0); }}
           className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
           <option value="">All Payments</option>
@@ -213,7 +227,8 @@ export function OrderList() {
                   <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Payment</th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Payment Method</th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Payment Status</th>
                   <th className="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Total</th>
                   <th className="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Action</th>
                 </tr>
@@ -273,6 +288,11 @@ export function OrderList() {
                             </button>
                           </div>
                         </div>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className="text-sm text-gray-700">
+                          {PAYMENT_METHOD_LABELS[order.payment_method] || order.payment_method || 'COD'}
+                        </span>
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
@@ -387,6 +407,12 @@ export function OrderList() {
                       </button>
                     )}
                   </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">Payment Method</label>
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-700">
+                    {PAYMENT_METHOD_LABELS[detailOrder.payment_method] || detailOrder.payment_method || 'COD'}
+                  </span>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">Payment Status</label>

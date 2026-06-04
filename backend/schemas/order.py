@@ -3,12 +3,15 @@ from typing import Optional, List, Any
 from datetime import datetime
 
 
+PAYMENT_METHODS = {"COD", "ONLINE_PAYMENT"}
+
 class CheckoutRequest(BaseModel):
     cart_id: str = Field(..., min_length=1, max_length=36)
     shipping_address_id: int
     billing_address_id: Optional[int] = None
     notes: Optional[str] = None
     coupon_code: Optional[str] = None
+    payment_method: str = Field(default="COD", pattern="^(COD|ONLINE_PAYMENT)$")
 
 
 class UpdateOrderStatusRequest(BaseModel):
@@ -34,6 +37,7 @@ class OrderResponse(BaseModel):
     customer_email: Optional[str] = None
     customer_name: Optional[str] = None
     order_status: str
+    payment_method: str = "COD"
     payment_status: str
     subtotal: float
     shipping: float

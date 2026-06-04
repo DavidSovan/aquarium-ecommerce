@@ -19,7 +19,8 @@ from websocket.events import build_order_status_event
 router = APIRouter(prefix="/orders", tags=["orders"])
 
 VALID_ORDER_STATUSES = {"pending", "processing", "shipped", "delivered", "cancelled"}
-VALID_PAYMENT_STATUSES = {"pending", "paid", "failed", "refunded"}
+VALID_PAYMENT_STATUSES = {"pending", "paid", "failed", "refunded", "pending_integration"}
+VALID_PAYMENT_METHODS = {"COD", "ONLINE_PAYMENT"}
 
 
 @router.get("", response_model=OrderListResponse)
@@ -29,6 +30,7 @@ def list_orders(
     search: Optional[str] = Query(None, description="Search by order number"),
     status: Optional[str] = Query(None, description="Filter by order status"),
     payment_status: Optional[str] = Query(None, description="Filter by payment status"),
+    payment_method: Optional[str] = Query(None, description="Filter by payment method"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -43,6 +45,8 @@ def list_orders(
         query = query.filter(Order.order_status == status)
     if payment_status:
         query = query.filter(Order.payment_status == payment_status)
+    if payment_method:
+        query = query.filter(Order.payment_method == payment_method)
 
     total = query.count()
     orders = query.order_by(Order.created_at.desc()).offset(skip).limit(limit).all()
@@ -257,6 +261,7 @@ def _order_to_response(order: Order, user: Optional[User] = None) -> OrderRespon
         customer_email=user.email if user else None,
         customer_name=customer_name,
         order_status=order.order_status,
+        payment_method=order.payment_method or "COD",
         payment_status=order.payment_status,
         subtotal=order.subtotal,
         shipping=order.shipping,

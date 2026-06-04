@@ -127,6 +127,14 @@ export function MyOrdersPage() {
         <div style={{ marginBottom: '1.5rem', padding: '1.5rem', backgroundColor: 'color-mix(in srgb, var(--success) 15%, transparent)', border: '1px solid var(--success)', borderRadius: 'var(--radius)', color: 'var(--success)' }}>
           <p style={{ fontWeight: 700, fontSize: '1.125rem', marginBottom: '0.25rem' }}>Order Confirmed!</p>
           <p style={{ fontSize: '0.875rem' }}>Order <strong>#{confirmOrder.order_number}</strong> has been placed successfully.</p>
+          <p style={{ fontSize: '0.875rem', marginTop: '0.25rem' }}>
+            Payment Method: <strong>{confirmOrder.payment_method === 'ONLINE_PAYMENT' ? 'Online Payment' : 'Cash on Delivery (COD)'}</strong>
+          </p>
+          {confirmOrder.payment_method === 'ONLINE_PAYMENT' && (
+            <p style={{ fontSize: '0.875rem', marginTop: '0.25rem', fontStyle: 'italic' }}>
+              Online payment integration is coming soon. Your order has been created successfully.
+            </p>
+          )}
           {confirmOrder.coupon_code && (
             <p style={{ fontSize: '0.875rem', marginTop: '0.25rem' }}>Coupon <strong>{confirmOrder.coupon_code}</strong> applied — you saved ${Number(confirmOrder.coupon_discount).toFixed(2)}.</p>
           )}
@@ -172,7 +180,11 @@ export function MyOrdersPage() {
                     <span>-{formatPrice(order.coupon_discount)}</span>
                   </div>
                 )}
-                <div className="theme-border" style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, paddingTop: '0.5rem', marginTop: order.coupon_code ? '0.5rem' : '0', borderTop: order.coupon_code ? 'none' : '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', paddingTop: '0.5rem' }}>
+                  <span className="theme-text-secondary">Payment Method</span>
+                  <span className="theme-text-secondary">{order.payment_method === 'ONLINE_PAYMENT' ? 'Online Payment' : 'Cash on Delivery (COD)'}</span>
+                </div>
+                <div className="theme-border" style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, paddingTop: '0.5rem', marginTop: '0.5rem', borderTop: '1px solid var(--border)' }}>
                   <span className="theme-text-primary">Total</span>
                   <span className="theme-text-primary">{formatPrice(order.total)}</span>
                 </div>

@@ -12,6 +12,7 @@ class Order(Base):
     order_number = Column(String(50), unique=True, nullable=False, index=True)
     user_id = Column(String(36), nullable=False, index=True)
     order_status = Column(String(50), default="pending", nullable=False)
+    payment_method = Column(String(50), default="COD", nullable=False)
     payment_status = Column(String(50), default="pending", nullable=False)
     subtotal = Column(Float, default=0, nullable=False)
     shipping = Column(Float, default=0, nullable=False)

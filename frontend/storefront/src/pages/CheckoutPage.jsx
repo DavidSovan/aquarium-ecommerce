@@ -36,6 +36,7 @@ export function CheckoutPage() {
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState('');
   const [notes, setNotes] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('COD');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [telegramConnected, setTelegramConnected] = useState(false);
@@ -113,6 +114,7 @@ export function CheckoutPage() {
         shipping_address_id: parseInt(selectedAddressId),
         notes: notes || null,
         coupon_code: appliedCoupon?.coupon?.code || null,
+        payment_method: paymentMethod,
       });
       clearCart();
       navigate(`/orders`, { state: { newOrder: res.data } });
@@ -281,6 +283,94 @@ export function CheckoutPage() {
                   })}
                 </div>
               )}
+            </div>
+
+            {/* Payment Method */}
+            <div className="theme-surface theme-rounded p-5 sm:p-6"
+              style={{ border: '1px solid color-mix(in srgb, var(--border), transparent 50%)' }}>
+              <h2 className="text-lg font-bold theme-text-primary mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} style={{ color: 'var(--primary)' }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                Payment Method
+              </h2>
+              <div className="space-y-3">
+                <label
+                  className={`block p-4 theme-rounded cursor-pointer transition-all duration-200`}
+                  style={{
+                    border: paymentMethod === 'COD'
+                      ? '2px solid var(--primary)'
+                      : '1px solid color-mix(in srgb, var(--border), transparent 40%)',
+                    backgroundColor: paymentMethod === 'COD'
+                      ? 'color-mix(in srgb, var(--primary) 6%, transparent)'
+                      : 'var(--surface)',
+                  }}>
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5"
+                      style={{
+                        borderColor: paymentMethod === 'COD' ? 'var(--primary)' : 'color-mix(in srgb, var(--border), transparent 30%)',
+                      }}>
+                      {paymentMethod === 'COD' && (
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: 'var(--primary)' }} />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm theme-text-primary">Cash on Delivery (COD)</p>
+                      <p className="text-xs theme-text-secondary mt-0.5">Pay when you receive your order</p>
+                    </div>
+                  </div>
+                  <input
+                    type="radio"
+                    name="payment"
+                    value="COD"
+                    checked={paymentMethod === 'COD'}
+                    onChange={() => setPaymentMethod('COD')}
+                    className="sr-only"
+                  />
+                </label>
+                <label
+                  className={`block p-4 theme-rounded cursor-pointer transition-all duration-200`}
+                  style={{
+                    border: paymentMethod === 'ONLINE_PAYMENT'
+                      ? '2px solid var(--primary)'
+                      : '1px solid color-mix(in srgb, var(--border), transparent 40%)',
+                    backgroundColor: paymentMethod === 'ONLINE_PAYMENT'
+                      ? 'color-mix(in srgb, var(--primary) 6%, transparent)'
+                      : 'var(--surface)',
+                  }}>
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5"
+                      style={{
+                        borderColor: paymentMethod === 'ONLINE_PAYMENT' ? 'var(--primary)' : 'color-mix(in srgb, var(--border), transparent 30%)',
+                      }}>
+                      {paymentMethod === 'ONLINE_PAYMENT' && (
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: 'var(--primary)' }} />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm theme-text-primary">Online Payment</p>
+                      <p className="text-xs theme-text-secondary mt-0.5">Pay online via card or bank transfer</p>
+                      {paymentMethod === 'ONLINE_PAYMENT' && (
+                        <p className="text-xs mt-2 p-2 rounded"
+                          style={{
+                            backgroundColor: 'color-mix(in srgb, var(--warning) 15%, transparent)',
+                            color: 'var(--warning)',
+                          }}>
+                          Online payment integration is coming soon. Your order will be created but payment processing is not yet available.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <input
+                    type="radio"
+                    name="payment"
+                    value="ONLINE_PAYMENT"
+                    checked={paymentMethod === 'ONLINE_PAYMENT'}
+                    onChange={() => setPaymentMethod('ONLINE_PAYMENT')}
+                    className="sr-only"
+                  />
+                </label>
+              </div>
             </div>
 
             {/* Telegram Connection */}
