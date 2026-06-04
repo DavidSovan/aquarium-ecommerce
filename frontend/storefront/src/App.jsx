@@ -18,6 +18,7 @@ import { WishlistPage } from './pages/WishlistPage';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { CheckoutPage } from './pages/CheckoutPage';
+import { PaymentPage } from './pages/PaymentPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { MyOrdersPage } from './pages/MyOrdersPage';
 import { MyAddressesPage } from './pages/MyAddressesPage';
@@ -74,6 +75,7 @@ function Layout() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
+          <Route path="/payment/:orderId" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
           <Route path="/addresses" element={<ProtectedRoute><MyAddressesPage /></ProtectedRoute>} />

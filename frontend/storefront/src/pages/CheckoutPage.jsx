@@ -117,7 +117,11 @@ export function CheckoutPage() {
         payment_method: paymentMethod,
       });
       clearCart();
-      navigate(`/orders`, { state: { newOrder: res.data } });
+      if (res.data.payment_method === 'ONLINE_PAYMENT' && res.data.payment_qr) {
+        navigate(`/payment/${res.data.id}`, { state: { newOrder: res.data } });
+      } else {
+        navigate(`/orders`, { state: { newOrder: res.data } });
+      }
     } catch (err) {
       setError(err.response?.data?.detail || 'Checkout failed');
     } finally {
@@ -349,16 +353,7 @@ export function CheckoutPage() {
                     </div>
                     <div>
                       <p className="font-semibold text-sm theme-text-primary">Online Payment</p>
-                      <p className="text-xs theme-text-secondary mt-0.5">Pay online via card or bank transfer</p>
-                      {paymentMethod === 'ONLINE_PAYMENT' && (
-                        <p className="text-xs mt-2 p-2 rounded"
-                          style={{
-                            backgroundColor: 'color-mix(in srgb, var(--warning) 15%, transparent)',
-                            color: 'var(--warning)',
-                          }}>
-                          Online payment integration is coming soon. Your order will be created but payment processing is not yet available.
-                        </p>
-                      )}
+                      <p className="text-xs theme-text-secondary mt-0.5">Pay via Bakong KHQR scanning</p>
                     </div>
                   </div>
                   <input

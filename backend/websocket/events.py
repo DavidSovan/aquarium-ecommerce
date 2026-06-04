@@ -52,3 +52,19 @@ def build_new_order_event(
         "total": total,
         "created_at": created_at.isoformat() if hasattr(created_at, 'isoformat') else str(created_at),
     }
+
+
+def build_payment_event(
+    order_id: int,
+    order_number: str,
+    status: str,
+    reason: Optional[str] = None,
+) -> dict:
+    return {
+        "event": "payment_status_updated",
+        "order_id": order_id,
+        "order_number": order_number,
+        "status": status,
+        "reason": reason,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }

@@ -175,6 +175,30 @@ def format_order_status_notification(order, old_status, customer) -> str:
     return "\n".join(lines)
 
 
+def format_payment_success_notification(order) -> str:
+    lines = [
+        "<b>✅ Payment Received!</b>",
+        "",
+        f"<b>Order:</b> {order.order_number}",
+        f"<b>Amount:</b> ${order.total:.2f}",
+        f"<b>Status:</b> Paid",
+    ]
+    if order.payment_reference:
+        lines.append(f"<b>Reference:</b> {order.payment_reference}")
+    return "\n".join(lines)
+
+
+def format_payment_failed_notification(order, reason: str) -> str:
+    lines = [
+        "<b>❌ Payment Failed</b>",
+        "",
+        f"<b>Order:</b> {order.order_number}",
+        f"<b>Amount:</b> ${order.total:.2f}",
+        f"<b>Reason:</b> {reason}",
+    ]
+    return "\n".join(lines)
+
+
 def format_order_status_for_customer(order, old_status) -> str:
     emoji = {"pending": "⏳", "processing": "✅", "shipped": "🚚", "delivered": "📦", "cancelled": "❌"}.get(
         order.order_status, "📋"

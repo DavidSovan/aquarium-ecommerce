@@ -24,6 +24,13 @@ class Order(Base):
     billing_address_id = Column(Integer, ForeignKey("addresses.id"), nullable=True)
     is_new = Column(Integer, default=1, nullable=False)
     notes = Column(Text, nullable=True)
+    payment_reference = Column(String(255), nullable=True)
+    bakong_account_id = Column(String(100), nullable=True)
+    khqr_md5 = Column(String(64), nullable=True, index=True)
+    payment_qr = Column(Text, nullable=True)
+    payment_expires_at = Column(DateTime, nullable=True)
+    paid_at = Column(DateTime, nullable=True)
+    payment_failure_reason = Column(Text, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 

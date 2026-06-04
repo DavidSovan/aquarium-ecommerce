@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import wsService from '../../services/websocket';
 
 const ORDER_STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
-const PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'refunded', 'pending_integration'];
+const PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'refunded'];
 const PAYMENT_METHODS = ['COD', 'ONLINE_PAYMENT'];
 
 const PAYMENT_METHOD_LABELS = {
@@ -21,11 +21,10 @@ const STATUS_META = {
 };
 
 const PAYMENT_META = {
-  pending:             { label: 'Pending',             bg: 'bg-gray-100 text-gray-700' },
-  paid:                { label: 'Paid',                bg: 'bg-green-100 text-green-700' },
-  failed:              { label: 'Failed',              bg: 'bg-red-100 text-red-700' },
-  refunded:            { label: 'Refunded',            bg: 'bg-orange-100 text-orange-700' },
-  pending_integration: { label: 'Pending Integration', bg: 'bg-yellow-100 text-yellow-700' },
+  pending:             { label: 'Pending',  bg: 'bg-gray-100 text-gray-700' },
+  paid:                { label: 'Paid',     bg: 'bg-green-100 text-green-700' },
+  failed:              { label: 'Failed',   bg: 'bg-red-100 text-red-700' },
+  refunded:            { label: 'Refunded', bg: 'bg-orange-100 text-orange-700' },
 };
 
 export function OrderList() {
@@ -471,6 +470,39 @@ export function OrderList() {
                 )}
                 <div className="flex justify-between text-sm font-bold border-t border-gray-200 pt-1.5"><span>Total</span><span>{formatPrice(detailOrder.total)}</span></div>
               </div>
+
+              {/* Payment Metadata */}
+              {detailOrder.payment_method === 'ONLINE_PAYMENT' && (
+                <div>
+                  <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Payment Details</h3>
+                  <div className="bg-gray-50 rounded-lg p-3 text-sm space-y-1">
+                    {detailOrder.payment_qr && (
+                      <div className="mb-2">
+                        <p className="text-xs text-gray-400 mb-1">Payment QR</p>
+                        <p className="text-gray-700 font-mono text-xs break-all">{detailOrder.payment_qr}</p>
+                      </div>
+                    )}
+                    {detailOrder.khqr_md5 && (
+                      <p><span className="text-gray-400">KHQR MD5:</span> <span className="font-mono text-xs">{detailOrder.khqr_md5}</span></p>
+                    )}
+                    {detailOrder.payment_reference && (
+                      <p><span className="text-gray-400">Reference:</span> {detailOrder.payment_reference}</p>
+                    )}
+                    {detailOrder.bakong_account_id && (
+                      <p><span className="text-gray-400">Bakong Account:</span> {detailOrder.bakong_account_id}</p>
+                    )}
+                    {detailOrder.payment_expires_at && (
+                      <p><span className="text-gray-400">Expires:</span> {formatDate(detailOrder.payment_expires_at)}</p>
+                    )}
+                    {detailOrder.paid_at && (
+                      <p><span className="text-green-600 font-medium">Paid At:</span> {formatDate(detailOrder.paid_at)}</p>
+                    )}
+                    {detailOrder.payment_failure_reason && (
+                      <p><span className="text-red-600">Failure:</span> {detailOrder.payment_failure_reason}</p>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Notes */}
               {detailOrder.notes && (

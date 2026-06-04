@@ -50,6 +50,13 @@ class OrderResponse(BaseModel):
     billing_address_id: Optional[int] = None
     is_new: bool = True
     notes: Optional[str] = None
+    payment_reference: Optional[str] = None
+    bakong_account_id: Optional[str] = None
+    khqr_md5: Optional[str] = None
+    payment_qr: Optional[str] = None
+    payment_expires_at: Optional[datetime] = None
+    paid_at: Optional[datetime] = None
+    payment_failure_reason: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

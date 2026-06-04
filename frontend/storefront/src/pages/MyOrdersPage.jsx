@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import orderService from '../services/orderService';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 import { useAuth } from '../context/AuthContext';
@@ -45,6 +45,7 @@ function Toast({ message, type, onClose }) {
 
 export function MyOrdersPage() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { storeName } = useSiteSettings();
   const { user, isAuthenticated } = useAuth();
 
@@ -71,7 +72,7 @@ export function MyOrdersPage() {
       wsService.connect(token);
     }
 
-    const unsubscribe = wsService.on('order_status_updated', (data) => {
+    const unsubStatus = wsService.on('order_status_updated', (data) => {
       setOrders(prev => prev.map(o =>
         o.id === data.order_id
           ? { ...o, order_status: data.current_status, payment_status: data.payment_status ?? o.payment_status }
@@ -80,8 +81,22 @@ export function MyOrdersPage() {
       setToast({ message: data.message, type: 'info' });
     });
 
+    const unsubPayment = wsService.on('payment_status_updated', (data) => {
+      setOrders(prev => prev.map(o =>
+        o.id === data.order_id
+          ? { ...o, payment_status: data.status, payment_failure_reason: data.reason || null }
+          : o
+      ));
+      if (data.status === 'paid') {
+        setToast({ message: `Payment received for order #${data.order_number}`, type: 'info' });
+      } else if (data.status === 'failed') {
+        setToast({ message: `Payment failed for order #${data.order_number}`, type: 'error' });
+      }
+    });
+
     return () => {
-      unsubscribe();
+      unsubStatus();
+      unsubPayment();
       wsService.disconnect();
     };
   }, [isAuthenticated]);
@@ -130,10 +145,11 @@ export function MyOrdersPage() {
           <p style={{ fontSize: '0.875rem', marginTop: '0.25rem' }}>
             Payment Method: <strong>{confirmOrder.payment_method === 'ONLINE_PAYMENT' ? 'Online Payment' : 'Cash on Delivery (COD)'}</strong>
           </p>
-          {confirmOrder.payment_method === 'ONLINE_PAYMENT' && (
-            <p style={{ fontSize: '0.875rem', marginTop: '0.25rem', fontStyle: 'italic' }}>
-              Online payment integration is coming soon. Your order has been created successfully.
-            </p>
+          {confirmOrder.payment_method === 'ONLINE_PAYMENT' && confirmOrder.payment_qr && (
+            <Link to={`/payment/${confirmOrder.id}`} className="theme-btn-primary text-sm font-medium no-underline inline-flex items-center gap-2 px-4 py-2 rounded-lg mt-3"
+              style={{ display: 'inline-flex' }}>
+              Complete Payment
+            </Link>
           )}
           {confirmOrder.coupon_code && (
             <p style={{ fontSize: '0.875rem', marginTop: '0.25rem' }}>Coupon <strong>{confirmOrder.coupon_code}</strong> applied — you saved ${Number(confirmOrder.coupon_discount).toFixed(2)}.</p>
@@ -189,6 +205,9 @@ export function MyOrdersPage() {
                   <span className="theme-text-primary">{formatPrice(order.total)}</span>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                  {order.order_status === 'pending' && order.payment_method === 'ONLINE_PAYMENT' && order.payment_status === 'pending' && (
+                    <button onClick={() => navigate(`/payment/${order.id}`)} className="theme-btn-primary" style={{ border: 'none', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.875rem', fontWeight: 600 }}>Pay Now</button>
+                  )}
                   {order.order_status === 'pending' && (
                     <button onClick={() => handleCancelOrder(order.id)} className="theme-danger" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, padding: 0 }}>Cancel Order</button>
                   )}

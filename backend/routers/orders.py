@@ -19,7 +19,7 @@ from websocket.events import build_order_status_event
 router = APIRouter(prefix="/orders", tags=["orders"])
 
 VALID_ORDER_STATUSES = {"pending", "processing", "shipped", "delivered", "cancelled"}
-VALID_PAYMENT_STATUSES = {"pending", "paid", "failed", "refunded", "pending_integration"}
+VALID_PAYMENT_STATUSES = {"pending", "paid", "failed", "refunded"}
 VALID_PAYMENT_METHODS = {"COD", "ONLINE_PAYMENT"}
 
 
@@ -282,6 +282,13 @@ def _order_to_response(order: Order, user: Optional[User] = None) -> OrderRespon
         shipping_address_id=order.shipping_address_id,
         billing_address_id=order.billing_address_id,
         notes=order.notes,
+        payment_qr=order.payment_qr,
+        khqr_md5=order.khqr_md5,
+        payment_expires_at=order.payment_expires_at,
+        bakong_account_id=order.bakong_account_id,
+        payment_reference=order.payment_reference,
+        paid_at=order.paid_at,
+        payment_failure_reason=order.payment_failure_reason,
         created_at=order.created_at,
         updated_at=order.updated_at,
     )

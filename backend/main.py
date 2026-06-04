@@ -12,7 +12,7 @@ from models.theme import ThemeSettings
 from routers import categories, products, product_images, cart, wishlist, addresses, checkout, orders, inventory, auth, reviews, coupons, banners, reports, settings, customers
 from routers import theme as theme_router, branding as branding_router, homepage_sections, cms_blocks, media_library
 from routers import ws as ws_router
-from routers import customization, telegram
+from routers import customization, telegram, payment as payment_router
 from websocket.connection_manager import manager
 
 
@@ -59,6 +59,70 @@ async def lifespan(app: FastAPI):
     try:
         conn = engine.connect()
         conn.execute(text("ALTER TABLE orders ADD COLUMN payment_method VARCHAR(50) DEFAULT 'COD' NOT NULL"))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    try:
+        conn = engine.connect()
+        conn.execute(text("ALTER TABLE orders ADD COLUMN payment_reference VARCHAR(255) NULL"))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    try:
+        conn = engine.connect()
+        conn.execute(text("ALTER TABLE orders ADD COLUMN bakong_account_id VARCHAR(100) NULL"))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    try:
+        conn = engine.connect()
+        conn.execute(text("ALTER TABLE orders ADD COLUMN khqr_md5 VARCHAR(64) NULL"))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    try:
+        conn = engine.connect()
+        conn.execute(text("CREATE INDEX idx_orders_khqr_md5 ON orders (khqr_md5)"))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    try:
+        conn = engine.connect()
+        conn.execute(text("ALTER TABLE orders ADD COLUMN payment_qr TEXT NULL"))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    try:
+        conn = engine.connect()
+        conn.execute(text("ALTER TABLE orders ADD COLUMN payment_expires_at DATETIME NULL"))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    try:
+        conn = engine.connect()
+        conn.execute(text("ALTER TABLE orders ADD COLUMN paid_at DATETIME NULL"))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    try:
+        conn = engine.connect()
+        conn.execute(text("ALTER TABLE orders ADD COLUMN payment_failure_reason TEXT NULL"))
         conn.commit()
         conn.close()
     except Exception:
@@ -175,6 +239,7 @@ app.include_router(media_library.router)
 app.include_router(ws_router.router)
 app.include_router(customization.router)
 app.include_router(telegram.router)
+app.include_router(payment_router.router)
 
 
 @app.get("/")

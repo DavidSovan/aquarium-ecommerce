@@ -15,6 +15,7 @@ from schemas.order import (
 )
 from dependencies.auth import get_current_user, require_role
 from services.telegram_service import send_telegram_message, format_order_notification, format_order_confirmation
+from services.payment_service import generate_order_khqr
 from websocket.connection_manager import manager
 from websocket.events import build_new_order_event
 from datetime import datetime, timezone
@@ -139,7 +140,7 @@ def checkout(
     total = round(subtotal + shipping - coupon_discount, 2)
 
     payment_method = getattr(data, 'payment_method', 'COD') or 'COD'
-    payment_status = "pending_integration" if payment_method == "ONLINE_PAYMENT" else "pending"
+    payment_status = "pending" if payment_method == "ONLINE_PAYMENT" else "pending"
 
     order = Order(
         order_number=generate_order_number(),
@@ -159,6 +160,13 @@ def checkout(
     )
     db.add(order)
     db.flush()
+
+    if payment_method == "ONLINE_PAYMENT":
+        khqr_result = generate_order_khqr(order)
+        order.bakong_account_id = khqr_result["bakong_account_id"]
+        order.khqr_md5 = khqr_result["md5"]
+        order.payment_qr = khqr_result["qr_string"]
+        order.payment_expires_at = khqr_result["expires_at"]
 
     for item_data in order_items_data:
         cust = item_data.pop("customizations", None)
@@ -222,6 +230,13 @@ def checkout(
         shipping_address_id=order.shipping_address_id,
         billing_address_id=order.billing_address_id,
         notes=order.notes,
+        payment_qr=order.payment_qr,
+        khqr_md5=order.khqr_md5,
+        payment_expires_at=order.payment_expires_at,
+        bakong_account_id=order.bakong_account_id,
+        payment_reference=order.payment_reference,
+        paid_at=order.paid_at,
+        payment_failure_reason=order.payment_failure_reason,
         created_at=order.created_at,
         updated_at=order.updated_at,
     )
