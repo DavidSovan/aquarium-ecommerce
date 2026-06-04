@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import addressService from '../services/addressService';
 import orderService from '../services/orderService';
 import telegramService from '../services/telegramService';
+import deliveryService from '../services/deliveryService';
 import api from '../services/api';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 
@@ -46,6 +47,12 @@ export function CheckoutPage() {
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponError, setCouponError] = useState(null);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [deliveryEnabled, setDeliveryEnabled] = useState(false);
+  const [deliveryDate, setDeliveryDate] = useState('');
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [selectedSlotId, setSelectedSlotId] = useState('');
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [slotError, setSlotError] = useState(null);
 
   useEffect(() => {
     addressService.getAddresses().then(res => {
@@ -60,6 +67,38 @@ export function CheckoutPage() {
       setTelegramConnected(res.data.connected);
     }).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    deliveryService.getDeliverySettings().then(res => {
+      setDeliveryEnabled(res.data.enable_delivery_scheduling);
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!deliveryEnabled || !deliveryDate) {
+      setAvailableSlots([]);
+      setSelectedSlotId('');
+      return;
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selDate = new Date(deliveryDate + 'T00:00:00');
+    if (selDate <= today) {
+      setSlotError('Delivery date must be in the future');
+      setAvailableSlots([]);
+      setSelectedSlotId('');
+      return;
+    }
+    setSlotError(null);
+    setLoadingSlots(true);
+    deliveryService.getAvailableSlots(deliveryDate)
+      .then(res => {
+        setAvailableSlots(res.data);
+        setSelectedSlotId('');
+      })
+      .catch(err => setSlotError(err.response?.data?.detail || 'Failed to load slots'))
+      .finally(() => setLoadingSlots(false));
+  }, [deliveryDate, deliveryEnabled]);
 
   const handleConnectTelegram = async () => {
     setLinkingTelegram(true);
@@ -106,6 +145,10 @@ export function CheckoutPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedAddressId || !cart?.id) return;
+    if (deliveryEnabled && (!deliveryDate || !selectedSlotId)) {
+      setError('Please select a delivery date and time slot');
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -115,6 +158,8 @@ export function CheckoutPage() {
         notes: notes || null,
         coupon_code: appliedCoupon?.coupon?.code || null,
         payment_method: paymentMethod,
+        preferred_delivery_date: deliveryEnabled ? deliveryDate : null,
+        delivery_slot_id: deliveryEnabled ? parseInt(selectedSlotId) : null,
       });
       clearCart();
       if (res.data.payment_method === 'ONLINE_PAYMENT' && res.data.payment_qr) {
@@ -427,6 +472,96 @@ export function CheckoutPage() {
                 </div>
               )}
             </div>
+
+            {/* Delivery Scheduling */}
+            {deliveryEnabled && (
+              <div className="theme-surface theme-rounded p-5 sm:p-6"
+                style={{ border: '1px solid color-mix(in srgb, var(--border), transparent 50%)' }}>
+                <h2 className="text-lg font-bold theme-text-primary mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} style={{ color: 'var(--primary)' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Schedule Delivery
+                </h2>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium theme-text-primary mb-1.5">Preferred Delivery Date</label>
+                    <input
+                      type="date"
+                      value={deliveryDate}
+                      onChange={e => setDeliveryDate(e.target.value)}
+                      min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
+                      className="w-full px-3.5 py-2.5 text-sm theme-border theme-rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-shadow"
+                    />
+                  </div>
+                  {deliveryDate && (
+                    <div>
+                      <label className="block text-sm font-medium theme-text-primary mb-1.5">Available Time Slots</label>
+                      {loadingSlots ? (
+                        <div className="flex items-center gap-2 text-sm theme-text-secondary py-2">
+                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                          Loading available slots...
+                        </div>
+                      ) : slotError ? (
+                        <p className="text-sm" style={{ color: 'var(--error)' }}>{slotError}</p>
+                      ) : availableSlots.length === 0 ? (
+                        <p className="text-sm theme-text-secondary py-2">No available slots for this date.</p>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {availableSlots.map(slot => {
+                            const isSelected = selectedSlotId == slot.id;
+                            const isFull = slot.remaining_capacity <= 0;
+                            return (
+                              <label
+                                key={slot.id}
+                                className={`block p-3 theme-rounded cursor-pointer transition-all duration-200 ${isFull ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                style={{
+                                  border: isSelected
+                                    ? '2px solid var(--primary)'
+                                    : '1px solid color-mix(in srgb, var(--border), transparent 40%)',
+                                  backgroundColor: isSelected
+                                    ? 'color-mix(in srgb, var(--primary) 6%, transparent)'
+                                    : 'var(--surface)',
+                                }}>
+                                <div className="flex items-start gap-3">
+                                  <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style={{
+                                      borderColor: isSelected ? 'var(--primary)' : 'color-mix(in srgb, var(--border), transparent 30%)',
+                                    }}>
+                                    {isSelected && (
+                                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: 'var(--primary)' }} />
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-semibold text-sm theme-text-primary">{slot.name}</p>
+                                    <p className="text-xs theme-text-secondary">{slot.start_time} - {slot.end_time}</p>
+                                    <p className="text-xs mt-0.5" style={{ color: slot.remaining_capacity <= 3 ? 'var(--warning)' : 'var(--text-secondary)' }}>
+                                      {slot.remaining_capacity} slot{slot.remaining_capacity !== 1 ? 's' : ''} left
+                                    </p>
+                                  </div>
+                                </div>
+                                <input
+                                  type="radio"
+                                  name="delivery_slot"
+                                  value={slot.id}
+                                  checked={isSelected}
+                                  onChange={() => setSelectedSlotId(slot.id)}
+                                  disabled={isFull}
+                                  className="sr-only"
+                                />
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Order Notes */}
             <div className="theme-surface theme-rounded p-5 sm:p-6"

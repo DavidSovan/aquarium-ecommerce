@@ -14,6 +14,7 @@ const navItems = [
   { path: '/admin/banners', label: 'Banners', icon: '\u263C' },
   { path: '/admin/media', label: 'Media Library', icon: '\u2601' },
   { path: '/admin/cms-blocks', label: 'CMS Blocks', icon: '\u25A3' },
+  { path: '/admin/delivery-slots', label: 'Delivery Slots', icon: '\u2708' },
   { path: '/admin/settings/homepage', label: 'Homepage', icon: '\u2302' },
   { path: '/admin/reports', label: 'Reports', icon: '\u2261' },
   { path: '/admin/settings', label: 'Settings', icon: '\u2699' },

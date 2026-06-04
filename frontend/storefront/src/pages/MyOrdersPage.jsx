@@ -154,6 +154,12 @@ export function MyOrdersPage() {
           {confirmOrder.coupon_code && (
             <p style={{ fontSize: '0.875rem', marginTop: '0.25rem' }}>Coupon <strong>{confirmOrder.coupon_code}</strong> applied — you saved ${Number(confirmOrder.coupon_discount).toFixed(2)}.</p>
           )}
+          {confirmOrder.preferred_delivery_date && (
+            <p style={{ fontSize: '0.875rem', marginTop: '0.25rem' }}>
+              Scheduled Delivery: <strong>{formatDate(confirmOrder.preferred_delivery_date)}</strong>
+              {confirmOrder.delivery_slot_name && <> — <strong>{confirmOrder.delivery_slot_name}</strong></>}
+            </p>
+          )}
         </div>
       )}
 
@@ -194,6 +200,18 @@ export function MyOrdersPage() {
                   <div className="theme-success" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', borderTop: '1px solid var(--border)', paddingTop: '0.5rem' }}>
                     <span>Coupon: {order.coupon_code}</span>
                     <span>-{formatPrice(order.coupon_discount)}</span>
+                  </div>
+                )}
+                {order.preferred_delivery_date && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', paddingTop: '0.5rem' }}>
+                    <span className="theme-text-secondary">Delivery Date</span>
+                    <span className="theme-text-primary font-medium">{formatDate(order.preferred_delivery_date)}</span>
+                  </div>
+                )}
+                {order.delivery_slot_name && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', paddingTop: '0.25rem' }}>
+                    <span className="theme-text-secondary">Delivery Slot</span>
+                    <span className="theme-text-primary font-medium">{order.delivery_slot_name}</span>
                   </div>
                 )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', paddingTop: '0.5rem' }}>

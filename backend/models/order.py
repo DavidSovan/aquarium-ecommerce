@@ -1,5 +1,5 @@
-from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Index, JSON
+from datetime import datetime, timezone, date
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Index, JSON, Date as DateColumn
 from sqlalchemy.orm import relationship
 from config.database import Base
 import uuid
@@ -24,6 +24,8 @@ class Order(Base):
     billing_address_id = Column(Integer, ForeignKey("addresses.id"), nullable=True)
     is_new = Column(Integer, default=1, nullable=False)
     notes = Column(Text, nullable=True)
+    preferred_delivery_date = Column(DateColumn, nullable=True)
+    delivery_slot_id = Column(Integer, ForeignKey("delivery_slots.id"), nullable=True)
     payment_reference = Column(String(255), nullable=True)
     bakong_account_id = Column(String(100), nullable=True)
     khqr_md5 = Column(String(64), nullable=True, index=True)
@@ -37,6 +39,8 @@ class Order(Base):
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
     shipping_address = relationship("Address", foreign_keys=[shipping_address_id])
     billing_address = relationship("Address", foreign_keys=[billing_address_id])
+    delivery_slot = relationship("DeliverySlot", foreign_keys=[delivery_slot_id])
+    delivery_booking = relationship("DeliverySlotBooking", back_populates="order", uselist=False, cascade="all, delete-orphan")
 
     __table_args__ = (
         Index("idx_orders_user_id", "user_id"),

@@ -20,6 +20,7 @@ import { BrandingSettings } from './pages/settings/BrandingSettings';
 import { HomepageBuilder } from './pages/settings/HomepageBuilder';
 import { CMSBlockList } from './pages/cms/CMSBlockList';
 import { MediaLibrary } from './pages/media/MediaLibrary';
+import { DeliverySlots } from './pages/delivery/DeliverySlots';
 
 function AdminRoutes() {
   return (
@@ -40,6 +41,7 @@ function AdminRoutes() {
         <Route path="settings/theme" element={<ThemeSettings />} />
         <Route path="settings/branding" element={<BrandingSettings />} />
         <Route path="settings/homepage" element={<HomepageBuilder />} />
+        <Route path="delivery-slots" element={<DeliverySlots />} />
       </Routes>
     </AdminLayout>
   );

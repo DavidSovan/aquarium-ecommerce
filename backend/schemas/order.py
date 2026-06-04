@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List, Any
-from datetime import datetime
+from datetime import datetime, date
 
 
 PAYMENT_METHODS = {"COD", "ONLINE_PAYMENT"}
@@ -12,6 +12,8 @@ class CheckoutRequest(BaseModel):
     notes: Optional[str] = None
     coupon_code: Optional[str] = None
     payment_method: str = Field(default="COD", pattern="^(COD|ONLINE_PAYMENT)$")
+    preferred_delivery_date: Optional[str] = Field(None, description="Delivery date in YYYY-MM-DD format")
+    delivery_slot_id: Optional[int] = Field(None, description="ID of the delivery slot")
 
 
 class UpdateOrderStatusRequest(BaseModel):
@@ -50,6 +52,9 @@ class OrderResponse(BaseModel):
     billing_address_id: Optional[int] = None
     is_new: bool = True
     notes: Optional[str] = None
+    preferred_delivery_date: Optional[date] = None
+    delivery_slot_id: Optional[int] = None
+    delivery_slot_name: Optional[str] = None
     payment_reference: Optional[str] = None
     bakong_account_id: Optional[str] = None
     khqr_md5: Optional[str] = None

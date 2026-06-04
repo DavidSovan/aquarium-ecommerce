@@ -60,6 +60,15 @@ def set_webhook(webhook_url: str) -> bool:
         return False
 
 
+def _format_delivery_info(order) -> str:
+    parts = []
+    if order.preferred_delivery_date:
+        parts.append(f"📅 {order.preferred_delivery_date}")
+    if order.delivery_slot:
+        parts.append(f"🕐 {order.delivery_slot.name} ({order.delivery_slot.start_time.strftime('%H:%M')} - {order.delivery_slot.end_time.strftime('%H:%M')})")
+    return "\n".join(parts) if parts else ""
+
+
 def format_order_confirmation(order, order_items, customer) -> str:
     lines = [
         "<b>🎉 Order Confirmed!</b>",
@@ -79,6 +88,12 @@ def format_order_confirmation(order, order_items, customer) -> str:
 
     if order.coupon_code:
         lines.append(f"<b>Coupon:</b> {order.coupon_code} (-${order.coupon_discount:.2f})")
+
+    delivery_info = _format_delivery_info(order)
+    if delivery_info:
+        lines.append("")
+        lines.append("<b>Delivery Schedule:</b>")
+        lines.append(delivery_info)
 
     lines.append("")
     lines.append(f"<b>Total:</b> ${order.total:.2f}")
@@ -109,6 +124,12 @@ def format_order_notification(order, order_items, customer, shipping_address) ->
     ]
     lines.append(", ".join(p for p in addr_parts if p))
     lines.append("")
+
+    delivery_info = _format_delivery_info(order)
+    if delivery_info:
+        lines.append("<b>Delivery Schedule:</b>")
+        lines.append(delivery_info)
+        lines.append("")
 
     lines.append("<b>Products:</b>")
     for item in order_items:
@@ -169,6 +190,12 @@ def format_order_status_notification(order, old_status, customer) -> str:
         lines.append("")
         lines.append("Your order has been confirmed and is being processed.")
 
+    delivery_info = _format_delivery_info(order)
+    if delivery_info:
+        lines.append("")
+        lines.append("<b>Delivery Schedule:</b>")
+        lines.append(delivery_info)
+
     lines.append("")
     lines.append(f"<b>Total:</b> ${order.total:.2f}")
 
@@ -223,6 +250,12 @@ def format_order_status_for_customer(order, old_status) -> str:
     elif order.order_status == "processing":
         lines.append("")
         lines.append("Your order is being processed.")
+
+    delivery_info = _format_delivery_info(order)
+    if delivery_info:
+        lines.append("")
+        lines.append("<b>Delivery Schedule:</b>")
+        lines.append(delivery_info)
 
     lines.append("")
     lines.append(f"<b>Total:</b> ${order.total:.2f}")

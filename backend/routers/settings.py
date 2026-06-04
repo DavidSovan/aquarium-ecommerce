@@ -19,7 +19,7 @@ router = APIRouter(prefix="/settings", tags=["settings"])
 public_router = APIRouter(tags=["settings"])
 homepage_router = APIRouter(prefix="/settings/homepage", tags=["settings"])
 
-PUBLIC_KEYS = {"store_name", "store_email", "homepage_video_enabled", "homepage_video_url"}
+PUBLIC_KEYS = {"store_name", "store_email", "homepage_video_enabled", "homepage_video_url", "enable_delivery_scheduling"}
 
 HOMEPAGE_VIDEO_ENABLED_KEY = "homepage_video_enabled"
 HOMEPAGE_VIDEO_URL_KEY = "homepage_video_url"
@@ -31,6 +31,7 @@ class PublicSettingsResponse(BaseModel):
     store_logo: str | None = None
     background_video_enabled: bool = False
     background_video_url: str | None = None
+    enable_delivery_scheduling: bool = False
 
 
 @public_router.get("/settings/public", response_model=PublicSettingsResponse)
@@ -49,12 +50,14 @@ def get_public_settings(response: Response, db: Session = Depends(get_db)):
     branding = db.query(BrandingSettings).first()
     store_logo = branding.store_logo if branding else None
 
+    delivery_enabled_raw = result.get("enable_delivery_scheduling", "false")
     return PublicSettingsResponse(
         store_name=result.get("store_name", "Aquarium Store"),
         store_email=result.get("store_email", ""),
         store_logo=store_logo,
         background_video_enabled=enabled_raw.lower() == "true",
         background_video_url=video_url,
+        enable_delivery_scheduling=delivery_enabled_raw.lower() == "true",
     )
 
 
@@ -168,7 +171,11 @@ def update_setting(
 ):
     setting = db.query(Setting).filter(Setting.key == key).first()
     if not setting:
-        raise HTTPException(status_code=404, detail="Setting not found")
+        setting = Setting(key=key, value=data.value or "", description=data.description)
+        db.add(setting)
+        db.commit()
+        db.refresh(setting)
+        return setting
 
     if data.value is not None:
         setting.value = data.value

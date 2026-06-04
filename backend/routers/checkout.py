@@ -8,6 +8,8 @@ from models.product_option import ProductOptionValue
 from models.address import Address
 from models.user import User
 from models.coupon import Coupon
+from models.delivery_slot import DeliverySlot, DeliverySlotBooking
+from models.setting import Setting
 from schemas.order import (
     CheckoutRequest,
     OrderItemResponse,
@@ -18,7 +20,7 @@ from services.telegram_service import send_telegram_message, format_order_notifi
 from services.payment_service import generate_order_khqr
 from websocket.connection_manager import manager
 from websocket.events import build_new_order_event
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 import uuid
 
 router = APIRouter(prefix="/checkout", tags=["checkout"])
@@ -55,6 +57,39 @@ def checkout(
             raise HTTPException(status_code=404, detail="Billing address not found")
         if billing_addr.user_id != current_user.id and current_user.role not in ("admin", "staff"):
             raise HTTPException(status_code=403, detail="Not authorized to use this billing address")
+
+    delivery_scheduling_enabled = db.query(Setting).filter(
+        Setting.key == "enable_delivery_scheduling", Setting.value == "true"
+    ).first() is not None
+
+    delivery_slot = None
+    if delivery_scheduling_enabled:
+        if not data.preferred_delivery_date:
+            raise HTTPException(status_code=400, detail="Delivery date is required when delivery scheduling is enabled")
+        if not data.delivery_slot_id:
+            raise HTTPException(status_code=400, detail="Delivery slot is required when delivery scheduling is enabled")
+
+        try:
+            delivery_date = date.fromisoformat(data.preferred_delivery_date)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid delivery date format. Use YYYY-MM-DD")
+
+        if delivery_date <= date.today():
+            raise HTTPException(status_code=400, detail="Delivery date must be in the future")
+
+        delivery_slot = db.query(DeliverySlot).filter(
+            DeliverySlot.id == data.delivery_slot_id,
+            DeliverySlot.is_active == True,
+        ).first()
+        if not delivery_slot:
+            raise HTTPException(status_code=400, detail="Selected delivery slot is not available or inactive")
+
+        booking_count = db.query(DeliverySlotBooking).filter(
+            DeliverySlotBooking.slot_id == delivery_slot.id,
+            DeliverySlotBooking.delivery_date == delivery_date,
+        ).count()
+        if booking_count >= delivery_slot.max_capacity:
+            raise HTTPException(status_code=400, detail="Selected delivery slot is fully booked for this date")
 
     order_items_data = []
     subtotal = 0.0
@@ -142,6 +177,10 @@ def checkout(
     payment_method = getattr(data, 'payment_method', 'COD') or 'COD'
     payment_status = "pending" if payment_method == "ONLINE_PAYMENT" else "pending"
 
+    delivery_date_val = None
+    if delivery_scheduling_enabled and data.preferred_delivery_date:
+        delivery_date_val = date.fromisoformat(data.preferred_delivery_date)
+
     order = Order(
         order_number=generate_order_number(),
         user_id=current_user.id,
@@ -157,9 +196,19 @@ def checkout(
         shipping_address_id=data.shipping_address_id,
         billing_address_id=data.billing_address_id or data.shipping_address_id,
         notes=data.notes,
+        preferred_delivery_date=delivery_date_val,
+        delivery_slot_id=data.delivery_slot_id if delivery_scheduling_enabled else None,
     )
     db.add(order)
     db.flush()
+
+    if delivery_scheduling_enabled and delivery_slot and delivery_date_val:
+        booking = DeliverySlotBooking(
+            slot_id=delivery_slot.id,
+            order_id=order.id,
+            delivery_date=delivery_date_val,
+        )
+        db.add(booking)
 
     if payment_method == "ONLINE_PAYMENT":
         khqr_result = generate_order_khqr(order)
@@ -230,6 +279,9 @@ def checkout(
         shipping_address_id=order.shipping_address_id,
         billing_address_id=order.billing_address_id,
         notes=order.notes,
+        preferred_delivery_date=order.preferred_delivery_date,
+        delivery_slot_id=order.delivery_slot_id,
+        delivery_slot_name=order.delivery_slot.name if order.delivery_slot else None,
         payment_qr=order.payment_qr,
         khqr_md5=order.khqr_md5,
         payment_expires_at=order.payment_expires_at,
