@@ -10,6 +10,28 @@ STATUS_LABELS = {
 }
 
 
+def build_driver_assigned_event(
+    order_id: int,
+    order_number: str,
+    driver_id: str,
+    driver_name: Optional[str],
+    customer_name: Optional[str],
+    total: float,
+    created_at: datetime,
+) -> dict:
+    return {
+        "event": "driver_assigned",
+        "order_id": order_id,
+        "order_number": order_number,
+        "driver_id": driver_id,
+        "driver_name": driver_name,
+        "customer_name": customer_name,
+        "total": total,
+        "created_at": created_at.isoformat() if hasattr(created_at, 'isoformat') else str(created_at),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
 def build_order_status_event(
     order_id: int,
     order_number: str,

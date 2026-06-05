@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
+from typing import List, Optional
 from config.database import get_db
 from models.user import User
 from schemas.auth import (
@@ -8,6 +9,7 @@ from schemas.auth import (
     LoginResponse,
     UserResponse,
     AdminCreateUserRequest,
+    UserListResponse,
 )
 from dependencies.auth import (
     hash_password,
@@ -71,10 +73,10 @@ def admin_create_user(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("admin")),
 ):
-    if data.role not in ("admin", "staff", "customer"):
+    if data.role not in ("admin", "staff", "customer", "driver"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Role must be admin, staff, or customer",
+            detail="Role must be admin, staff, customer, or driver",
         )
 
     existing = db.query(User).filter(User.email == data.email).first()
@@ -95,3 +97,43 @@ def admin_create_user(
     db.commit()
     db.refresh(user)
     return user
+
+
+@router.get("/users", response_model=UserListResponse)
+def list_users(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    role: Optional[str] = None,
+    search: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "staff")),
+):
+    query = db.query(User)
+
+    if role:
+        query = query.filter(User.role == role)
+
+    if search:
+        term = f"%{search}%"
+        query = query.filter(
+            User.email.ilike(term) |
+            User.first_name.ilike(term) |
+            User.last_name.ilike(term)
+        )
+
+    total = query.count()
+    users = query.order_by(User.created_at.desc()).offset(skip).limit(limit).all()
+
+    return UserListResponse(
+        total=total,
+        items=[UserResponse.model_validate(u) for u in users],
+    )
+
+
+@router.get("/drivers", response_model=List[UserResponse])
+def list_drivers(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "staff")),
+):
+    drivers = db.query(User).filter(User.role == "driver", User.is_active == True).order_by(User.first_name).all()
+    return drivers

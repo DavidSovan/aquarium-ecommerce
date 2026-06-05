@@ -12,7 +12,7 @@ from models.theme import ThemeSettings
 from routers import categories, products, product_images, cart, wishlist, addresses, checkout, orders, inventory, auth, reviews, coupons, banners, reports, settings, customers
 from routers import theme as theme_router, branding as branding_router, homepage_sections, cms_blocks, media_library
 from routers import ws as ws_router
-from routers import customization, telegram, payment as payment_router, delivery_slots, delivery as delivery_router
+from routers import customization, telegram, payment as payment_router, delivery_slots, delivery as delivery_router, drivers as driver_router
 from websocket.connection_manager import manager
 
 
@@ -210,6 +210,22 @@ async def lifespan(app: FastAPI):
         pass
 
     try:
+        conn = engine.connect()
+        conn.execute(text("ALTER TABLE orders ADD COLUMN driver_id VARCHAR(36) NULL"))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    try:
+        conn = engine.connect()
+        conn.execute(text("CREATE INDEX ix_orders_driver_id ON orders (driver_id)"))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    try:
         from services.telegram_service import set_webhook
         webhook_base_url = os.getenv("PUBLIC_BASE_URL", "https://your-domain.com")
         webhook_url = f"{webhook_base_url.rstrip('/')}/telegram/webhook"
@@ -267,6 +283,7 @@ app.include_router(telegram.router)
 app.include_router(payment_router.router)
 app.include_router(delivery_slots.router)
 app.include_router(delivery_router.router)
+app.include_router(driver_router.router)
 
 
 @app.get("/")

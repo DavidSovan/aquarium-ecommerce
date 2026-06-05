@@ -214,6 +214,12 @@ export function MyOrdersPage() {
                     <span className="theme-text-primary font-medium">{order.delivery_slot_name}</span>
                   </div>
                 )}
+                {order.driver_name && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', paddingTop: '0.25rem' }}>
+                    <span className="theme-text-secondary">Driver</span>
+                    <span className="theme-text-primary font-medium">{order.driver_name}</span>
+                  </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', paddingTop: '0.5rem' }}>
                   <span className="theme-text-secondary">Payment Method</span>
                   <span className="theme-text-secondary">{order.payment_method === 'ONLINE_PAYMENT' ? 'Online Payment' : 'Cash on Delivery (COD)'}</span>
@@ -229,7 +235,7 @@ export function MyOrdersPage() {
                   {order.order_status === 'pending' && (
                     <button onClick={() => handleCancelOrder(order.id)} className="theme-danger" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, padding: 0 }}>Cancel Order</button>
                   )}
-                  {order.order_status === 'shipped' && (
+                  {order.order_status === 'shipped' && !order.driver_id && (
                     <button onClick={() => handleConfirmDelivery(order.id)} className="theme-btn-primary" style={{ border: 'none', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.875rem', fontWeight: 600 }}>Confirm Receipt</button>
                   )}
                 </div>

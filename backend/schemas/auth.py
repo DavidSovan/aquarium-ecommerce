@@ -38,3 +38,8 @@ class AdminCreateUserRequest(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     role: str
+
+
+class UserListResponse(BaseModel):
+    total: int
+    items: list[UserResponse]

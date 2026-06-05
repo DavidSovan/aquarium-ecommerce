@@ -10,11 +10,12 @@ from schemas.order import (
     UpdateOrderStatusRequest,
     CancelOrderResponse,
     OrderItemResponse,
+    AssignDriverRequest,
 )
 from dependencies.auth import get_current_user, require_role
-from services.telegram_service import send_telegram_message, format_order_cancelled_notification, format_order_status_notification, format_order_status_for_customer
+from services.telegram_service import send_telegram_message, format_order_cancelled_notification, format_order_status_notification, format_order_status_for_customer, format_driver_assigned_notification
 from websocket.connection_manager import manager
-from websocket.events import build_order_status_event
+from websocket.events import build_order_status_event, build_driver_assigned_event
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -37,7 +38,10 @@ def list_orders(
     query = db.query(Order)
 
     if current_user.role not in ("admin", "staff"):
-        query = query.filter(Order.user_id == current_user.id)
+        if current_user.role == "driver":
+            query = query.filter(Order.driver_id == current_user.id)
+        else:
+            query = query.filter(Order.user_id == current_user.id)
 
     if search:
         query = query.filter(Order.order_number.ilike(f"%{search}%"))
@@ -74,7 +78,7 @@ def get_order(
     if not order:
         raise HTTPException(status_code=404, detail=f"Order '{order_id}' not found")
     
-    if order.user_id != current_user.id and current_user.role not in ("admin", "staff"):
+    if order.user_id != current_user.id and current_user.role not in ("admin", "staff") and order.driver_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to view this order")
     customer = db.query(User).filter(User.id == order.user_id).first()
     return _order_to_response(order, customer)
@@ -125,6 +129,9 @@ def update_order_status(
         event = build_order_status_event(order.id, order.order_number, old_status, order.order_status, order.payment_status)
         background_tasks.add_task(manager.broadcast_to_user, str(order.user_id), event)
         background_tasks.add_task(manager.broadcast_to_admins, event)
+
+        if order.driver_id:
+            background_tasks.add_task(manager.broadcast_to_user, str(order.driver_id), event)
 
         if customer and customer.telegram_chat_id:
             user_msg = format_order_status_for_customer(order, old_status)
@@ -204,22 +211,24 @@ def confirm_delivery(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # Try finding by numeric ID first, then by Order Number
     if order_id.isdigit():
         order = db.query(Order).filter(Order.id == int(order_id)).first()
     else:
         order = db.query(Order).filter(Order.order_number == order_id).first()
 
     if not order:
-        raise HTTPException(
-            status_code=404, 
-            detail=f"Order '{order_id}' not found"
-        )
+        raise HTTPException(status_code=404, detail=f"Order '{order_id}' not found")
 
     if order.user_id != current_user.id:
         raise HTTPException(
-            status_code=403, 
+            status_code=403,
             detail="You are not authorized to confirm this order. It belongs to another user."
+        )
+
+    if order.driver_id:
+        raise HTTPException(
+            status_code=403,
+            detail="This order has been assigned to a driver. Only the assigned driver can confirm delivery."
         )
 
     if order.order_status != "shipped":
@@ -243,6 +252,58 @@ def confirm_delivery(
     if customer and customer.telegram_chat_id:
         user_msg = format_order_status_for_customer(order, old_status)
         background_tasks.add_task(send_telegram_message, user_msg, customer.telegram_chat_id)
+
+    return _order_to_response(order, customer)
+
+
+@router.put("/{order_id}/assign-driver", response_model=OrderResponse)
+def assign_driver(
+    order_id: str,
+    data: AssignDriverRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "staff")),
+):
+    if order_id.isdigit():
+        order = db.query(Order).filter(Order.id == int(order_id)).first()
+    else:
+        order = db.query(Order).filter(Order.order_number == order_id).first()
+
+    if not order:
+        raise HTTPException(status_code=404, detail=f"Order '{order_id}' not found")
+
+    if order.order_status not in ("processing", "shipped"):
+        raise HTTPException(
+            status_code=400,
+            detail="Can only assign driver to orders with status 'processing' or 'shipped'"
+        )
+
+    driver = db.query(User).filter(User.id == data.driver_id, User.role == "driver", User.is_active == True).first()
+    if not driver:
+        raise HTTPException(status_code=400, detail="Driver not found or inactive")
+
+    old_driver_id = order.driver_id
+    order.driver_id = driver.id
+    db.commit()
+    db.refresh(order)
+
+    customer = db.query(User).filter(User.id == order.user_id).first()
+    if customer and customer.telegram_chat_id:
+        msg = format_driver_assigned_notification(order, driver)
+        background_tasks.add_task(send_telegram_message, msg, customer.telegram_chat_id)
+
+    driver_name = ' '.join(p for p in [driver.first_name, driver.last_name] if p) or driver.email
+    event = build_driver_assigned_event(
+        order_id=order.id,
+        order_number=order.order_number,
+        driver_id=driver.id,
+        driver_name=driver_name,
+        customer_name=customer.first_name or customer.email if customer else None,
+        total=order.total,
+        created_at=order.created_at,
+    )
+    background_tasks.add_task(manager.broadcast_to_user, driver.id, event)
+    background_tasks.add_task(manager.broadcast_to_admins, event)
 
     return _order_to_response(order, customer)
 
@@ -285,6 +346,8 @@ def _order_to_response(order: Order, user: Optional[User] = None) -> OrderRespon
         preferred_delivery_date=order.preferred_delivery_date,
         delivery_slot_id=order.delivery_slot_id,
         delivery_slot_name=order.delivery_slot.name if order.delivery_slot else None,
+        driver_id=order.driver_id,
+        driver_name=f"{order.driver.first_name} {order.driver.last_name}".strip() if order.driver else None,
         payment_qr=order.payment_qr,
         khqr_md5=order.khqr_md5,
         payment_expires_at=order.payment_expires_at,

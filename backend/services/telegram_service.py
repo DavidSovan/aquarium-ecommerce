@@ -202,6 +202,27 @@ def format_order_status_notification(order, old_status, customer) -> str:
     return "\n".join(lines)
 
 
+def format_driver_assigned_notification(order, driver) -> str:
+    driver_name = ' '.join(p for p in [driver.first_name, driver.last_name] if p) or driver.email
+    lines = [
+        "<b>🚚 Driver Assigned!</b>",
+        "",
+        f"<b>Order:</b> {order.order_number}",
+        f"<b>Driver:</b> {driver_name}",
+        "",
+        "Your order has been assigned to a delivery driver.",
+        "They will deliver your order soon.",
+    ]
+
+    if order.preferred_delivery_date:
+        lines.append("")
+        lines.append(f"<b>Scheduled Delivery:</b> {order.preferred_delivery_date}")
+        if order.delivery_slot:
+            lines.append(f"<b>Slot:</b> {order.delivery_slot.name} ({order.delivery_slot.start_time.strftime('%H:%M')} - {order.delivery_slot.end_time.strftime('%H:%M')})")
+
+    return "\n".join(lines)
+
+
 def format_payment_success_notification(order) -> str:
     lines = [
         "<b>✅ Payment Received!</b>",

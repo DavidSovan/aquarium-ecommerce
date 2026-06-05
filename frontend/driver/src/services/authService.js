@@ -8,14 +8,6 @@ export const authService = {
   getMe() {
     return api.get('/auth/me');
   },
-
-  listUsers(params = {}) {
-    return api.get('/auth/users', { params });
-  },
-
-  createUser(data) {
-    return api.post('/auth/admin/users', data);
-  },
 };
 
 export default authService;

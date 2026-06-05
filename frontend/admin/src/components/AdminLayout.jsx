@@ -9,7 +9,7 @@ const navItems = [
   { path: '/admin/categories', label: 'Categories', icon: '\u2630' },
   { path: '/admin/inventory', label: 'Inventory', icon: '\u2691' },
   { path: '/admin/orders', label: 'Orders', icon: '\u2709' },
-  { path: '/admin/customers', label: 'Customers', icon: '\u263A' },
+  { path: '/admin/customers', label: 'Users', icon: '\u263A' },
   { path: '/admin/coupons', label: 'Coupons', icon: '\u2605' },
   { path: '/admin/banners', label: 'Banners', icon: '\u263C' },
   { path: '/admin/media', label: 'Media Library', icon: '\u2601' },

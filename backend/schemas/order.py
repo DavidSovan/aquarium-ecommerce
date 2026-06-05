@@ -32,6 +32,10 @@ class OrderItemResponse(BaseModel):
     customizations: Optional[Any] = None
 
 
+class AssignDriverRequest(BaseModel):
+    driver_id: str
+
+
 class OrderResponse(BaseModel):
     id: int
     order_number: str
@@ -55,6 +59,8 @@ class OrderResponse(BaseModel):
     preferred_delivery_date: Optional[date] = None
     delivery_slot_id: Optional[int] = None
     delivery_slot_name: Optional[str] = None
+    driver_id: Optional[str] = None
+    driver_name: Optional[str] = None
     payment_reference: Optional[str] = None
     bakong_account_id: Optional[str] = None
     khqr_md5: Optional[str] = None

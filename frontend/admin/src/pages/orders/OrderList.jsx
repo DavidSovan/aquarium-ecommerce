@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import orderService from '../../services/orderService';
+import driverService from '../../services/driverService';
 import { useAuth } from '../../context/AuthContext';
 import wsService from '../../services/websocket';
 
@@ -40,6 +41,9 @@ export function OrderList() {
   const [detailOrder, setDetailOrder] = useState(null);
   const [updating, setUpdating] = useState(null);
   const [toast, setToast] = useState(null);
+  const [assignOrder, setAssignOrder] = useState(null);
+  const [drivers, setDrivers] = useState([]);
+  const [loadingDrivers, setLoadingDrivers] = useState(false);
   const { isAuthenticated } = useAuth();
   const toastTimer = useRef(null);
 
@@ -150,6 +154,33 @@ export function OrderList() {
     updateOrderStatus(orderId, { payment_status: newPaymentStatus });
   };
 
+  const handleOpenAssign = async (order) => {
+    setAssignOrder(order);
+    setLoadingDrivers(true);
+    try {
+      const res = await driverService.listDrivers();
+      setDrivers(res.data);
+    } catch {
+      showToast('Failed to load drivers', 'error');
+      setAssignOrder(null);
+    } finally {
+      setLoadingDrivers(false);
+    }
+  };
+
+  const handleAssignDriver = async (driverId) => {
+    if (!assignOrder) return;
+    try {
+      const res = await driverService.assignDriver(assignOrder.id, driverId);
+      setOrders(prev => prev.map(o => o.id === assignOrder.id ? res.data : o));
+      if (detailOrder?.id === assignOrder.id) setDetailOrder(res.data);
+      showToast('Driver assigned successfully');
+      setAssignOrder(null);
+    } catch (err) {
+      showToast(err.response?.data?.detail || 'Failed to assign driver', 'error');
+    }
+  };
+
   const nextStatus = (current) => {
     const map = { pending: 'processing', processing: 'shipped', shipped: 'delivered' };
     return map[current];
@@ -224,6 +255,7 @@ export function OrderList() {
                 <tr className="border-b border-gray-100 bg-gray-50/50">
                   <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Order</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Driver</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Payment Method</th>
@@ -252,6 +284,17 @@ export function OrderList() {
                       <td className="px-5 py-4">
                         <div className="text-sm font-medium text-gray-900">{order.customer_name || order.user_id?.slice(0, 8) || '\u2014'}</div>
                         {order.customer_email && <div className="text-xs text-gray-500">{order.customer_email}</div>}
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className="text-sm text-gray-900">{order.driver_name || '\u2014'}</div>
+                        {order.driver_id && (
+                          <button
+                            onClick={() => handleOpenAssign(order)}
+                            className="text-xs text-blue-600 hover:text-blue-800"
+                          >
+                            Reassign
+                          </button>
+                        )}
                       </td>
                       <td className="px-5 py-4 text-sm text-gray-500 whitespace-nowrap">{formatDate(order.created_at)}</td>
                       <td className="px-5 py-4">
@@ -319,10 +362,18 @@ export function OrderList() {
                       </td>
                       <td className="px-5 py-4 text-right font-medium text-gray-900">{formatPrice(order.total)}</td>
                       <td className="px-5 py-4 text-right">
-                        <button onClick={() => setDetailOrder(order)}
-                          className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
-                          View
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          {(order.order_status === 'processing' || order.order_status === 'shipped') && (
+                            <button onClick={() => handleOpenAssign(order)}
+                              className="px-3 py-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors">
+                              {order.driver_id ? 'Reassign' : 'Assign'}
+                            </button>
+                          )}
+                          <button onClick={() => setDetailOrder(order)}
+                            className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+                            View
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -442,6 +493,23 @@ export function OrderList() {
                 </div>
               </div>
 
+              {/* Driver info */}
+              <div>
+                <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Driver</h3>
+                <div className="bg-gray-50 rounded-lg p-3 text-sm flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-900">{detailOrder.driver_name || '\u2014'}</p>
+                    <p className="text-xs text-gray-400">{detailOrder.driver_id ? 'Assigned' : 'Not assigned'}</p>
+                  </div>
+                  {(detailOrder.order_status === 'processing' || detailOrder.order_status === 'shipped') && (
+                    <button onClick={() => handleOpenAssign(detailOrder)}
+                      className="px-3 py-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg">
+                      {detailOrder.driver_id ? 'Reassign' : 'Assign Driver'}
+                    </button>
+                  )}
+                </div>
+              </div>
+
               {/* Items */}
               <div>
                 <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Items</h3>
@@ -516,6 +584,77 @@ export function OrderList() {
             <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
               <button onClick={() => setDetailOrder(null)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Driver Modal */}
+      {assignOrder && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]" onClick={() => setAssignOrder(null)}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-bold text-gray-900">
+                {assignOrder.driver_id ? 'Reassign Driver' : 'Assign Driver'}
+              </h2>
+              <button onClick={() => setAssignOrder(null)} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="px-6 py-4">
+              <p className="text-sm text-gray-600 mb-4">
+                Select a driver for order <strong>{assignOrder.order_number}</strong>
+              </p>
+              {loadingDrivers ? (
+                <div className="flex justify-center py-8">
+                  <div className="w-6 h-6 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                </div>
+              ) : drivers.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500 text-sm">No active drivers available</p>
+                  <p className="text-xs text-gray-400 mt-1">Create a user with role "driver" in the settings page</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-72 overflow-y-auto">
+                  {drivers.map(driver => {
+                    const driverName = [driver.first_name, driver.last_name].filter(Boolean).join(' ') || driver.email;
+                    const isCurrent = assignOrder.driver_id === driver.id;
+                    return (
+                      <button
+                        key={driver.id}
+                        onClick={() => handleAssignDriver(driver.id)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg border text-left transition-colors ${
+                          isCurrent
+                            ? 'border-blue-300 bg-blue-50'
+                            : 'border-gray-200 hover:border-blue-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-medium text-blue-600">
+                            {driverName.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{driverName}</p>
+                          <p className="text-xs text-gray-500">{driver.email}</p>
+                        </div>
+                        {isCurrent && (
+                          <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
+                            Current
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+              <button onClick={() => setAssignOrder(null)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                Cancel
               </button>
             </div>
           </div>

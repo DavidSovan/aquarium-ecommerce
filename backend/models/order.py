@@ -26,6 +26,7 @@ class Order(Base):
     notes = Column(Text, nullable=True)
     preferred_delivery_date = Column(DateColumn, nullable=True)
     delivery_slot_id = Column(Integer, ForeignKey("delivery_slots.id"), nullable=True)
+    driver_id = Column(String(36), ForeignKey("users.id"), nullable=True, index=True)
     payment_reference = Column(String(255), nullable=True)
     bakong_account_id = Column(String(100), nullable=True)
     khqr_md5 = Column(String(64), nullable=True, index=True)
@@ -41,6 +42,7 @@ class Order(Base):
     billing_address = relationship("Address", foreign_keys=[billing_address_id])
     delivery_slot = relationship("DeliverySlot", foreign_keys=[delivery_slot_id])
     delivery_booking = relationship("DeliverySlotBooking", back_populates="order", uselist=False, cascade="all, delete-orphan")
+    driver = relationship("User", foreign_keys=[driver_id])
 
     __table_args__ = (
         Index("idx_orders_user_id", "user_id"),
