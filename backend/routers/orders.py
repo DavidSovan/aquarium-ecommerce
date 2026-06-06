@@ -127,13 +127,12 @@ def update_order_status(
         msg = format_order_status_notification(order, old_status, customer or current_user)
         background_tasks.add_task(send_telegram_message, msg)
         event = build_order_status_event(order.id, order.order_number, old_status, order.order_status, order.payment_status)
-        background_tasks.add_task(manager.broadcast_to_user, str(order.user_id), event)
-        background_tasks.add_task(manager.broadcast_to_admins, event)
+    background_tasks.add_task(manager.broadcast_to_user, str(order.user_id), event)
+    background_tasks.add_task(manager.broadcast_to_admins, event)
+    if order.driver_id:
+        background_tasks.add_task(manager.broadcast_to_user, str(order.driver_id), event)
 
-        if order.driver_id:
-            background_tasks.add_task(manager.broadcast_to_user, str(order.driver_id), event)
-
-        if customer and customer.telegram_chat_id:
+    if customer and customer.telegram_chat_id:
             user_msg = format_order_status_for_customer(order, old_status)
             background_tasks.add_task(send_telegram_message, user_msg, customer.telegram_chat_id)
 
@@ -225,11 +224,9 @@ def confirm_delivery(
             detail="You are not authorized to confirm this order. It belongs to another user."
         )
 
-    if order.driver_id:
-        raise HTTPException(
-            status_code=403,
-            detail="This order has been assigned to a driver. Only the assigned driver can confirm delivery."
-        )
+    if order.order_status == "delivered":
+        customer = db.query(User).filter(User.id == order.user_id).first()
+        return _order_to_response(order, customer)
 
     if order.order_status != "shipped":
         raise HTTPException(
@@ -248,6 +245,8 @@ def confirm_delivery(
     event = build_order_status_event(order.id, order.order_number, old_status, order.order_status, order.payment_status)
     background_tasks.add_task(manager.broadcast_to_user, str(order.user_id), event)
     background_tasks.add_task(manager.broadcast_to_admins, event)
+    if order.driver_id:
+        background_tasks.add_task(manager.broadcast_to_user, str(order.driver_id), event)
 
     if customer and customer.telegram_chat_id:
         user_msg = format_order_status_for_customer(order, old_status)
@@ -341,6 +340,7 @@ def _order_to_response(order: Order, user: Optional[User] = None) -> OrderRespon
             customizations=item.customizations,
         ) for item in order.items],
         shipping_address_id=order.shipping_address_id,
+        shipping_address_snapshot=order.shipping_address_snapshot,
         billing_address_id=order.billing_address_id,
         notes=order.notes,
         preferred_delivery_date=order.preferred_delivery_date,

@@ -82,6 +82,10 @@ def driver_confirm_delivery(
             detail="This order is not assigned to you"
         )
 
+    if order.order_status == "delivered":
+        customer = db.query(User).filter(User.id == order.user_id).first()
+        return _driver_order_response(order, db, customer)
+
     if order.order_status != "shipped":
         raise HTTPException(
             status_code=400,
@@ -146,6 +150,7 @@ def _driver_order_response(order: Order, db: Session, customer: User = None) -> 
             customizations=item.customizations,
         ) for item in order.items],
         shipping_address_id=order.shipping_address_id,
+        shipping_address_snapshot=order.shipping_address_snapshot,
         billing_address_id=order.billing_address_id,
         notes=order.notes,
         preferred_delivery_date=order.preferred_delivery_date,

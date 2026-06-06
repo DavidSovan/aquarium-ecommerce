@@ -235,7 +235,7 @@ export function MyOrdersPage() {
                   {order.order_status === 'pending' && (
                     <button onClick={() => handleCancelOrder(order.id)} className="theme-danger" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, padding: 0 }}>Cancel Order</button>
                   )}
-                  {order.order_status === 'shipped' && !order.driver_id && (
+                  {order.order_status === 'shipped' && (
                     <button onClick={() => handleConfirmDelivery(order.id)} className="theme-btn-primary" style={{ border: 'none', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.875rem', fontWeight: 600 }}>Confirm Receipt</button>
                   )}
                 </div>

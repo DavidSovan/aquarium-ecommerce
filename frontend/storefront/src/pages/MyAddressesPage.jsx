@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import addressService from '../services/addressService';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+import { LocationPicker } from '../components/LocationPicker';
 
 export function MyAddressesPage() {
   const { storeName } = useSiteSettings();
@@ -12,7 +13,7 @@ export function MyAddressesPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ full_name: '', phone: '', country: '', city: '', address_line: '', postal_code: '', is_default: false });
+  const [form, setForm] = useState({ full_name: '', phone: '', country: '', city: '', address_line: '', postal_code: '', is_default: false, latitude: null, longitude: null });
 
   useEffect(() => { loadAddresses(); }, []);
 
@@ -33,7 +34,7 @@ export function MyAddressesPage() {
       }
       setShowForm(false);
       setEditing(null);
-      setForm({ full_name: '', phone: '', country: '', city: '', address_line: '', postal_code: '', is_default: false });
+      setForm({ full_name: '', phone: '', country: '', city: '', address_line: '', postal_code: '', is_default: false, latitude: null, longitude: null });
       loadAddresses();
     } catch (err) {
       alert(err.response?.data?.detail || 'Failed to save address');
@@ -60,7 +61,7 @@ export function MyAddressesPage() {
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '2rem 1rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h1 className="theme-text-primary" style={{ fontSize: '1.75rem', fontWeight: 700 }}>My Addresses</h1>
-        <button onClick={() => { setShowForm(true); setEditing(null); setForm({ full_name: '', phone: '', country: '', city: '', address_line: '', postal_code: '', is_default: false }); }}
+        <button onClick={() => { setShowForm(true); setEditing(null); setForm({ full_name: '', phone: '', country: '', city: '', address_line: '', postal_code: '', is_default: false, latitude: null, longitude: null }); }}
           className="theme-btn-primary" style={{ border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, padding: '0.5rem 1rem' }}>
           + Add Address
         </button>
@@ -84,7 +85,13 @@ export function MyAddressesPage() {
               <input placeholder="Address Line" value={form.address_line} onChange={e => setForm({...form, address_line: e.target.value})} required
                 style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: '0.875rem', background: 'var(--surface)', color: 'var(--text-primary)', outline: 'none' }} />
               <input placeholder="Postal Code" value={form.postal_code} onChange={e => setForm({...form, postal_code: e.target.value})}
-                style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: '0.875rem', background: 'var(--surface)', color: 'var(--text-primary)', outline: 'none' }} />
+                style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: '0.875rem', background: 'var(--surface)', color: 'var(--text-primary)', outline: 'none', marginBottom: '0.5rem' }} />
+              
+              <LocationPicker 
+                value={{ latitude: form.latitude, longitude: form.longitude }} 
+                onChange={(val) => setForm({...form, latitude: val.latitude, longitude: val.longitude})} 
+              />
+
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                 <input type="checkbox" checked={form.is_default} onChange={e => setForm({...form, is_default: e.target.checked})} />
                 Set as default address

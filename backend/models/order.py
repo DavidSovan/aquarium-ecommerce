@@ -22,6 +22,7 @@ class Order(Base):
     total = Column(Float, default=0, nullable=False)
     shipping_address_id = Column(Integer, ForeignKey("addresses.id"), nullable=True)
     billing_address_id = Column(Integer, ForeignKey("addresses.id"), nullable=True)
+    shipping_address_snapshot = Column(JSON, nullable=True)
     is_new = Column(Integer, default=1, nullable=False)
     notes = Column(Text, nullable=True)
     preferred_delivery_date = Column(DateColumn, nullable=True)

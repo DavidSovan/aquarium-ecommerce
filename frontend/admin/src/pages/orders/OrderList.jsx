@@ -485,11 +485,43 @@ export function OrderList() {
 
               {/* Customer info */}
               <div>
-                <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Customer</h3>
+                <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Customer & Delivery</h3>
                 <div className="bg-gray-50 rounded-lg p-3 text-sm">
                   <p className="font-medium text-gray-900">{detailOrder.customer_name || '\u2014'}</p>
                   {detailOrder.customer_email && <p className="text-gray-500">{detailOrder.customer_email}</p>}
-                  <p className="text-gray-400 text-xs mt-1">ID: {detailOrder.user_id}</p>
+                  <p className="text-gray-400 text-xs mt-1 mb-2">ID: {detailOrder.user_id}</p>
+                  
+                  {detailOrder.shipping_address_snapshot && (
+                    <div className="pt-2 border-t border-gray-200 text-gray-700">
+                      <p className="font-medium text-gray-900">{detailOrder.shipping_address_snapshot.full_name}</p>
+                      <p>{detailOrder.shipping_address_snapshot.phone}</p>
+                      <p>{detailOrder.shipping_address_snapshot.address_line}</p>
+                      <p>{detailOrder.shipping_address_snapshot.city}, {detailOrder.shipping_address_snapshot.country}</p>
+                      
+                      {detailOrder.shipping_address_snapshot.latitude && detailOrder.shipping_address_snapshot.longitude && (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <a 
+                            href={`https://www.google.com/maps/search/?api=1&query=${detailOrder.shipping_address_snapshot.latitude},${detailOrder.shipping_address_snapshot.longitude}`}
+                            target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-medium text-xs transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            Open Map
+                          </a>
+                          <button 
+                            onClick={() => {
+                              navigator.clipboard.writeText(`${detailOrder.shipping_address_snapshot.latitude}, ${detailOrder.shipping_address_snapshot.longitude}`);
+                              showToast('Coordinates copied!');
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 rounded-lg font-medium text-xs transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                            Copy
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 

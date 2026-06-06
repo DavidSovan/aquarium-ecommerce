@@ -54,6 +54,7 @@ class OrderResponse(BaseModel):
     items: List[OrderItemResponse]
     shipping_address_id: Optional[int] = None
     billing_address_id: Optional[int] = None
+    shipping_address_snapshot: Optional[Any] = None
     is_new: bool = True
     notes: Optional[str] = None
     preferred_delivery_date: Optional[date] = None

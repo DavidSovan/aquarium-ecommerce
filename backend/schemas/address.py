@@ -11,6 +11,8 @@ class AddressBase(BaseModel):
     district: Optional[str] = Field(None, max_length=100)
     address_line: str = Field(..., min_length=1, max_length=500)
     postal_code: Optional[str] = Field(None, max_length=20)
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     is_default: bool = False
 
 
@@ -26,6 +28,8 @@ class AddressUpdate(BaseModel):
     district: Optional[str] = Field(None, max_length=100)
     address_line: Optional[str] = Field(None, min_length=1, max_length=500)
     postal_code: Optional[str] = Field(None, max_length=20)
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     is_default: Optional[bool] = None
 
 

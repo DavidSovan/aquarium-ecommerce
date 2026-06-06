@@ -181,6 +181,18 @@ def checkout(
     if delivery_scheduling_enabled and data.preferred_delivery_date:
         delivery_date_val = date.fromisoformat(data.preferred_delivery_date)
 
+    shipping_address_snapshot = {
+        "full_name": shipping_addr.full_name,
+        "phone": shipping_addr.phone,
+        "country": shipping_addr.country,
+        "city": shipping_addr.city,
+        "district": shipping_addr.district,
+        "address_line": shipping_addr.address_line,
+        "postal_code": shipping_addr.postal_code,
+        "latitude": shipping_addr.latitude,
+        "longitude": shipping_addr.longitude
+    }
+
     order = Order(
         order_number=generate_order_number(),
         user_id=current_user.id,
@@ -195,6 +207,7 @@ def checkout(
         total=total,
         shipping_address_id=data.shipping_address_id,
         billing_address_id=data.billing_address_id or data.shipping_address_id,
+        shipping_address_snapshot=shipping_address_snapshot,
         notes=data.notes,
         preferred_delivery_date=delivery_date_val,
         delivery_slot_id=data.delivery_slot_id if delivery_scheduling_enabled else None,
@@ -278,6 +291,7 @@ def checkout(
         ) for item in order.items],
         shipping_address_id=order.shipping_address_id,
         billing_address_id=order.billing_address_id,
+        shipping_address_snapshot=order.shipping_address_snapshot,
         notes=order.notes,
         preferred_delivery_date=order.preferred_delivery_date,
         delivery_slot_id=order.delivery_slot_id,

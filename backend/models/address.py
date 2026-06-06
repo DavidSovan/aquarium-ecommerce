@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, Index
+from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, Index, Float
 from config.database import Base
 
 
@@ -15,6 +15,8 @@ class Address(Base):
     district = Column(String(100), nullable=True)
     address_line = Column(Text, nullable=False)
     postal_code = Column(String(20), nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
     is_default = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)

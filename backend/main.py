@@ -226,6 +226,30 @@ async def lifespan(app: FastAPI):
         pass
 
     try:
+        conn = engine.connect()
+        conn.execute(text("ALTER TABLE addresses ADD COLUMN latitude DECIMAL(10,8) NULL"))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    try:
+        conn = engine.connect()
+        conn.execute(text("ALTER TABLE addresses ADD COLUMN longitude DECIMAL(11,8) NULL"))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    try:
+        conn = engine.connect()
+        conn.execute(text("ALTER TABLE orders ADD COLUMN shipping_address_snapshot JSON NULL"))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    try:
         from services.telegram_service import set_webhook
         webhook_base_url = os.getenv("PUBLIC_BASE_URL", "https://your-domain.com")
         webhook_url = f"{webhook_base_url.rstrip('/')}/telegram/webhook"

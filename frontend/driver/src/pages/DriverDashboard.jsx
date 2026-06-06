@@ -83,6 +83,7 @@ export function DriverDashboard() {
       showToast(`Order ${order.order_number} marked as delivered!`);
     } catch (err) {
       showToast(err.response?.data?.detail || 'Failed to confirm delivery', 'error');
+      loadOrders();
     } finally {
       setConfirming(null);
     }
@@ -211,11 +212,43 @@ export function DriverDashboard() {
                         </div>
                       </div>
 
-                      {/* Customer info */}
+                      {/* Customer & Address info */}
                       <div className="bg-white rounded-lg p-3 text-sm border border-gray-200">
-                        <p className="text-xs text-gray-400 mb-1">Customer</p>
+                        <p className="text-xs text-gray-400 mb-1">Customer & Delivery Location</p>
                         <p className="font-medium text-gray-900">{order.customer_name || order.customer_email}</p>
-                        {order.shipping_address_id && <p className="text-xs text-gray-500 mt-1">Shipping address on file</p>}
+                        {order.shipping_address_snapshot ? (
+                          <div className="mt-2 text-sm text-gray-600">
+                            <p>{order.shipping_address_snapshot.full_name}</p>
+                            <p>{order.shipping_address_snapshot.phone}</p>
+                            <p>{order.shipping_address_snapshot.address_line}</p>
+                            <p>{order.shipping_address_snapshot.city}, {order.shipping_address_snapshot.country}</p>
+                            
+                            {order.shipping_address_snapshot.latitude && order.shipping_address_snapshot.longitude && (
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                <a 
+                                  href={`https://www.google.com/maps/search/?api=1&query=${order.shipping_address_snapshot.latitude},${order.shipping_address_snapshot.longitude}`}
+                                  target="_blank" rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg font-medium text-xs transition-colors"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                  Open in Google Maps
+                                </a>
+                                <button 
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(`${order.shipping_address_snapshot.latitude}, ${order.shipping_address_snapshot.longitude}`);
+                                    showToast('Coordinates copied!');
+                                  }}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200 rounded-lg font-medium text-xs transition-colors"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                  Copy Coordinates
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ) : order.shipping_address_id && (
+                          <p className="text-xs text-gray-500 mt-1">Shipping address on file</p>
+                        )}
                       </div>
 
                       {/* Items preview */}
