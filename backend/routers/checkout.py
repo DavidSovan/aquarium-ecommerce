@@ -63,11 +63,11 @@ def checkout(
     ).first() is not None
 
     delivery_slot = None
-    if delivery_scheduling_enabled:
+    if delivery_scheduling_enabled and (data.preferred_delivery_date or data.delivery_slot_id):
         if not data.preferred_delivery_date:
-            raise HTTPException(status_code=400, detail="Delivery date is required when delivery scheduling is enabled")
+            raise HTTPException(status_code=400, detail="Delivery date is required when scheduling a delivery")
         if not data.delivery_slot_id:
-            raise HTTPException(status_code=400, detail="Delivery slot is required when delivery scheduling is enabled")
+            raise HTTPException(status_code=400, detail="Delivery slot is required when scheduling a delivery")
 
         try:
             delivery_date = date.fromisoformat(data.preferred_delivery_date)
