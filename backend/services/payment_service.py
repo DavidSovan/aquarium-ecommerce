@@ -25,7 +25,7 @@ def generate_order_khqr(order: Order) -> dict:
     result = generate_khqr(
         bakong_account_id=BAKONG_ACCOUNT_ID,
         amount=order.total,
-        merchant_name="Aquarium Store",
+        merchant_name="Fashion Store",
         bill_number=order.order_number,
     )
     return result

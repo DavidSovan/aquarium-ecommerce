@@ -7,7 +7,7 @@ class BrandingSettings(Base):
     __tablename__ = "branding_settings"
 
     id = Column(Integer, primary_key=True, index=True)
-    store_name = Column(String(255), default="Aquarium Store", nullable=False)
+    store_name = Column(String(255), default="Fashion Store", nullable=False)
     store_logo = Column(String(500), nullable=True)
     favicon = Column(String(500), nullable=True)
     footer_logo = Column(String(500), nullable=True)

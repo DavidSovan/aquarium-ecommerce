@@ -4,7 +4,7 @@ from typing import Optional
 
 
 class BrandingSettingsBase(BaseModel):
-    store_name: str = "Aquarium Store"
+    store_name: str = "Fashion Store"
     store_logo: Optional[str] = None
     favicon: Optional[str] = None
     footer_logo: Optional[str] = None

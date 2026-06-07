@@ -26,7 +26,7 @@ HOMEPAGE_VIDEO_URL_KEY = "homepage_video_url"
 
 
 class PublicSettingsResponse(BaseModel):
-    store_name: str = "Aquarium Store"
+    store_name: str = "Fashion Store"
     store_email: str = ""
     store_logo: str | None = None
     background_video_enabled: bool = False
@@ -52,7 +52,7 @@ def get_public_settings(response: Response, db: Session = Depends(get_db)):
 
     delivery_enabled_raw = result.get("enable_delivery_scheduling", "false")
     return PublicSettingsResponse(
-        store_name=result.get("store_name", "Aquarium Store"),
+        store_name=result.get("store_name", "Fashion Store"),
         store_email=result.get("store_email", ""),
         store_logo=store_logo,
         background_video_enabled=enabled_raw.lower() == "true",

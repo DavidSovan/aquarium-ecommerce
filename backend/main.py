@@ -142,7 +142,7 @@ async def lifespan(app: FastAPI):
                     db.add(Setting(key=key, value=value, description=desc))
 
             if not db.query(BrandingSettings).first():
-                db.add(BrandingSettings(store_name="Aquarium Store"))
+                db.add(BrandingSettings(store_name="Fashion Store"))
 
             if not db.query(ThemeSettings).first():
                 db.add(ThemeSettings(name="Default Theme", is_active=True))
@@ -312,4 +312,4 @@ app.include_router(driver_router.router)
 
 @app.get("/")
 def home():
-    return {"message": "Aquarium API is running"}
+    return {"message": "Fashion Store API is running"}

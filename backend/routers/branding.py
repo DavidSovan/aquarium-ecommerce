@@ -15,7 +15,7 @@ def get_public_branding(response: Response, db: Session = Depends(get_db)):
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     branding = db.query(BrandingSettings).first()
     if not branding:
-        branding = BrandingSettings(store_name="Aquarium Store")
+        branding = BrandingSettings(store_name="Fashion Store")
         db.add(branding)
         db.commit()
         db.refresh(branding)
@@ -43,7 +43,7 @@ def get_branding(
 ):
     branding = db.query(BrandingSettings).first()
     if not branding:
-        branding = BrandingSettings(store_name="Aquarium Store")
+        branding = BrandingSettings(store_name="Fashion Store")
         db.add(branding)
         db.commit()
         db.refresh(branding)
@@ -58,7 +58,7 @@ def update_branding(
 ):
     branding = db.query(BrandingSettings).first()
     if not branding:
-        branding = BrandingSettings(store_name="Aquarium Store")
+        branding = BrandingSettings(store_name="Fashion Store")
         db.add(branding)
         db.commit()
         db.refresh(branding)

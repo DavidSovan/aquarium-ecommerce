@@ -43,7 +43,7 @@ def setup_module(module):
 def test_read_home():
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"message": "Aquarium API is running"}
+    assert response.json() == {"message": "Fashion Store API is running"}
 
 
 # --- Products ---
@@ -922,7 +922,7 @@ def test_create_category():
     category_data = {
         "name": "Freshwater Fish",
         "slug": "freshwater-fish",
-        "description": "Fish for freshwater aquariums",
+        "description": "Stylish apparel for men",
         "is_active": True
     }
     response = client.post("/categories", json=category_data)
@@ -936,7 +936,7 @@ def test_create_category():
 def test_create_category_with_auto_slug():
     category_data = {
         "name": "Saltwater Fish",
-        "description": "Fish for saltwater aquariums",
+        "description": "Trendy clothing for women",
         "is_active": True
     }
     response = client.post("/categories", json=category_data)
