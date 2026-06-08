@@ -4,7 +4,7 @@ import { useAuth } from './AuthContext';
 
 const WishlistContext = createContext(null);
 
-const WISHLIST_ID_KEY = 'aquarium_wishlist_id';
+const WISHLIST_ID_KEY = 'fashion_wishlist_id';
 
 function getWishlistId() {
   return localStorage.getItem(WISHLIST_ID_KEY);

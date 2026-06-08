@@ -8,20 +8,20 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('aquarium_token');
+    const token = localStorage.getItem('fashion_token');
     if (token) {
       authService.getMe()
         .then(res => {
           const u = res.data;
           if (!['admin', 'staff'].includes(u.role)) {
-            localStorage.removeItem('aquarium_token');
+            localStorage.removeItem('fashion_token');
             setUser(null);
           } else {
             setUser(u);
           }
         })
         .catch(() => {
-          localStorage.removeItem('aquarium_token');
+          localStorage.removeItem('fashion_token');
           setUser(null);
         })
         .finally(() => setLoading(false));
@@ -32,10 +32,10 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     const res = await authService.login({ email, password });
-    localStorage.setItem('aquarium_token', res.data.access_token);
+    localStorage.setItem('fashion_token', res.data.access_token);
     const me = await authService.getMe();
     if (!['admin', 'staff'].includes(me.data.role)) {
-      localStorage.removeItem('aquarium_token');
+      localStorage.removeItem('fashion_token');
       throw new Error('Unauthorized: Admin access required');
     }
     setUser(me.data);
@@ -43,7 +43,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('aquarium_token');
+    localStorage.removeItem('fashion_token');
     setUser(null);
   }, []);
 

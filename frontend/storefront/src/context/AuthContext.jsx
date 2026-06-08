@@ -8,12 +8,12 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('aquarium_token');
+    const token = localStorage.getItem('fashion_token');
     if (token) {
       authService.getMe()
         .then(res => setUser(res.data))
         .catch(() => {
-          localStorage.removeItem('aquarium_token');
+          localStorage.removeItem('fashion_token');
           setUser(null);
         })
         .finally(() => setLoading(false));
@@ -24,7 +24,7 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     const res = await authService.login({ email, password });
-    localStorage.setItem('aquarium_token', res.data.access_token);
+    localStorage.setItem('fashion_token', res.data.access_token);
     const me = await authService.getMe();
     setUser(me.data);
     return me.data;
@@ -36,7 +36,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('aquarium_token');
+    localStorage.removeItem('fashion_token');
     setUser(null);
   }, []);
 

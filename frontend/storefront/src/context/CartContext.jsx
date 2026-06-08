@@ -4,7 +4,7 @@ import { useAuth } from './AuthContext';
 
 const CartContext = createContext(null);
 
-const CART_ID_KEY = 'aquarium_cart_id';
+const CART_ID_KEY = 'fashion_cart_id';
 
 function getCartId() {
   return localStorage.getItem(CART_ID_KEY);

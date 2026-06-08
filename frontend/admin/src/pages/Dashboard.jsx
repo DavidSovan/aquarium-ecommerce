@@ -103,7 +103,7 @@ export function Dashboard() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    const token = localStorage.getItem('aquarium_token');
+    const token = localStorage.getItem('fashion_token');
     if (token) wsService.connect(token);
 
     const unsub = wsService.on('new_order', (data) => {

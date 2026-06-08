@@ -4,7 +4,7 @@ import settingsService from '../services/settingsService';
 const CACHE_KEY = 'site_settings';
 
 const defaults = {
-  storeName: 'Aquarium Store',
+  storeName: 'Fashion Store',
   storeEmail: '',
   storeLogo: null,
   favicon: null,
@@ -62,7 +62,7 @@ export function SiteSettingsProvider({ children }) {
     ])
       .then(([publicRes, brandingRes, homepageRes]) => {
         const data = {
-          storeName: brandingRes.data.store_name || publicRes.data.store_name || 'Aquarium Store',
+          storeName: brandingRes.data.store_name || publicRes.data.store_name || 'Fashion Store',
           storeEmail: publicRes.data.store_email || '',
           storeLogo: brandingRes.data.store_logo || null,
           favicon: brandingRes.data.favicon || null,

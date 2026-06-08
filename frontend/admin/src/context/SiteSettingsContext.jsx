@@ -4,7 +4,7 @@ import api from '../services/api';
 const SiteSettingsContext = createContext(null);
 
 export function SiteSettingsProvider({ children }) {
-  const [storeName, setStoreName] = useState('Aquarium Store');
+  const [storeName, setStoreName] = useState('Fashion Store');
   const [storeEmail, setStoreEmail] = useState('');
   const [storeLogo, setStoreLogo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -12,7 +12,7 @@ export function SiteSettingsProvider({ children }) {
   const loadSettings = () => {
     api.get('/settings/public')
       .then(res => {
-        setStoreName(res.data.store_name || 'Aquarium Store');
+        setStoreName(res.data.store_name || 'Fashion Store');
         setStoreEmail(res.data.store_email || '');
         setStoreLogo(res.data.store_logo || null);
       })

@@ -89,7 +89,7 @@ export function PaymentPage() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    const token = localStorage.getItem('aquarium_token');
+    const token = localStorage.getItem('fashion_token');
     if (token) wsService.connect(token);
     const unsub = wsService.on('payment_status_updated', (data) => {
       if (data.order_id === parseInt(orderId)) {

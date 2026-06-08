@@ -43,7 +43,7 @@ export function DriverDashboard() {
   useEffect(() => {
     if (!user) return;
 
-    const token = localStorage.getItem('aquarium_token');
+    const token = localStorage.getItem('fashion_token');
     if (token) {
       wsService.connect(token);
     }
