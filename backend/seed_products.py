@@ -13,6 +13,8 @@ from models.user import User
 from models.coupon import Coupon
 from models.banner import Banner
 from models.setting import Setting
+from models.theme import ThemeSettings
+from models.homepage import HomepageSection
 from dependencies.auth import hash_password
 
 
@@ -58,6 +60,235 @@ def seed():
             is_active=True,
         )
         db.add(customer)
+        db.flush()
+
+        # Seed Themes
+        themes = [
+            {
+                "name": "Midnight Pro",
+                "is_active": False,
+                "is_dark_mode": True,
+                "primary_color": "#3b82f6",
+                "secondary_color": "#1d4ed8",
+                "accent_color": "#60a5fa",
+                "background_color": "#0f172a",
+                "surface_color": "#1e293b",
+                "header_color": "#0f172a",
+                "footer_color": "#0f172a",
+                "text_primary_color": "#f8fafc",
+                "text_secondary_color": "#94a3b8",
+                "button_bg_color": "#3b82f6",
+                "button_text_color": "#ffffff",
+                "success_color": "#10b981",
+                "warning_color": "#f59e0b",
+                "error_color": "#ef4444",
+                "border_color": "#334155",
+                "font_family": "'Inter', sans-serif",
+                "heading_font_size": "2.5rem",
+                "body_font_size": "1rem",
+                "font_weight": "400",
+                "line_height": "1.6",
+                "container_width": "1280px",
+                "grid_columns": 4,
+                "card_style": "rounded-2xl",
+                "border_radius": "1rem",
+                "box_shadow": "0 10px 15px -3px rgba(0, 0, 0, 0.3)",
+                "section_spacing": "5rem",
+                "header_height": "4.5rem",
+                "footer_height": "auto",
+                "button_border_radius": "0.75rem",
+                "button_padding": "0.875rem 1.75rem",
+                "button_hover_color": "#2563eb",
+                "button_hover_animation": "scale-up",
+                "button_shadow": "0 4px 6px -1px rgba(0, 0, 0, 0.2)"
+            },
+            {
+                "name": "Nature Fresh",
+                "is_active": False,
+                "is_dark_mode": False,
+                "primary_color": "#059669",
+                "secondary_color": "#047857",
+                "accent_color": "#34d399",
+                "background_color": "#f0fdf4",
+                "surface_color": "#ffffff",
+                "header_color": "#064e3b",
+                "footer_color": "#064e3b",
+                "text_primary_color": "#064e3b",
+                "text_secondary_color": "#374151",
+                "button_bg_color": "#059669",
+                "button_text_color": "#ffffff",
+                "success_color": "#10b981",
+                "warning_color": "#f59e0b",
+                "error_color": "#ef4444",
+                "border_color": "#dcfce7",
+                "font_family": "'Outfit', sans-serif",
+                "heading_font_size": "2.75rem",
+                "body_font_size": "1.05rem",
+                "font_weight": "400",
+                "line_height": "1.7",
+                "container_width": "1200px",
+                "grid_columns": 4,
+                "card_style": "rounded-3xl",
+                "border_radius": "1.5rem",
+                "box_shadow": "0 4px 20px -2px rgba(5, 150, 105, 0.1)",
+                "section_spacing": "6rem",
+                "header_height": "5rem",
+                "footer_height": "auto",
+                "button_border_radius": "2rem",
+                "button_padding": "1rem 2rem",
+                "button_hover_color": "#047857",
+                "button_hover_animation": "bounce",
+                "button_shadow": "0 10px 15px -3px rgba(5, 150, 105, 0.2)"
+            },
+            {
+                "name": "Pink Blossom",
+                "is_active": False,
+                "is_dark_mode": False,
+                "primary_color": "#ec4899",
+                "secondary_color": "#be185d",
+                "accent_color": "#fbcfe8",
+                "background_color": "#fff1f2",
+                "surface_color": "#ffffff",
+                "header_color": "#831843",
+                "footer_color": "#831843",
+                "text_primary_color": "#831843",
+                "text_secondary_color": "#be185d",
+                "button_bg_color": "#ec4899",
+                "button_text_color": "#ffffff",
+                "success_color": "#10b981",
+                "warning_color": "#f59e0b",
+                "error_color": "#ef4444",
+                "border_color": "#ffe4e6",
+                "font_family": "'Plus Jakarta Sans', sans-serif",
+                "heading_font_size": "2.5rem",
+                "body_font_size": "1rem",
+                "font_weight": "400",
+                "line_height": "1.6",
+                "container_width": "1280px",
+                "grid_columns": 4,
+                "card_style": "rounded-2xl",
+                "border_radius": "1rem",
+                "box_shadow": "0 10px 15px -3px rgba(236, 72, 153, 0.1)",
+                "section_spacing": "5rem",
+                "header_height": "4.5rem",
+                "footer_height": "auto",
+                "button_border_radius": "9999px",
+                "button_padding": "0.875rem 2rem",
+                "button_hover_color": "#db2777",
+                "button_hover_animation": "scale",
+                "button_shadow": "0 4px 6px -1px rgba(236, 72, 153, 0.3)"
+            },
+            {
+                "name": "Default Theme",
+                "is_active": True,
+                "is_dark_mode": False,
+                "primary_color": "#2563eb",
+                "secondary_color": "#4f46e5",
+                "accent_color": "#38bdf8",
+                "background_color": "#f9fafb",
+                "surface_color": "#ffffff",
+                "header_color": "#0c1445",
+                "footer_color": "#0c1445",
+                "text_primary_color": "#111827",
+                "text_secondary_color": "#6b7280",
+                "button_bg_color": "#2563eb",
+                "button_text_color": "#ffffff",
+                "success_color": "#10b981",
+                "warning_color": "#f59e0b",
+                "error_color": "#ef4444",
+                "border_color": "#e5e7eb",
+                "font_family": "Inter, system-ui, sans-serif",
+                "heading_font_size": "2.5rem",
+                "body_font_size": "1rem",
+                "font_weight": "400",
+                "line_height": "1.6",
+                "container_width": "1280px",
+                "grid_columns": 4,
+                "card_style": "rounded-xl",
+                "border_radius": "0.75rem",
+                "box_shadow": "0 1px 3px rgba(0,0,0,0.1)",
+                "section_spacing": "4rem",
+                "header_height": "4rem",
+                "footer_height": "auto",
+                "button_border_radius": "0.5rem",
+                "button_padding": "0.75rem 1.5rem",
+                "button_hover_color": "#1d4ed8",
+                "button_hover_animation": "scale",
+                "button_shadow": "0 4px 6px rgba(0,0,0,0.1)"
+            }
+        ]
+        for t_data in themes:
+            db.add(ThemeSettings(**t_data))
+        db.flush()
+
+        # Seed Homepage Sections
+        homepage_sections = [
+            {
+                "section_type": "hero",
+                "sort_order": 0,
+                "is_active": True,
+                "hero_title": "Summer Collection 2026",
+                "hero_subtitle": "Discover the latest trends in sustainable fashion. Fresh styles for a brighter future.",
+                "hero_cta_text": "Shop Now",
+                "hero_cta_url": "/products?collection=summer-2026",
+                "hero_bg_image": "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1600&q=80",
+                "hero_badge_text": "New Season",
+                "hero_overlay_color": "#0f172a",
+                "hero_overlay_opacity": 0.4
+            },
+            {
+                "section_type": "categories",
+                "sort_order": 1,
+                "is_active": True,
+                "content": {
+                    "title": "Shop by Category",
+                    "subtitle": "Explore our curated collections across all departments.",
+                    "items": [
+                        {"name": "Men's Clothing", "slug": "mens-clothing", "image": "https://images.unsplash.com/photo-1516259762381-22954d7d3ad2?w=500&q=80"},
+                        {"name": "Women's Clothing", "slug": "womens-clothing", "image": "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=500&q=80"},
+                        {"name": "Shoes", "slug": "shoes", "image": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80"},
+                        {"name": "Accessories", "slug": "accessories", "image": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80"}
+                    ]
+                }
+            },
+            {
+                "section_type": "featured_products",
+                "sort_order": 2,
+                "is_active": True,
+                "bg_type": "color",
+                "bg_color": "#f8fafc",
+                "content": {
+                    "title": "New Arrivals",
+                    "subtitle": "The most anticipated pieces of the season have arrived.",
+                    "limit": 8
+                }
+            },
+            {
+                "section_type": "promo_banner",
+                "sort_order": 3,
+                "is_active": True,
+                "hero_title": "Member Exclusive: 20% Off",
+                "hero_subtitle": "Join our membership program today and get an extra 20% off your first order plus free shipping on all orders over $50.",
+                "hero_cta_text": "Join Now",
+                "hero_cta_url": "/auth/register",
+                "hero_bg_image": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&q=80",
+                "hero_overlay_color": "#1e293b",
+                "hero_overlay_opacity": 0.7
+            },
+            {
+                "section_type": "newsletter",
+                "sort_order": 4,
+                "is_active": True,
+                "content": {
+                    "title": "Stay in the Loop",
+                    "subtitle": "Subscribe to our newsletter to receive updates on new arrivals, special offers, and styling tips.",
+                    "placeholder": "Enter your email address",
+                    "button_text": "Subscribe"
+                }
+            }
+        ]
+        for s_data in homepage_sections:
+            db.add(HomepageSection(**s_data))
         db.flush()
 
         categories_data = [
