@@ -1,7 +1,9 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import settingsService from '../../services/settingsService';
 import { useSiteSettings } from '../../context/SiteSettingsContext';
+import { useAuth } from '../../context/AuthContext';
+import { ResetDatabaseModal } from '../../components/ResetDatabaseModal';
 
 const ICONS = {
   palette: (
@@ -260,7 +262,9 @@ function SettingsRow({ s, editingKey, editValue, setEditValue, onEdit, onSave, o
 }
 
 export function SettingsPage() {
+  const navigate = useNavigate();
   const { reload } = useSiteSettings();
+  const { user, logout } = useAuth();
   const [settings, setSettings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -269,6 +273,7 @@ export function SettingsPage() {
   const [editValue, setEditValue] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [filterQ, setFilterQ] = useState('');
+  const [showResetModal, setShowResetModal] = useState(false);
   const toastTimer = useRef(null);
 
   const showToast = useCallback((message, type = 'success') => {
@@ -324,9 +329,16 @@ export function SettingsPage() {
 
   if (loading) return <Skeleton />;
 
+  const isAdmin = user?.role === 'admin';
+
   return (
     <div className="pb-10">
       <Toast toast={toast} onClose={() => setToast(null)} />
+      <ResetDatabaseModal
+        isOpen={showResetModal}
+        onClose={() => setShowResetModal(false)}
+        onSuccess={() => { logout(); navigate('/login'); }}
+      />
 
       <nav className="flex items-center gap-1.5 text-[11px] text-gray-400 mb-6 tracking-wide">
         <Link to="/admin" className="hover:text-gray-600 transition-colors">dashboard</Link>
@@ -449,6 +461,44 @@ export function SettingsPage() {
           </div>
         )}
       </div>
+
+      {isAdmin && (
+        <>
+          <div className="flex items-center gap-3 mb-5 mt-8">
+            <div className="flex-1 h-px bg-gray-100" />
+            <span className="text-[10px] tracking-widest uppercase text-red-400">danger zone</span>
+            <div className="flex-1 h-px bg-gray-100" />
+          </div>
+
+          <div className="bg-white border border-red-200 rounded-2xl overflow-hidden">
+            <div className="p-5">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5 text-red-600">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900">Reset Database</p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    Permanently delete all data and restore the database to its default seed state.
+                    A backup will be created automatically before the reset.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowResetModal(true)}
+                  className="flex-shrink-0 text-xs font-medium text-white bg-red-600
+                             px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Reset Database
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

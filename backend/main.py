@@ -12,7 +12,7 @@ from models.theme import ThemeSettings
 from routers import categories, products, product_images, cart, wishlist, addresses, checkout, orders, inventory, auth, reviews, coupons, banners, reports, settings, customers
 from routers import theme as theme_router, branding as branding_router, homepage_sections, cms_blocks, media_library
 from routers import ws as ws_router
-from routers import customization, telegram, payment as payment_router, delivery_slots, delivery as delivery_router, drivers as driver_router
+from routers import customization, telegram, payment as payment_router, delivery_slots, delivery as delivery_router, drivers as driver_router, admin
 from websocket.connection_manager import manager
 
 
@@ -308,6 +308,7 @@ app.include_router(payment_router.router)
 app.include_router(delivery_slots.router)
 app.include_router(delivery_router.router)
 app.include_router(driver_router.router)
+app.include_router(admin.router)
 
 
 @app.get("/")
