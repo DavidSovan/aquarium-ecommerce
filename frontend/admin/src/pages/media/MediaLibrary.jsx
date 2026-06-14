@@ -89,23 +89,23 @@ export function MediaLibrary() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Media Library</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Media Library</h1>
           <p className="text-sm text-gray-500 mt-1">Upload and manage images, videos, and documents.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <input type="file" ref={fileRef} onChange={handleUpload} multiple accept="image/*,video/*" className="hidden" />
-          <button onClick={() => fileRef.current?.click()} disabled={uploading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+          <button onClick={() => fileRef.current?.click()} disabled={uploading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium">
             {uploading ? 'Uploading...' : 'Upload Files'}
           </button>
-          <button onClick={() => setShowUrlModal(true)} className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+          <button onClick={() => setShowUrlModal(true)} className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm font-medium">
             Add URL
           </button>
         </div>
       </div>
 
-      <div className="flex gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-6">
         {['', 'image', 'video'].map(type => (
           <button key={type} onClick={() => setFilter(type)}
             className={`px-4 py-2 rounded-lg text-sm border ${filter === type ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-300 hover:bg-gray-50'}`}>
@@ -115,29 +115,36 @@ export function MediaLibrary() {
       </div>
 
       {showUrlModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowUrlModal(false)}>
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-bold mb-4">Add Media URL</h2>
+        <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 pt-10 pb-10 overflow-y-auto" onClick={() => setShowUrlModal(false)}>
+          <div className="bg-white rounded-xl shadow-2xl p-5 md:p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900">Add Media URL</h2>
+              <button onClick={() => setShowUrlModal(false)} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
             <div className="space-y-4">
               <div>
-                <label className="text-sm text-gray-600 block mb-1">URL</label>
-                <input type="url" value={urlForm.url} onChange={e => setUrlForm({...urlForm, url: e.target.value})} placeholder="https://example.com/image.jpg" className="w-full px-3 py-2 border rounded-lg" />
+                <label className="text-xs text-gray-500 block mb-1 font-medium">URL</label>
+                <input type="url" value={urlForm.url} onChange={e => setUrlForm({...urlForm, url: e.target.value})} placeholder="https://example.com/image.jpg" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
               </div>
               <div>
-                <label className="text-sm text-gray-600 block mb-1">Type</label>
-                <select value={urlForm.media_type} onChange={e => setUrlForm({...urlForm, media_type: e.target.value})} className="w-full px-3 py-2 border rounded-lg">
+                <label className="text-xs text-gray-500 block mb-1 font-medium">Type</label>
+                <select value={urlForm.media_type} onChange={e => setUrlForm({...urlForm, media_type: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none">
                   <option value="image">Image</option>
                   <option value="video">Video</option>
                   <option value="document">Document</option>
                 </select>
               </div>
               <div>
-                <label className="text-sm text-gray-600 block mb-1">Folder</label>
-                <input type="text" value={urlForm.folder} onChange={e => setUrlForm({...urlForm, folder: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
+                <label className="text-xs text-gray-500 block mb-1 font-medium">Folder</label>
+                <input type="text" value={urlForm.folder} onChange={e => setUrlForm({...urlForm, folder: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
               </div>
               <div className="flex gap-3 pt-2">
-                <button onClick={handleSaveUrl} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Save</button>
-                <button onClick={() => setShowUrlModal(false)} className="px-4 py-2 bg-gray-200 rounded-lg">Cancel</button>
+                <button onClick={handleSaveUrl} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium">Save</button>
+                <button onClick={() => setShowUrlModal(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium">Cancel</button>
               </div>
             </div>
           </div>

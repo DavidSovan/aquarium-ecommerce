@@ -24,7 +24,7 @@ export function ReportsPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Reports</h1>
+      <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">Reports</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <StatCard title="Total Orders (30d)" value={sales?.total_orders || 0} color="blue" />

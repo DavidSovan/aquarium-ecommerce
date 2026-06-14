@@ -87,55 +87,62 @@ export function BannerList() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Banners</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Banners</h1>
         <button onClick={() => { setEditing(null); resetForm(); setShowForm(true); }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">+ New Banner</button>
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">+ New Banner</button>
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-auto py-8" onClick={() => setShowForm(false)}>
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4" onClick={e => e.stopPropagation()}>
-            <h2 className="text-xl font-bold mb-4">{editing ? 'Edit Banner' : 'New Banner'}</h2>
+        <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 pt-10 pb-10 overflow-y-auto" onClick={() => setShowForm(false)}>
+          <div className="bg-white rounded-xl shadow-2xl p-5 md:p-6 max-w-2xl w-full mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900">{editing ? 'Edit Banner' : 'New Banner'}</h2>
+              <button onClick={() => setShowForm(false)} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-gray-600 block mb-1">Title</label>
-                  <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
+                  <label className="text-xs text-gray-500 block mb-1 font-medium">Title</label>
+                  <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-600 block mb-1">Subtitle</label>
-                  <input value={form.subtitle} onChange={e => setForm({...form, subtitle: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
+                  <label className="text-xs text-gray-500 block mb-1 font-medium">Subtitle</label>
+                  <input value={form.subtitle} onChange={e => setForm({...form, subtitle: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
                 </div>
               </div>
               <div>
-                <label className="text-sm text-gray-600 block mb-1">Description</label>
-                <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} rows={2} className="w-full px-3 py-2 border rounded-lg" />
+                <label className="text-xs text-gray-500 block mb-1 font-medium">Description</label>
+                <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-gray-600 block mb-1">Image URL</label>
-                  <input value={form.image_url} onChange={e => setForm({...form, image_url: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
+                  <label className="text-xs text-gray-500 block mb-1 font-medium">Image URL</label>
+                  <input value={form.image_url} onChange={e => setForm({...form, image_url: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-600 block mb-1">Video URL</label>
-                  <input value={form.video_url} onChange={e => setForm({...form, video_url: e.target.value})} className="w-full px-3 py-2 border rounded-lg" placeholder="MP4 or YouTube URL" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm text-gray-600 block mb-1">Button Text</label>
-                  <input value={form.button_text} onChange={e => setForm({...form, button_text: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-600 block mb-1">Button Link</label>
-                  <input value={form.button_link} onChange={e => setForm({...form, button_link: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
+                  <label className="text-xs text-gray-500 block mb-1 font-medium">Video URL</label>
+                  <input value={form.video_url} onChange={e => setForm({...form, video_url: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="MP4 or YouTube URL" />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-gray-600 block mb-1">Position</label>
-                  <select value={form.position} onChange={e => setForm({...form, position: e.target.value})} className="w-full px-3 py-2 border rounded-lg">
+                  <label className="text-xs text-gray-500 block mb-1 font-medium">Button Text</label>
+                  <input value={form.button_text} onChange={e => setForm({...form, button_text: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1 font-medium">Button Link</label>
+                  <input value={form.button_link} onChange={e => setForm({...form, button_link: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1 font-medium">Position</label>
+                  <select value={form.position} onChange={e => setForm({...form, position: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none">
                     <option value="hero">Hero</option>
                     <option value="sidebar">Sidebar</option>
                     <option value="bottom">Bottom</option>
@@ -143,38 +150,38 @@ export function BannerList() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-sm text-gray-600 block mb-1">Sort Order</label>
-                  <input type="number" value={form.sort_order} onChange={e => setForm({...form, sort_order: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
+                  <label className="text-xs text-gray-500 block mb-1 font-medium">Sort Order</label>
+                  <input type="number" value={form.sort_order} onChange={e => setForm({...form, sort_order: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
                 </div>
                 <div className="flex items-end pb-2">
-                  <label className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" checked={form.is_active} onChange={e => setForm({...form, is_active: e.target.checked})} className="rounded" />
+                  <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                    <input type="checkbox" checked={form.is_active} onChange={e => setForm({...form, is_active: e.target.checked})} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
                     Active
                   </label>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-gray-600 block mb-1">Start Date</label>
-                  <input type="datetime-local" value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                  <label className="text-xs text-gray-500 block mb-1 font-medium">Start Date</label>
+                  <input type="datetime-local" value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-600 block mb-1">End Date</label>
-                  <input type="datetime-local" value={form.end_date} onChange={e => setForm({...form, end_date: e.target.value})} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                  <label className="text-xs text-gray-500 block mb-1 font-medium">End Date</label>
+                  <input type="datetime-local" value={form.end_date} onChange={e => setForm({...form, end_date: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
                 </div>
               </div>
 
               {(form.image_url || form.video_url) && (
-                <div className="border rounded-lg p-3">
-                  <p className="text-xs text-gray-500 mb-2">Preview</p>
+                <div className="border border-gray-200 rounded-lg p-3">
+                  <p className="text-xs text-gray-500 mb-2 font-medium">Preview</p>
                   {form.image_url && <img src={form.image_url} alt="" className="h-28 object-cover rounded" onError={e => e.target.style.display = 'none'} />}
                   {form.video_url && <video src={form.video_url} className="h-28 object-cover rounded" controls onError={e => e.target.style.display = 'none'} />}
                 </div>
               )}
 
               <div className="flex gap-3 pt-2">
-                <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">{editing ? 'Update' : 'Create'}</button>
-                <button type="button" onClick={() => setShowForm(false)} className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
+                <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">{editing ? 'Update' : 'Create'}</button>
+                <button type="button" onClick={() => setShowForm(false)} className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium">Cancel</button>
               </div>
             </form>
           </div>

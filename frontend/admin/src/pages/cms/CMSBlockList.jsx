@@ -180,57 +180,64 @@ export function CMSBlockList() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">CMS Blocks</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">CMS Blocks</h1>
         <button onClick={() => { setEditing(null); setForm(EMPTY_FORM); setShowForm(true); }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">+ New Block</button>
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">+ New Block</button>
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowForm(false)}>
-          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-auto" onClick={e => e.stopPropagation()}>
-            <h2 className="text-xl font-bold mb-4">{editing ? 'Edit Block' : 'New CMS Block'}</h2>
+        <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 pt-10 pb-10 overflow-y-auto" onClick={() => setShowForm(false)}>
+          <div className="bg-white rounded-xl shadow-2xl p-5 md:p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900">{editing ? 'Edit Block' : 'New CMS Block'}</h2>
+              <button onClick={() => setShowForm(false)} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="text-sm text-gray-600 block mb-1">Title</label>
-                <input type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} required className="w-full px-3 py-2 border rounded-lg" />
+                <label className="text-xs text-gray-500 block mb-1 font-medium">Title</label>
+                <input type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} required className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
               </div>
               <div>
-                <label className="text-sm text-gray-600 block mb-1">Slug</label>
-                <input type="text" value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} required className="w-full px-3 py-2 border rounded-lg" placeholder="my-block-slug" />
+                <label className="text-xs text-gray-500 block mb-1 font-medium">Slug</label>
+                <input type="text" value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} required className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="my-block-slug" />
               </div>
               <div>
-                <label className="text-sm text-gray-600 block mb-1">Block Type</label>
-                <select value={form.block_type} onChange={e => setForm({...form, block_type: e.target.value, content: null})} className="w-full px-3 py-2 border rounded-lg">
+                <label className="text-xs text-gray-500 block mb-1 font-medium">Block Type</label>
+                <select value={form.block_type} onChange={e => setForm({...form, block_type: e.target.value, content: null})} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none">
                   {BLOCK_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
               </div>
 
               <ContentEditor blockType={form.block_type} content={form.content} onChange={v => setForm({...form, content: v})} />
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm text-gray-600 block mb-1">Sort Order</label>
-                  <input type="number" value={form.sort_order} onChange={e => setForm({...form, sort_order: parseInt(e.target.value) || 0})} className="w-full px-3 py-2 border rounded-lg" />
+                  <label className="text-xs text-gray-500 block mb-1 font-medium">Sort Order</label>
+                  <input type="number" value={form.sort_order} onChange={e => setForm({...form, sort_order: parseInt(e.target.value) || 0})} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-600 block mb-1">Publish Date</label>
-                  <input type="datetime-local" value={form.publish_at ? form.publish_at.slice(0, 16) : ''} onChange={e => setForm({...form, publish_at: e.target.value ? new Date(e.target.value).toISOString() : null})} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                  <label className="text-xs text-gray-500 block mb-1 font-medium">Publish Date</label>
+                  <input type="datetime-local" value={form.publish_at ? form.publish_at.slice(0, 16) : ''} onChange={e => setForm({...form, publish_at: e.target.value ? new Date(e.target.value).toISOString() : null})} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
                 </div>
               </div>
               <div>
-                <label className="text-sm text-gray-600 block mb-1">Unpublish Date</label>
-                <input type="datetime-local" value={form.unpublish_at ? form.unpublish_at.slice(0, 16) : ''} onChange={e => setForm({...form, unpublish_at: e.target.value ? new Date(e.target.value).toISOString() : null})} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                <label className="text-xs text-gray-500 block mb-1 font-medium">Unpublish Date</label>
+                <input type="datetime-local" value={form.unpublish_at ? form.unpublish_at.slice(0, 16) : ''} onChange={e => setForm({...form, unpublish_at: e.target.value ? new Date(e.target.value).toISOString() : null})} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
               </div>
 
-              <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={form.is_active} onChange={e => setForm({...form, is_active: e.target.checked})} className="rounded" />
+              <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                <input type="checkbox" checked={form.is_active} onChange={e => setForm({...form, is_active: e.target.checked})} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
                 Active
               </label>
 
               <div className="flex gap-3 pt-2">
-                <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">{editing ? 'Update' : 'Create'}</button>
-                <button type="button" onClick={() => setShowForm(false)} className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
+                <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">{editing ? 'Update' : 'Create'}</button>
+                <button type="button" onClick={() => setShowForm(false)} className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium">Cancel</button>
               </div>
             </form>
           </div>
@@ -239,24 +246,25 @@ export function CMSBlockList() {
 
       <div className="space-y-3">
         {blocks.map((block, index) => (
-          <div key={block.id} className="bg-white rounded-lg shadow p-4 flex items-center gap-4">
-            <div className="flex flex-col gap-1">
+          <div key={block.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 transition-shadow hover:shadow-sm">
+            <div className="flex sm:flex-col gap-1">
               <button onClick={() => handleMoveUp(index)} disabled={index === 0} className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs">▲</button>
               <button onClick={() => handleMoveDown(index)} disabled={index >= blocks.length - 1} className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs">▼</button>
             </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h3 className="font-bold">{block.title}</h3>
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-bold text-gray-900">{block.title}</h3>
                 <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">{block.block_type}</span>
-                <span className={`px-2 py-0.5 rounded-full text-xs ${block.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}`}>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${block.is_active ? 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20' : 'bg-gray-100 text-gray-500'}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full mr-1 ${block.is_active ? 'bg-green-500' : 'bg-gray-400'}`} />
                   {block.is_active ? 'Active' : 'Inactive'}
                 </span>
               </div>
               <p className="text-xs text-gray-500 mt-1">Slug: {block.slug} | Order: {block.sort_order}</p>
             </div>
-            <div className="flex gap-3">
-              <button onClick={() => handleEdit(block)} className="text-blue-600 hover:text-blue-700 text-sm">Edit</button>
-              <button onClick={() => setDeleteTarget(block)} className="text-red-600 hover:text-red-700 text-sm">Delete</button>
+            <div className="flex gap-2 flex-shrink-0">
+              <button onClick={() => handleEdit(block)} className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">Edit</button>
+              <button onClick={() => setDeleteTarget(block)} className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">Delete</button>
             </div>
           </div>
         ))}

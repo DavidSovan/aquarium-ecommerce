@@ -258,7 +258,7 @@ export function HomepageSettingsPage() {
           to   { opacity: 1; transform: translateY(0); }
         }
 
-        .hsp { max-width: 720px; }
+        .hsp { max-width: 720px; padding: 0 4px; }
 
         .hsp-header { margin-bottom: 1.5rem; }
         .hsp-title { font-size: 1.35rem; font-weight: 700; color: #111827; margin: 0 0 0.3rem; }
@@ -277,6 +277,7 @@ export function HomepageSettingsPage() {
           display: flex; align-items: center; gap: 1rem;
           padding: 1.25rem 1.5rem;
           border-bottom: 1px solid #f3f4f6;
+          flex-wrap: wrap;
         }
         .hsp-card__icon { font-size: 1.6rem; flex-shrink: 0; }
         .hsp-card__title { font-size: 1rem; font-weight: 600; color: #111827; margin: 0; }
