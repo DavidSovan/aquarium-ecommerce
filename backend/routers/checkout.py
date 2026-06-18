@@ -223,12 +223,14 @@ def checkout(
         )
         db.add(booking)
 
+    qr_image_base64 = None
     if payment_method == "ONLINE_PAYMENT":
         khqr_result = generate_order_khqr(order)
         order.bakong_account_id = khqr_result["bakong_account_id"]
         order.khqr_md5 = khqr_result["md5"]
         order.payment_qr = khqr_result["qr_string"]
         order.payment_expires_at = khqr_result["expires_at"]
+        qr_image_base64 = khqr_result["qr_image_base64"]
 
     for item_data in order_items_data:
         cust = item_data.pop("customizations", None)
@@ -297,6 +299,7 @@ def checkout(
         delivery_slot_id=order.delivery_slot_id,
         delivery_slot_name=order.delivery_slot.name if order.delivery_slot else None,
         payment_qr=order.payment_qr,
+        qr_image_base64=qr_image_base64,
         khqr_md5=order.khqr_md5,
         payment_expires_at=order.payment_expires_at,
         bakong_account_id=order.bakong_account_id,

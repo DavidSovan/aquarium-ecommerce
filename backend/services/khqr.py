@@ -1,77 +1,68 @@
 import hashlib
+import base64
+import io
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 
-
-def crc16(data: bytes) -> int:
-    crc = 0xFFFF
-    for byte in data:
-        crc ^= byte << 8
-        for _ in range(8):
-            if crc & 0x8000:
-                crc = (crc << 1) ^ 0x1021
-            else:
-                crc <<= 1
-            crc &= 0xFFFF
-    return crc ^ 0xFFFF
+import qrcode
+from qrcode.constants import ERROR_CORRECT_M
+from bakong_khqr import KHQR
+import os
 
 
-def _tlv(tag: str, value: str) -> str:
-    length = len(value)
-    return f"{tag}{length:02d}{value}"
+# Initialize KHQR with the Bakong API token
+_BAKONG_TOKEN = os.getenv("BAKONG_API_TOKEN", "")
+_khqr = KHQR(_BAKONG_TOKEN)
 
 
-def _tlv_nested(tag: str, sub_tlvs: list) -> str:
-    inner = "".join(sub_tlvs)
-    length = len(inner)
-    return f"{tag}{length:02d}{inner}"
+def _generate_qr_image_base64(data: str) -> str:
+    """Generate a QR code image and return it as a base64-encoded PNG data URI."""
+    qr = qrcode.QRCode(
+        version=None,
+        error_correction=ERROR_CORRECT_M,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(data)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
+    buffer.seek(0)
+    b64 = base64.b64encode(buffer.read()).decode("utf-8")
+    return f"data:image/png;base64,{b64}"
 
 
 def generate_khqr(
     bakong_account_id: str,
     amount: float,
-    currency: str = "840",
+    currency: str = "USD",
     merchant_name: Optional[str] = None,
     merchant_city: Optional[str] = None,
     bill_number: Optional[str] = None,
-    qr_expire_minutes: int = 10,
+    qr_expire_minutes: int = 30,
 ) -> dict:
+    """Generate a KHQR payment QR code using the official Bakong KHQR library."""
     now = datetime.now(timezone.utc)
     expires_at = now + timedelta(minutes=qr_expire_minutes)
 
-    amount_str = f"{amount:.2f}"
-
-    payload = _tlv("00", "01")
-    payload += _tlv("01", "11")
-
-    merchant_account = _tlv("00", "com.bakong.bankid")
-    merchant_account += _tlv("01", bakong_account_id)
-    payload += _tlv_nested("30", [merchant_account])
-
-    currency_code = currency
-    payload += _tlv("53", currency_code)
-    payload += _tlv("54", amount_str)
-    payload += _tlv("58", "KH")
-
-    if merchant_name:
-        payload += _tlv("59", merchant_name)
-    if merchant_city:
-        payload += _tlv("60", merchant_city)
-
-    if bill_number:
-        additional = _tlv("01", bill_number)
-        payload += _tlv_nested("62", [additional])
-
-    payload += "6304"
-
-    crc_val = crc16(payload.encode("utf-8"))
-    crc_hex = f"{crc_val:04X}"
-    qr_string = payload + crc_hex
+    qr_string = _khqr.create_qr(
+        account_id=bakong_account_id,
+        merchant_name=merchant_name or "Store",
+        merchant_city=merchant_city or "Phnom Penh",
+        amount=amount,
+        currency=currency,
+        bill_number=bill_number,
+    )
 
     md5_hash = hashlib.md5(qr_string.encode("utf-8")).hexdigest()
 
+    qr_image_base64 = _generate_qr_image_base64(qr_string)
+
     return {
         "qr_string": qr_string,
+        "qr_image_base64": qr_image_base64,
         "md5": md5_hash,
         "expires_at": expires_at,
         "bakong_account_id": bakong_account_id,

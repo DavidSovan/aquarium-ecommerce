@@ -349,6 +349,7 @@ def _order_to_response(order: Order, user: Optional[User] = None) -> OrderRespon
         driver_id=order.driver_id,
         driver_name=f"{order.driver.first_name} {order.driver.last_name}".strip() if order.driver else None,
         payment_qr=order.payment_qr,
+        qr_image_base64=None,
         khqr_md5=order.khqr_md5,
         payment_expires_at=order.payment_expires_at,
         bakong_account_id=order.bakong_account_id,

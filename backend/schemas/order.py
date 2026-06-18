@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, model_validator
 from typing import Optional, List, Any
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 
 
 PAYMENT_METHODS = {"COD", "ONLINE_PAYMENT"}
@@ -66,6 +66,7 @@ class OrderResponse(BaseModel):
     bakong_account_id: Optional[str] = None
     khqr_md5: Optional[str] = None
     payment_qr: Optional[str] = None
+    qr_image_base64: Optional[str] = None
     payment_expires_at: Optional[datetime] = None
     paid_at: Optional[datetime] = None
     payment_failure_reason: Optional[str] = None
@@ -73,6 +74,16 @@ class OrderResponse(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+    @model_validator(mode="after")
+    def _ensure_utc_datetimes(self):
+        """MySQL DATETIME columns lose timezone info. Stamp UTC so the API
+        response includes '+00:00' and JavaScript parses them correctly."""
+        for field_name in ("payment_expires_at", "paid_at", "created_at", "updated_at"):
+            val = getattr(self, field_name, None)
+            if isinstance(val, datetime) and val.tzinfo is None:
+                object.__setattr__(self, field_name, val.replace(tzinfo=timezone.utc))
+        return self
 
 
 class OrderListResponse(BaseModel):

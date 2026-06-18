@@ -1,4 +1,5 @@
 import logging
+import os
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -18,7 +19,7 @@ from services.telegram_service import (
 
 logger = logging.getLogger(__name__)
 
-BAKONG_ACCOUNT_ID = "sovan_david@bkt"
+BAKONG_ACCOUNT_ID = os.getenv("BAKONG_ACCOUNT_ID", "sovan_david@bkt")
 
 
 def generate_order_khqr(order: Order) -> dict:
@@ -29,6 +30,38 @@ def generate_order_khqr(order: Order) -> dict:
         bill_number=order.order_number,
     )
     return result
+
+
+def regenerate_payment_qr(order: Order, db: Session) -> dict:
+    if order.payment_status == "paid":
+        return {"status": "error", "detail": "Payment already completed"}
+
+    if order.payment_status not in ("failed", "pending"):
+        return {"status": "error", "detail": "Cannot regenerate QR for this order"}
+
+    try:
+        khqr_result = generate_order_khqr(order)
+    except Exception as e:
+        logger.error(f"Failed to generate QR for order {order.id}: {e}")
+        return {"status": "error", "detail": f"Failed to generate QR: {e}"}
+
+    order.payment_status = "pending"
+    order.payment_failure_reason = None
+    order.bakong_account_id = khqr_result["bakong_account_id"]
+    order.khqr_md5 = khqr_result["md5"]
+    order.payment_qr = khqr_result["qr_string"]
+    order.payment_expires_at = khqr_result["expires_at"]
+    db.commit()
+    db.refresh(order)
+
+    return {
+        "status": "ok",
+        "payment_qr": order.payment_qr,
+        "qr_image_base64": khqr_result["qr_image_base64"],
+        "khqr_md5": order.khqr_md5,
+        "payment_expires_at": order.payment_expires_at,
+        "bakong_account_id": order.bakong_account_id,
+    }
 
 
 def process_payment_check(order_id: int, db: Session) -> dict:

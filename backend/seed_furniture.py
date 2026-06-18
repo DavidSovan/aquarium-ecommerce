@@ -16,6 +16,7 @@ from models.setting import Setting
 from models.theme import ThemeSettings
 from models.branding import BrandingSettings
 from models.homepage import HomepageSection
+from models.cms_block import CMSBlock
 from dependencies.auth import hash_password
 
 
@@ -187,6 +188,158 @@ def seed():
                 "button_hover_color": "#475569",
                 "button_hover_animation": "scale",
                 "button_shadow": "0 4px 6px -1px rgba(100, 116, 139, 0.2)"
+            },
+            {
+                "name": "Forest Canopy",
+                "is_active": False,
+                "is_dark_mode": False,
+                "primary_color": "#059669",
+                "secondary_color": "#047857",
+                "accent_color": "#34d399",
+                "background_color": "#f0fdf4",
+                "surface_color": "#ffffff",
+                "header_color": "#064e3b",
+                "footer_color": "#064e3b",
+                "text_primary_color": "#064e3b",
+                "text_secondary_color": "#047857",
+                "button_bg_color": "#059669",
+                "button_text_color": "#ffffff",
+                "success_color": "#10b981",
+                "warning_color": "#f59e0b",
+                "error_color": "#ef4444",
+                "border_color": "#d1fae5",
+                "font_family": "'DM Serif Display', serif",
+                "heading_font_size": "2.75rem",
+                "body_font_size": "1.05rem",
+                "font_weight": "400",
+                "line_height": "1.7",
+                "container_width": "1280px",
+                "grid_columns": 4,
+                "card_style": "rounded-xl",
+                "border_radius": "0.75rem",
+                "box_shadow": "0 4px 16px -2px rgba(5, 150, 105, 0.1)",
+                "section_spacing": "5rem",
+                "header_height": "4.5rem",
+                "footer_height": "auto",
+                "button_border_radius": "0.625rem",
+                "button_padding": "0.875rem 1.75rem",
+                "button_hover_color": "#047857",
+                "button_hover_animation": "scale-up",
+                "button_shadow": "0 4px 10px -2px rgba(5, 150, 105, 0.3)"
+            },
+            {
+                "name": "Royal Velvet",
+                "is_active": False,
+                "is_dark_mode": True,
+                "primary_color": "#7e22ce",
+                "secondary_color": "#6b21a8",
+                "accent_color": "#d946ef",
+                "background_color": "#0f011e",
+                "surface_color": "#1e0533",
+                "header_color": "#0f011e",
+                "footer_color": "#0f011e",
+                "text_primary_color": "#faf5ff",
+                "text_secondary_color": "#c084fc",
+                "button_bg_color": "#7e22ce",
+                "button_text_color": "#ffffff",
+                "success_color": "#10b981",
+                "warning_color": "#f59e0b",
+                "error_color": "#ef4444",
+                "border_color": "#3b0764",
+                "font_family": "'Playfair Display', serif",
+                "heading_font_size": "3rem",
+                "body_font_size": "1.05rem",
+                "font_weight": "400",
+                "line_height": "1.7",
+                "container_width": "1200px",
+                "grid_columns": 4,
+                "card_style": "rounded-2xl",
+                "border_radius": "1.25rem",
+                "box_shadow": "0 12px 24px -8px rgba(126, 34, 206, 0.2)",
+                "section_spacing": "5rem",
+                "header_height": "4.5rem",
+                "footer_height": "auto",
+                "button_border_radius": "0.75rem",
+                "button_padding": "0.875rem 2rem",
+                "button_hover_color": "#9333ea",
+                "button_hover_animation": "glow",
+                "button_shadow": "0 4px 14px rgba(126, 34, 206, 0.4)"
+            },
+            {
+                "name": "Ocean Breeze",
+                "is_active": False,
+                "is_dark_mode": False,
+                "primary_color": "#0e7490",
+                "secondary_color": "#0891b2",
+                "accent_color": "#67e8f9",
+                "background_color": "#ecfeff",
+                "surface_color": "#ffffff",
+                "header_color": "#164e63",
+                "footer_color": "#164e63",
+                "text_primary_color": "#164e63",
+                "text_secondary_color": "#0e7490",
+                "button_bg_color": "#0e7490",
+                "button_text_color": "#ffffff",
+                "success_color": "#10b981",
+                "warning_color": "#f59e0b",
+                "error_color": "#ef4444",
+                "border_color": "#cffafe",
+                "font_family": "'Montserrat', sans-serif",
+                "heading_font_size": "2.5rem",
+                "body_font_size": "1rem",
+                "font_weight": "400",
+                "line_height": "1.6",
+                "container_width": "1280px",
+                "grid_columns": 4,
+                "card_style": "rounded-xl",
+                "border_radius": "0.75rem",
+                "box_shadow": "0 4px 12px -2px rgba(14, 116, 144, 0.08)",
+                "section_spacing": "5rem",
+                "header_height": "4.5rem",
+                "footer_height": "auto",
+                "button_border_radius": "9999px",
+                "button_padding": "0.75rem 1.75rem",
+                "button_hover_color": "#0891b2",
+                "button_hover_animation": "bounce",
+                "button_shadow": "0 4px 10px -2px rgba(14, 116, 144, 0.25)"
+            },
+            {
+                "name": "Charcoal Studio",
+                "is_active": False,
+                "is_dark_mode": True,
+                "primary_color": "#facc15",
+                "secondary_color": "#eab308",
+                "accent_color": "#fde047",
+                "background_color": "#171717",
+                "surface_color": "#262626",
+                "header_color": "#0a0a0a",
+                "footer_color": "#0a0a0a",
+                "text_primary_color": "#fafafa",
+                "text_secondary_color": "#a3a3a3",
+                "button_bg_color": "#facc15",
+                "button_text_color": "#0a0a0a",
+                "success_color": "#22c55e",
+                "warning_color": "#f59e0b",
+                "error_color": "#ef4444",
+                "border_color": "#404040",
+                "font_family": "'Inter', sans-serif",
+                "heading_font_size": "2.25rem",
+                "body_font_size": "0.95rem",
+                "font_weight": "500",
+                "line_height": "1.5",
+                "container_width": "1320px",
+                "grid_columns": 4,
+                "card_style": "rounded-lg",
+                "border_radius": "0.5rem",
+                "box_shadow": "0 8px 24px rgba(0, 0, 0, 0.5)",
+                "section_spacing": "4rem",
+                "header_height": "4rem",
+                "footer_height": "auto",
+                "button_border_radius": "0.375rem",
+                "button_padding": "0.75rem 1.5rem",
+                "button_hover_color": "#eab308",
+                "button_hover_animation": "scale",
+                "button_shadow": "0 4px 12px rgba(250, 204, 21, 0.3)"
             },
             {
                 "name": "Default Theme",
@@ -411,6 +564,116 @@ def seed():
             social_linkedin="https://linkedin.com/company/furniturestore",
         )
         db.add(branding)
+
+        cms_blocks = [
+            {
+                "title": "About Us",
+                "slug": "about-us",
+                "block_type": "text",
+                "content": {
+                    "body": "<h2>Our Story</h2><p>Founded in 2018, Furniture Store started with a simple mission: make quality furniture accessible to everyone. What began as a small workshop in San Francisco has grown into a trusted destination for modern home furnishings. We partner with skilled artisans and sustainable manufacturers to bring you pieces that blend timeless design with everyday comfort.</p><p>Every item in our collection is hand-picked by our design team to ensure it meets our standards for quality, durability, and style. From our mid-century modern sofas to our farmhouse dining tables, we believe your home should tell your story.</p>"
+                },
+                "sort_order": 0,
+                "is_active": True,
+            },
+            {
+                "title": "Our Values",
+                "slug": "our-values",
+                "block_type": "text",
+                "content": {
+                    "body": "<ul><li><strong>Sustainability</strong> — We use reclaimed wood, recycled metals, and eco-friendly finishes whenever possible.</li><li><strong>Craftsmanship</strong> — Each piece is built by skilled hands, not just machines.</li><li><strong>Community</strong> — A portion of every sale supports local furniture banks and housing charities.</li><li><strong>Transparency</strong> — We share exactly where and how every product is made.</li></ul>"
+                },
+                "sort_order": 1,
+                "is_active": True,
+            },
+            {
+                "title": "FAQ — Shipping",
+                "slug": "faq-shipping",
+                "block_type": "html",
+                "content": {
+                    "body": "<div class=\"faq-item\"><h4>How long does delivery take?</h4><p>Standard delivery takes 5–10 business days. White-glove delivery (including assembly) takes 7–14 business days.</p></div><div class=\"faq-item\"><h4>Do you ship internationally?</h4><p>Currently we ship within the continental US and Canada. International shipping is coming soon.</p></div><div class=\"faq-item\"><h4>What is your return policy?</h4><p>Free returns within 30 days. Items must be in original condition. We arrange pickup at no cost to you.</p></div>"
+                },
+                "sort_order": 2,
+                "is_active": True,
+            },
+            {
+                "title": "FAQ — Assembly",
+                "slug": "faq-assembly",
+                "block_type": "html",
+                "content": {
+                    "body": "<div class=\"faq-item\"><h4>Do I need to assemble my furniture?</h4><p>Most items require some assembly. We include all tools and hardware. Our white-glove delivery option includes full assembly and setup.</p></div><div class=\"faq-item\"><h4>Can I hire someone to assemble my furniture?</h4><p>Yes! We partner with Handy and TaskRabbit. You can book a certified assembler during checkout.</p></div>"
+                },
+                "sort_order": 3,
+                "is_active": True,
+            },
+            {
+                "title": "Customer Testimonials",
+                "slug": "testimonials",
+                "block_type": "html",
+                "content": {
+                    "body": "<div class=\"testimonial\"><p>\"The quality exceeded my expectations. The sofa is stunning and so comfortable. Delivery was prompt and the team set everything up perfectly.\"</p><cite>— Sarah M., Austin, TX</cite></div><div class=\"testimonial\"><p>\"I was nervous buying furniture online, but the entire experience was seamless. The customer service team helped me pick the perfect dining set.\"</p><cite>— James L., Denver, CO</cite></div><div class=\"testimonial\"><p>\"Beautiful craftsmanship at a fair price. My new bedroom set has transformed my space. Highly recommend!\"</p><cite>— Priya K., Seattle, WA</cite></div>"
+                },
+                "sort_order": 4,
+                "is_active": True,
+            },
+            {
+                "title": "Footer — Quick Links",
+                "slug": "footer-quick-links",
+                "block_type": "html",
+                "content": {
+                    "body": "<ul><li><a href=\"/products\">Shop All</a></li><li><a href=\"/products?category=living-room\">Living Room</a></li><li><a href=\"/products?category=bedroom\">Bedroom</a></li><li><a href=\"/products?category=dining-room\">Dining Room</a></li><li><a href=\"/products?category=office\">Office</a></li></ul>"
+                },
+                "sort_order": 5,
+                "is_active": True,
+            },
+            {
+                "title": "Design Inspiration Banner",
+                "slug": "design-inspiration",
+                "block_type": "banner",
+                "content": {
+                    "image": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1200&q=80",
+                    "link": "/products?collection=new-arrivals",
+                    "alt": "Modern living room with neutral tones and natural light"
+                },
+                "sort_order": 6,
+                "is_active": True,
+            },
+            {
+                "title": "Featured Categories — Sidebar",
+                "slug": "featured-categories-sidebar",
+                "block_type": "featured",
+                "content": {
+                    "categories": ["living-room", "bedroom", "dining-room", "office"],
+                    "limit": 4,
+                    "layout": "grid"
+                },
+                "sort_order": 7,
+                "is_active": True,
+            },
+            {
+                "title": "Summer Sale Announcement",
+                "slug": "summer-sale-announcement",
+                "block_type": "html",
+                "content": {
+                    "body": "<div style=\"background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:1.5rem;border-radius:0.75rem;text-align:center;\"><h3>☀️ Summer Sale — Up to 30% Off</h3><p>Free white-glove delivery on orders over $500. Use code <strong>SUMMER30</strong> at checkout.</p><p><em>Offer ends August 31st.</em></p></div>"
+                },
+                "sort_order": 8,
+                "is_active": True,
+            },
+            {
+                "title": "Delivery Information Bar",
+                "slug": "delivery-info-bar",
+                "block_type": "html",
+                "content": {
+                    "body": "<p>🚚 <strong>Free delivery</strong> on orders over $500 &nbsp;|&nbsp; 🔄 <strong>30-day</strong> free returns &nbsp;|&nbsp; 🛋️ <strong>White-glove</strong> assembly available</p>"
+                },
+                "sort_order": 9,
+                "is_active": True,
+            },
+        ]
+        for c_data in cms_blocks:
+            db.add(CMSBlock(**c_data))
+        db.flush()
 
         db.commit()
         print("Furniture database seeded successfully!")
