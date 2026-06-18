@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from sqlalchemy.orm import Session
 from config.database import get_db
@@ -127,12 +128,12 @@ def update_order_status(
         msg = format_order_status_notification(order, old_status, customer or current_user)
         background_tasks.add_task(send_telegram_message, msg)
         event = build_order_status_event(order.id, order.order_number, old_status, order.order_status, order.payment_status)
-    background_tasks.add_task(manager.broadcast_to_user, str(order.user_id), event)
-    background_tasks.add_task(manager.broadcast_to_admins, event)
-    if order.driver_id:
-        background_tasks.add_task(manager.broadcast_to_user, str(order.driver_id), event)
+        background_tasks.add_task(manager.broadcast_to_user, str(order.user_id), event)
+        background_tasks.add_task(manager.broadcast_to_admins, event)
+        if order.driver_id:
+            background_tasks.add_task(manager.broadcast_to_user, str(order.driver_id), event)
 
-    if customer and customer.telegram_chat_id:
+        if customer and customer.telegram_chat_id:
             user_msg = format_order_status_for_customer(order, old_status)
             background_tasks.add_task(send_telegram_message, user_msg, customer.telegram_chat_id)
 

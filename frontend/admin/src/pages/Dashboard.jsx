@@ -89,7 +89,7 @@ export function Dashboard() {
     Promise.all([
       reportService.getSalesSummary(30),
       reportService.getCustomerSummary(),
-      inventoryService.getLowStockAlerts(5),
+      inventoryService.getLowStockAlerts(),
       orderService.listOrders({ skip: 0, limit: 5 }),
     ]).then(([salesRes, custRes, lowStockRes, ordersRes]) => {
       setSales(salesRes.data);

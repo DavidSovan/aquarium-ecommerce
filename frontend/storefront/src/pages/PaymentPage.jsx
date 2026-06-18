@@ -47,6 +47,7 @@ export function PaymentPage() {
           QRCode.toDataURL(o.payment_qr, {
             width: 280,
             margin: 2,
+            errorCorrectionLevel: 'H',
             color: { dark: '#000000', light: '#ffffff' },
           }, (err, url) => {
             if (!err && url) setQrDataUrl(url);
@@ -110,6 +111,7 @@ export function PaymentPage() {
       if (res.data.payment_qr) {
         QRCode.toDataURL(res.data.payment_qr, {
           width: 280, margin: 2,
+          errorCorrectionLevel: 'H',
           color: { dark: '#000000', light: '#ffffff' },
         }, (err, url) => {
           if (err) console.error('QR generation error:', err);
@@ -186,8 +188,11 @@ export function PaymentPage() {
       <div className="theme-surface theme-rounded p-6" style={{ border: '1px solid color-mix(in srgb, var(--border), transparent 50%)' }}>
         <div className="flex justify-center mb-6">
           {qrDataUrl ? (
-            <img src={qrDataUrl} alt="Payment QR" className="w-56 h-56 rounded-xl"
-              style={{ border: '1px solid color-mix(in srgb, var(--border), transparent 30%)' }} />
+            <div className="relative inline-block">
+              <img src={qrDataUrl} alt="Payment QR" className="w-56 h-56 rounded-xl"
+                style={{ border: '1px solid color-mix(in srgb, var(--border), transparent 30%)' }} />
+              {/* Removed Bakong Logo Overlay */}
+            </div>
           ) : (
             <div className="w-56 h-56 rounded-xl flex items-center justify-center theme-text-secondary text-sm"
               style={{ backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }}>

@@ -1,8 +1,9 @@
 import api from './api';
 
 export const inventoryService = {
-  getLowStockAlerts(threshold = 5) {
-    return api.get('/inventory/low-stock', { params: { threshold } });
+  getLowStockAlerts(threshold) {
+    const params = threshold !== undefined ? { threshold } : {};
+    return api.get('/inventory/low-stock', { params });
   },
 
   getLogs(params = {}) {

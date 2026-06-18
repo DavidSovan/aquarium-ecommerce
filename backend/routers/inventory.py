@@ -5,6 +5,7 @@ from config.database import get_db
 from models.product import Product
 from models.inventory import InventoryLog
 from models.user import User
+from models.setting import Setting
 from schemas.inventory import (
     StockAdjustmentRequest,
     StockAdjustmentResponse,
@@ -99,10 +100,17 @@ def get_inventory_logs(
 
 @router.get("/low-stock", response_model=list[LowStockAlertResponse])
 def get_low_stock_alerts(
-    threshold: int = Query(LOW_STOCK_THRESHOLD, ge=1),
+    threshold: Optional[int] = Query(None, ge=1),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("admin", "staff")),
 ):
+    if threshold is None:
+        setting = db.query(Setting).filter(Setting.key == "low_stock_threshold").first()
+        if setting and setting.value and setting.value.isdigit():
+            threshold = int(setting.value)
+        else:
+            threshold = LOW_STOCK_THRESHOLD
+
     low_stock_products = db.query(Product).filter(
         Product.stock_quantity <= threshold
     ).all()
