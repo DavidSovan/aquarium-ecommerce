@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import QRCode from 'qrcode';
 import orderService from '../services/orderService';
 import wsService from '../services/websocket';
@@ -11,8 +11,7 @@ const COUNTDOWN_INTERVAL = 1000;
 
 export function PaymentPage() {
   const { orderId } = useParams();
-  const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { storeName } = useSiteSettings();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,6 +20,7 @@ export function PaymentPage() {
   const [paymentStatus, setPaymentStatus] = useState('pending');
   const [pollingActive, setPollingActive] = useState(true);
   const [qrDataUrl, setQrDataUrl] = useState(null);
+  const [retrying, setRetrying] = useState(false);
   const pollRef = useRef(null);
 
   useEffect(() => {
@@ -100,6 +100,32 @@ export function PaymentPage() {
     return () => { unsub(); wsService.disconnect(); };
   }, [isAuthenticated, orderId]);
 
+  const handleRetry = useCallback(async () => {
+    setRetrying(true);
+    try {
+      const res = await orderService.retryPayment(orderId);
+      setPaymentStatus('pending');
+      const remaining = Math.max(0, Math.floor((new Date(res.data.payment_expires_at).getTime() - Date.now()) / 1000));
+      setTimeLeft(remaining);
+      if (res.data.payment_qr) {
+        QRCode.toDataURL(res.data.payment_qr, {
+          width: 280, margin: 2,
+          color: { dark: '#000000', light: '#ffffff' },
+        }, (err, url) => {
+          if (err) console.error('QR generation error:', err);
+          if (!err && url) setQrDataUrl(url);
+        });
+      } else {
+        console.error('No payment_qr in retry response');
+      }
+      setTimeout(() => setPollingActive(true), 3000);
+    } catch {
+      setError('Failed to retry payment');
+    } finally {
+      setRetrying(false);
+    }
+  }, [orderId]);
+
   const fmt = (m, s) => `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 
   if (loading) return (
@@ -143,7 +169,9 @@ export function PaymentPage() {
       </div>
       <h2 className="text-xl font-bold theme-text-primary mb-2">Payment {timeLeft === 0 ? 'Expired' : 'Failed'}</h2>
       <p className="text-sm theme-text-secondary mb-6">{timeLeft === 0 ? 'The QR code has expired.' : order.payment_failure_reason || 'Payment could not be processed.'} Please try again.</p>
-      <Link to="/checkout" className="theme-btn-primary text-sm font-medium no-underline inline-flex items-center gap-2 px-6 py-2.5 rounded-lg">Try Again</Link>
+      <button onClick={handleRetry} disabled={retrying} className="theme-btn-primary text-sm font-medium inline-flex items-center gap-2 px-6 py-2.5 rounded-lg">
+        {retrying ? 'Retrying...' : 'Try Again'}
+      </button>
     </div>
   );
 

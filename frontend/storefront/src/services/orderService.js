@@ -28,6 +28,10 @@ export const orderService = {
   getPaymentStatus(id) {
     return api.get(`/orders/${id}/payment-status`);
   },
+
+  retryPayment(id) {
+    return api.post(`/orders/${id}/retry-payment`);
+  },
 };
 
 export default orderService;
