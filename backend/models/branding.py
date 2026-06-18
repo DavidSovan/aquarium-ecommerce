@@ -8,6 +8,7 @@ class BrandingSettings(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     store_name = Column(String(255), default="Fashion Store", nullable=False)
+    tagline = Column(String(500), default="Premium aquatic products for enthusiasts and professionals.", nullable=False)
     store_logo = Column(String(500), nullable=True)
     favicon = Column(String(500), nullable=True)
     footer_logo = Column(String(500), nullable=True)

@@ -5,6 +5,7 @@ const CACHE_KEY = 'site_settings';
 
 const defaults = {
   storeName: 'Fashion Store',
+  tagline: 'Premium aquatic products for enthusiasts and professionals.',
   storeEmail: '',
   storeLogo: null,
   favicon: null,
@@ -39,6 +40,7 @@ const SiteSettingsContext = createContext(null);
 
 export function SiteSettingsProvider({ children }) {
   const [storeName, setStoreName] = useState(initial.storeName);
+  const [tagline, setTagline] = useState(initial.tagline);
   const [storeEmail, setStoreEmail] = useState(initial.storeEmail);
   const [storeLogo, setStoreLogo] = useState(initial.storeLogo);
   const [favicon, setFavicon] = useState(initial.favicon);
@@ -63,6 +65,7 @@ export function SiteSettingsProvider({ children }) {
       .then(([publicRes, brandingRes, homepageRes]) => {
         const data = {
           storeName: brandingRes.data.store_name || publicRes.data.store_name || 'Fashion Store',
+          tagline: brandingRes.data.tagline || 'Premium aquatic products for enthusiasts and professionals.',
           storeEmail: publicRes.data.store_email || '',
           storeLogo: brandingRes.data.store_logo || null,
           favicon: brandingRes.data.favicon || null,
@@ -84,6 +87,7 @@ export function SiteSettingsProvider({ children }) {
           homepageBranding: homepageRes.data.branding || null,
         };
         setStoreName(data.storeName);
+        setTagline(data.tagline);
         setStoreEmail(data.storeEmail);
         setStoreLogo(data.storeLogo);
         setFavicon(data.favicon);
@@ -130,7 +134,7 @@ export function SiteSettingsProvider({ children }) {
   return (
     <SiteSettingsContext.Provider
       value={{
-        storeName, storeEmail, storeLogo, favicon, footerLogo,
+        storeName, tagline, storeEmail, storeLogo, favicon, footerLogo,
         copyrightText, contactEmail, contactPhone, contactAddress,
         socialLinks,
         backgroundVideoEnabled, backgroundVideoUrl,

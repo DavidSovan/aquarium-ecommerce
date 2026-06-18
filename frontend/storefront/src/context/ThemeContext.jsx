@@ -5,35 +5,35 @@ const CACHE_KEY = 'theme_css_vars';
 const DARK_KEY = 'theme_dark_mode';
 
 const DEFAULT_CSS = {
-  '--primary': '#2563eb',
-  '--secondary': '#4f46e5',
-  '--accent': '#38bdf8',
-  '--bg': '#f9fafb',
-  '--surface': '#ffffff',
-  '--header-bg': '#0c1445',
-  '--footer-bg': '#0c1445',
-  '--text-primary': '#111827',
-  '--text-secondary': '#6b7280',
-  '--button-bg': '#2563eb',
+  '--primary': '#8b5cf6', // Premium Violet
+  '--secondary': '#6366f1', // Indigo
+  '--accent': '#f472b6', // Vibrant Pink
+  '--bg': '#0f172a', // Slate 900
+  '--surface': '#1e293b', // Slate 800
+  '--header-bg': 'color-mix(in srgb, #0f172a 80%, transparent)',
+  '--footer-bg': '#0f172a',
+  '--text-primary': '#f8fafc', // Slate 50
+  '--text-secondary': '#94a3b8', // Slate 400
+  '--button-bg': '#8b5cf6',
   '--button-text': '#ffffff',
   '--success': '#10b981',
   '--warning': '#f59e0b',
   '--error': '#ef4444',
-  '--border': '#e5e7eb',
-  '--font-family': 'Inter, system-ui, sans-serif',
-  '--heading-size': '2.5rem',
-  '--body-size': '1rem',
+  '--border': '#334155', // Slate 700
+  '--font-family': '"Outfit", "Inter", system-ui, sans-serif',
+  '--heading-size': '2.75rem',
+  '--body-size': '1.05rem',
   '--font-weight': '400',
-  '--line-height': '1.6',
+  '--line-height': '1.7',
   '--container-width': '1280px',
-  '--border-radius': '0.75rem',
-  '--box-shadow': '0 1px 3px rgba(0,0,0,0.1)',
-  '--section-spacing': '4rem',
-  '--header-height': '4rem',
-  '--button-radius': '0.5rem',
-  '--button-padding': '0.75rem 1.5rem',
-  '--button-hover': '#1d4ed8',
-  '--button-shadow': '0 4px 6px rgba(0,0,0,0.1)',
+  '--border-radius': '1rem', // Softer radius for premium feel
+  '--box-shadow': '0 8px 32px rgba(0,0,0,0.3)',
+  '--section-spacing': '5rem',
+  '--header-height': '4.5rem',
+  '--button-radius': '0.75rem',
+  '--button-padding': '0.875rem 1.75rem',
+  '--button-hover': '#7c3aed',
+  '--button-shadow': '0 8px 16px rgba(139, 92, 246, 0.3)',
 };
 
 function readCache() {
@@ -67,7 +67,7 @@ const ThemeContext = createContext(null);
 export function ThemeProvider({ children }) {
   const [cssVars, setCssVars] = useState(initialVars);
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    try { return localStorage.getItem(DARK_KEY) === 'true'; } catch { return false; }
+    try { const stored = localStorage.getItem(DARK_KEY); return stored !== null ? stored === 'true' : true; } catch { return true; }
   });
   const [ready, setReady] = useState(!!cached);
 

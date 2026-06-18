@@ -3,7 +3,7 @@ import { useSiteSettings } from '../context/SiteSettingsContext';
 import { mediaUrl } from '../utils/mediaUrl';
 
 export function Footer() {
-  const { storeName, storeLogo, footerLogo, copyrightText, contactEmail, contactPhone, contactAddress, socialLinks } = useSiteSettings();
+  const { storeName, tagline, storeLogo, footerLogo, copyrightText, contactEmail, contactPhone, contactAddress, socialLinks } = useSiteSettings();
 
   return (
     <footer style={{ backgroundColor: 'var(--footer-bg)', color: 'rgba(255,255,255,0.8)', padding: '3rem 1rem 1.5rem', marginTop: 'auto' }}>
@@ -13,7 +13,7 @@ export function Footer() {
             {footerLogo && <img src={mediaUrl(footerLogo)} alt={storeName} style={{ height: 40, marginBottom: '0.75rem', objectFit: 'contain' }} />}
             {!footerLogo && storeLogo && <img src={mediaUrl(storeLogo)} alt={storeName} style={{ height: 40, marginBottom: '0.75rem', objectFit: 'contain' }} />}
             <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#ffffff', marginBottom: '0.5rem' }}>{storeName}</h3>
-            <p style={{ fontSize: '0.875rem', opacity: 0.7 }}>Premium aquatic products for enthusiasts and professionals.</p>
+            <p style={{ fontSize: '0.875rem', opacity: 0.7 }}>{tagline}</p>
           </div>
 
           <div>

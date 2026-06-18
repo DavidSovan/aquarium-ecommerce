@@ -5,6 +5,7 @@ from typing import Optional
 
 class BrandingSettingsBase(BaseModel):
     store_name: str = "Fashion Store"
+    tagline: str = "Premium aquatic products for enthusiasts and professionals."
     store_logo: Optional[str] = None
     favicon: Optional[str] = None
     footer_logo: Optional[str] = None
@@ -30,6 +31,7 @@ class BrandingSettingsResponse(BrandingSettingsBase):
 
 class BrandingSettingsUpdate(BaseModel):
     store_name: Optional[str] = None
+    tagline: Optional[str] = None
     store_logo: Optional[str] = None
     favicon: Optional[str] = None
     footer_logo: Optional[str] = None

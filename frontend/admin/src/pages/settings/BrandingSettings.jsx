@@ -112,6 +112,10 @@ export function BrandingSettings() {
                 <textarea value={form.contact_address || ''} onChange={e => handleChange('contact_address', e.target.value)} rows={3} className="w-full px-3 py-2 border rounded-lg" />
               </div>
               <div>
+                <label className="text-sm text-gray-600 block mb-1">Tagline</label>
+                <input type="text" value={form.tagline || ''} onChange={e => handleChange('tagline', e.target.value)} className="w-full px-3 py-2 border rounded-lg" />
+              </div>
+              <div>
                 <label className="text-sm text-gray-600 block mb-1">Copyright Text</label>
                 <input type="text" value={form.copyright_text || ''} onChange={e => handleChange('copyright_text', e.target.value)} className="w-full px-3 py-2 border rounded-lg" />
               </div>
@@ -146,6 +150,7 @@ export function BrandingSettings() {
             <div className="p-6 border rounded-lg text-center space-y-3">
               {form.store_logo && <img src={toFullUrl(form.store_logo)} alt="Logo" className="h-12 mx-auto object-contain" />}
               <h3 className="text-xl font-bold">{form.store_name || 'Store Name'}</h3>
+              {form.tagline && <p className="text-sm text-gray-400">{form.tagline}</p>}
               {form.contact_email && <p className="text-sm text-gray-500">{form.contact_email}</p>}
               {form.contact_phone && <p className="text-sm text-gray-500">{form.contact_phone}</p>}
               <div className="flex justify-center gap-3 pt-2">

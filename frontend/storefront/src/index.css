@@ -1,21 +1,897 @@
 @import "tailwindcss";
 
-.theme-surface { background-color: var(--surface); }
-.theme-text-primary { color: var(--text-primary); }
-.theme-text-secondary { color: var(--text-secondary); }
-.theme-text-link { color: var(--primary); }
-.theme-text-link:hover { color: var(--secondary); }
-.theme-btn-primary { background-color: var(--button-bg); color: var(--button-text); border-radius: var(--button-radius); padding: var(--button-padding); box-shadow: var(--button-shadow); }
-.theme-btn-primary:hover { background-color: var(--button-hover); }
-.theme-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-.theme-border { border-color: var(--border); }
-.theme-shadow { box-shadow: var(--box-shadow); }
-.theme-rounded { border-radius: var(--border-radius); }
-.theme-danger { color: var(--error); }
-.theme-danger:hover { color: var(--error); opacity: 0.8; }
-.theme-success { color: var(--success); }
+/* ============================================================
+   AQUARIUM STOREFRONT — PREMIUM UI DESIGN SYSTEM
+   CSS-only revamp: no JSX changes needed
+   ============================================================ */
 
+/* ─── Root Enhancements ─────────────────────────────────────── */
+:root {
+  --transition-fast: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --glow-primary: 0 0 20px color-mix(in srgb, var(--primary) 25%, transparent);
+  --glow-accent: 0 0 20px color-mix(in srgb, var(--accent) 25%, transparent);
+  --glass-bg: color-mix(in srgb, var(--surface) 80%, transparent);
+  --glass-border: color-mix(in srgb, var(--border) 40%, transparent);
+}
+
+/* ─── Global Base Styles ────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--primary) 30%, transparent);
+  color: var(--text-primary);
+}
+
+::-moz-selection {
+  background: color-mix(in srgb, var(--primary) 30%, transparent);
+  color: var(--text-primary);
+}
+
+/* ─── Premium Scrollbar ─────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-secondary) 30%, transparent);
+  border-radius: 100px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--text-secondary) 50%, transparent);
+  background-clip: content-box;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-secondary) 30%, transparent) transparent;
+}
+
+/* ─── Theme Utility Classes (Enhanced) ──────────────────────── */
+.theme-surface {
+  background-color: var(--surface);
+  transition: background-color var(--transition-smooth),
+              box-shadow var(--transition-smooth);
+}
+
+.theme-text-primary {
+  color: var(--text-primary);
+  transition: color var(--transition-fast);
+}
+
+.theme-text-secondary {
+  color: var(--text-secondary);
+  transition: color var(--transition-fast);
+}
+
+.theme-text-link {
+  color: var(--primary);
+  transition: color var(--transition-fast), opacity var(--transition-fast);
+}
+
+.theme-text-link:hover {
+  color: var(--secondary);
+  opacity: 0.9;
+}
+
+.theme-btn-primary {
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  border-radius: var(--button-radius);
+  padding: var(--button-padding);
+  box-shadow: var(--button-shadow);
+  transition: all var(--transition-smooth);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.theme-btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0) 50%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  opacity: 0;
+  transition: opacity var(--transition-smooth);
+  z-index: -1;
+}
+
+.theme-btn-primary:hover {
+  background-color: var(--button-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--button-bg) 35%, transparent),
+              0 2px 6px color-mix(in srgb, var(--button-bg) 20%, transparent);
+}
+
+.theme-btn-primary:hover::before {
+  opacity: 1;
+}
+
+.theme-btn-primary:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: var(--button-shadow);
+}
+
+.theme-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.theme-border {
+  border-color: var(--border);
+  transition: border-color var(--transition-fast);
+}
+
+.theme-shadow {
+  box-shadow: var(--box-shadow);
+  transition: box-shadow var(--transition-smooth);
+}
+
+.theme-rounded {
+  border-radius: var(--border-radius);
+}
+
+.theme-danger {
+  color: var(--error);
+  transition: color var(--transition-fast), opacity var(--transition-fast);
+}
+
+.theme-danger:hover {
+  color: var(--error);
+  opacity: 0.8;
+}
+
+.theme-success {
+  color: var(--success);
+  transition: color var(--transition-fast);
+}
+
+/* ─── Enhanced Navbar ───────────────────────────────────────── */
+nav {
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  background-color: var(--glass-bg) !important;
+  transition: background-color var(--transition-smooth),
+              box-shadow var(--transition-smooth),
+              border-color var(--transition-smooth);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+nav a {
+  transition: color var(--transition-fast), transform var(--transition-fast) !important;
+  position: relative;
+}
+
+nav a:hover {
+  color: var(--primary) !important;
+}
+
+/* Animated underline for nav links */
+nav > div > div > a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  border-radius: 1px;
+  transition: width var(--transition-smooth), left var(--transition-smooth);
+}
+
+nav > div > div > a:hover::after {
+  width: 100%;
+  left: 0;
+}
+
+/* Cart icon animation */
+nav button svg {
+  transition: transform var(--transition-spring), color var(--transition-fast);
+}
+
+nav button:hover svg {
+  transform: scale(1.1);
+  color: var(--primary) !important;
+}
+
+/* Cart badge pulse */
+nav button span[style*="borderRadius: '50%'"],
+nav button span[style*="border-radius: 50%"] {
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* ─── Enhanced Form Controls ────────────────────────────────── */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="number"],
+input[type="search"],
+textarea,
+select {
+  transition: border-color var(--transition-fast),
+              box-shadow var(--transition-fast),
+              background-color var(--transition-fast),
+              transform var(--transition-fast) !important;
+  font-size: 0.9375rem;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent),
+              0 1px 3px color-mix(in srgb, var(--primary) 10%, transparent) !important;
+  transform: translateY(-0.5px);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: color-mix(in srgb, var(--text-secondary) 60%, transparent);
+  transition: color var(--transition-fast);
+}
+
+input:focus::placeholder,
+textarea:focus::placeholder {
+  color: color-mix(in srgb, var(--text-secondary) 40%, transparent);
+}
+
+/* Select dropdown enhancement */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+/* File input styling */
+input[type="file"] {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+input[type="file"]::file-selector-button {
+  background: var(--button-bg);
+  color: var(--button-text);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--button-radius);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  margin-right: 0.75rem;
+  transition: all var(--transition-fast);
+}
+
+input[type="file"]::file-selector-button:hover {
+  background: var(--button-hover);
+  transform: translateY(-1px);
+}
+
+/* ─── Enhanced Buttons (Global) ─────────────────────────────── */
+button {
+  transition: all var(--transition-fast);
+}
+
+button:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+/* Buttons with backgrounds get lift on hover */
+button[style*="backgroundColor: 'var(--button-bg)'"]:hover,
+button[style*="background-color: var(--button-bg)"]:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+/* ─── Card Hover Effects ────────────────────────────────────── */
+.group {
+  transition: transform var(--transition-smooth),
+              box-shadow var(--transition-smooth),
+              border-color var(--transition-fast) !important;
+}
+
+.group:hover {
+  border-color: color-mix(in srgb, var(--primary) 30%, transparent) !important;
+}
+
+/* ─── Hero Section Enhancements ─────────────────────────────── */
+.hero-dynamic {
+  transition: opacity 0.8s ease;
+}
+
+section[style*="minHeight: '92vh'"] h1,
+section[style*="min-height: 92vh"] h1 {
+  animation: heroTextReveal 0.8s ease-out 0.2s both;
+}
+
+section[style*="minHeight: '92vh'"] p,
+section[style*="min-height: 92vh"] p {
+  animation: heroTextReveal 0.8s ease-out 0.4s both;
+}
+
+@keyframes heroTextReveal {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* Hero CTA buttons glow */
+section[style*="minHeight: '92vh'"] a[style*="button"],
+.hero-dynamic a[style*="button-bg"] {
+  position: relative;
+}
+
+section[style*="minHeight: '92vh'"] a:hover,
+.hero-dynamic a[style*="button-bg"]:hover {
+  transform: translateY(-2px) scale(1.02) !important;
+}
+
+/* ─── Product Card Premium Effects ──────────────────────────── */
+/* Image zoom on hover */
+.group .aspect-square img {
+  transition: transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1) !important;
+}
+
+.group:hover .aspect-square img {
+  transform: scale(1.08) !important;
+}
+
+/* Quick view overlay smooth reveal */
+.group .aspect-square + div,
+.group .aspect-square ~ div[style*="rgba(0,0,0"] {
+  transition: opacity var(--transition-smooth) !important;
+}
+
+/* Wishlist button animation */
+button[aria-label*="wishlist"] {
+  transition: transform var(--transition-spring),
+              color var(--transition-fast),
+              background-color var(--transition-fast) !important;
+}
+
+button[aria-label*="wishlist"]:hover {
+  transform: scale(1.15) !important;
+}
+
+button[aria-label*="wishlist"]:active {
+  transform: scale(0.9) !important;
+}
+
+/* ─── Cart Drawer Glassmorphism ─────────────────────────────── */
+/* Cart overlay */
+div[class*="fixed inset-0 bg-black"] {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: overlayFadeIn 0.25s ease-out;
+}
+
+/* Cart panel slide-in */
+div[class*="fixed inset-0 bg-black"] > div[class*="absolute right-0"] {
+  animation: drawerSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes drawerSlideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+/* ─── Loading & Skeleton Enhancements ───────────────────────── */
+.animate-pulse {
+  animation: enhancedPulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+}
+
+@keyframes enhancedPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Shimmer effect for loading skeletons */
+.animate-pulse > div,
+.animate-pulse > .aspect-square {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-pulse > div::after,
+.animate-pulse > .aspect-square::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.06) 40%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.06) 60%,
+    transparent 100%
+  );
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Spinner enhancement */
+.animate-spin {
+  animation: enhancedSpin 0.6s linear infinite !important;
+}
+
+@keyframes enhancedSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Page Transitions ──────────────────────────────────────── */
+main {
+  animation: pageReveal 0.4s ease-out;
+}
+
+@keyframes pageReveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Product Grid Entry Animations ─────────────────────────── */
 @keyframes slideInUp {
-  from { transform: translateY(1rem); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+  from {
+    transform: translateY(1rem);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes shopFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Footer Enhancement ────────────────────────────────────── */
+footer {
+  position: relative;
+  overflow: hidden;
+}
+
+footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--primary) 40%, transparent) 20%,
+    color-mix(in srgb, var(--accent) 50%, transparent) 50%,
+    color-mix(in srgb, var(--primary) 40%, transparent) 80%,
+    transparent 100%
+  );
+}
+
+footer a {
+  transition: color var(--transition-fast),
+              transform var(--transition-fast),
+              opacity var(--transition-fast) !important;
+}
+
+footer a:hover {
+  color: rgba(255, 255, 255, 0.95) !important;
+  transform: translateX(2px);
+}
+
+/* ─── Star Rating Enhancement ───────────────────────────────── */
+.text-yellow-400 {
+  text-shadow: 0 0 8px rgba(250, 204, 21, 0.4);
+  transition: transform var(--transition-spring),
+              text-shadow var(--transition-fast);
+}
+
+button.text-yellow-400:hover,
+button.text-gray-300:hover {
+  transform: scale(1.2);
+}
+
+/* ─── Error/Success Message Enhancement ─────────────────────── */
+div[style*="color-mix(in srgb, var(--error)"] {
+  animation: shakeIn 0.4s ease-out;
+}
+
+@keyframes shakeIn {
+  0% { transform: translateX(-8px); opacity: 0; }
+  25% { transform: translateX(4px); }
+  50% { transform: translateX(-2px); }
+  75% { transform: translateX(1px); }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+/* ─── Auth Pages (Login/Register) ───────────────────────────── */
+.min-h-\[70vh\] {
+  background: radial-gradient(
+    ellipse at top,
+    color-mix(in srgb, var(--primary) 5%, transparent) 0%,
+    transparent 60%
+  );
+}
+
+.min-h-\[70vh\] > div {
+  animation: authCardReveal 0.5s ease-out;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+@keyframes authCardReveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ─── Profile Page Enhancement ──────────────────────────────── */
+/* Avatar initials glow */
+div[style*="borderRadius: '50%'"][style*="backgroundColor: 'color-mix"],
+.rounded-full[style*="color-mix(in srgb, var(--primary)"] {
+  transition: transform var(--transition-spring),
+              box-shadow var(--transition-smooth);
+}
+
+div[style*="borderRadius: '50%'"][style*="backgroundColor: 'color-mix"]:hover,
+.rounded-full[style*="color-mix(in srgb, var(--primary)"]:hover {
+  transform: scale(1.05);
+  box-shadow: var(--glow-primary);
+}
+
+/* ─── Checkout Steps Enhancement ────────────────────────────── */
+/* Step dots / progress indicators */
+.rounded-full[style*="width: 28"] {
+  transition: width var(--transition-smooth),
+              background-color var(--transition-fast);
+}
+
+/* ─── Order Timeline Enhancement ────────────────────────────── */
+.scale-125 {
+  animation: statusPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 currentColor;
+  }
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 20%, transparent);
+  }
+}
+
+/* ─── Breadcrumb Enhancement ────────────────────────────────── */
+nav[class*="flex items-center gap-2 text-sm"] a {
+  transition: color var(--transition-fast) !important;
+}
+
+nav[class*="flex items-center gap-2 text-sm"] a:hover {
+  color: var(--primary) !important;
+}
+
+/* ─── Image Zoom Crosshair Enhancement ──────────────────────── */
+.cursor-crosshair {
+  transition: box-shadow var(--transition-smooth);
+}
+
+.cursor-crosshair:hover {
+  box-shadow: 0 8px 30px color-mix(in srgb, var(--border) 30%, transparent);
+}
+
+/* ─── Trust Badge Hover Effects ─────────────────────────────── */
+div[class*="flex flex-wrap gap-4 mt-auto"] > div,
+div[class*="flex items-center gap-2 text-xs"] {
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
+}
+
+div[class*="flex flex-wrap gap-4 mt-auto"] > div:hover {
+  transform: translateY(-1px);
+}
+
+/* ─── Filter Bar / Active Filter Tags ───────────────────────── */
+span[style*="color-mix(in srgb, var(--primary) 12%"] {
+  transition: transform var(--transition-fast),
+              box-shadow var(--transition-fast);
+}
+
+span[style*="color-mix(in srgb, var(--primary) 12%"]:hover {
+  transform: scale(1.03);
+}
+
+/* ─── Pagination Enhancement ────────────────────────────────── */
+button[style*="backgroundColor: 'var(--primary)'"],
+button[style*="background-color: var(--primary)"] {
+  position: relative;
+}
+
+/* ─── Color Swatch Enhancement ──────────────────────────────── */
+button[title*="$"] .rounded-full,
+button .block.rounded-full {
+  transition: transform var(--transition-spring),
+              border-color var(--transition-fast),
+              box-shadow var(--transition-fast) !important;
+}
+
+/* ─── Quantity Selector Polish ──────────────────────────────── */
+div[style*="border: '1px solid color-mix"] button,
+.inline-flex.items-center button {
+  transition: background-color var(--transition-fast),
+              opacity var(--transition-fast);
+}
+
+div[style*="border: '1px solid color-mix"] button:hover:not(:disabled),
+.inline-flex.items-center button:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+/* ─── Tooltip-like Hover States ─────────────────────────────── */
+/* Remove/Delete buttons red glow on hover */
+button[style*="color: 'var(--error)'"]:hover,
+button[style*="color: var(--error)"]:hover {
+  background-color: color-mix(in srgb, var(--error) 8%, transparent) !important;
+}
+
+/* ─── Scroll-Triggered Animations (via IntersectionObserver fallback) ─── */
+/* Smooth appearance for sections as they load */
+section {
+  animation: sectionReveal 0.6s ease-out;
+}
+
+@keyframes sectionReveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Mobile Responsiveness Enhancements ────────────────────── */
+@media (max-width: 640px) {
+  /* Disable hover transforms on touch devices for better UX */
+  .group:hover {
+    transform: none !important;
+  }
+
+  /* Larger touch targets */
+  button, a {
+    min-height: 36px;
+  }
+
+  /* Tighter spacing on mobile */
+  nav > div {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+}
+
+/* ─── Reduced Motion Support ────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ─── Focus Visible Enhancement ─────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ─── Link Hover Animations ─────────────────────────────────── */
+a {
+  transition: color var(--transition-fast),
+              opacity var(--transition-fast);
+}
+
+/* ─── Image Load Transitions ────────────────────────────────── */
+img {
+  transition: opacity 0.4s ease, transform 0.5s ease;
+}
+
+img[loading="lazy"] {
+  opacity: 0;
+  animation: imgReveal 0.5s ease-out forwards;
+}
+
+@keyframes imgReveal {
+  to {
+    opacity: 1;
+  }
+}
+
+/* ─── Cart Item Animations ──────────────────────────────────── */
+@keyframes cartFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Premium Gradient Accents ──────────────────────────────── */
+/* Subtle gradient line for page sections */
+hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--border) 60%, transparent) 20%,
+    color-mix(in srgb, var(--border) 80%, transparent) 50%,
+    color-mix(in srgb, var(--border) 60%, transparent) 80%,
+    transparent
+  );
+  margin: 1rem 0;
+}
+
+/* ─── Interactive Hover Card Lift ───────────────────────────── */
+.hover\:scale-\[1\.01\]:hover,
+.hover\:scale-\[1\.02\]:hover {
+  box-shadow: 0 12px 40px color-mix(in srgb, var(--border) 30%, transparent) !important;
+}
+
+/* ─── Notification Badge Styles ─────────────────────────────── */
+span[style*="borderRadius: '50%'"][style*="backgroundColor: 'var(--primary)'"] {
+  animation: badgeAppear 0.3s var(--transition-spring);
+}
+
+@keyframes badgeAppear {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ─── Empty State Enhancement ───────────────────────────────── */
+.text-center.py-20,
+.text-center.py-28,
+.text-center.py-14 {
+  animation: emptyStateReveal 0.5s ease-out;
+}
+
+@keyframes emptyStateReveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ─── Glassmorphism Helper Classes ──────────────────────────── */
+.backdrop-blur-sm {
+  backdrop-filter: blur(8px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(160%) !important;
+}
+
+/* ─── Smooth Transitions for Dynamic Theme Changes ──────────── */
+.app {
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* ─── Premium Drop Shadow for Floating Elements ─────────────── */
+.lg\:sticky {
+  transition: box-shadow var(--transition-smooth);
+}
+
+.lg\:sticky:hover {
+  box-shadow: 0 8px 30px color-mix(in srgb, var(--border) 25%, transparent) !important;
+}
+
+@keyframes blob-move {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(15%, -15%) scale(1.1); }
+  66% { transform: translate(-10%, 10%) scale(0.9); }
+  100% { transform: translate(0, 0) scale(1); }
 }

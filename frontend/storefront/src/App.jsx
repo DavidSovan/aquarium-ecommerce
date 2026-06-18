@@ -44,7 +44,7 @@ function Layout() {
   const hasHero = homepageSections.some(s => s.section_type === 'hero');
 
   return (
-    <div className="app" style={{ 
+    <div className="app relative" style={{ 
       display: 'flex', 
       flexDirection: 'column', 
       fontFamily: 'var(--font-family)', 
@@ -53,8 +53,15 @@ function Layout() {
       minHeight: '100vh',
       overflowX: 'hidden'
     }}>
+      {/* Animated Premium Background Blobs */}
+      <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full opacity-20 blur-[100px]" style={{ backgroundColor: 'var(--primary)', animation: 'blob-move 20s infinite alternate' }}></div>
+        <div className="absolute top-[20%] right-[-10%] w-[30%] h-[50%] rounded-full opacity-20 blur-[120px]" style={{ backgroundColor: 'var(--accent)', animation: 'blob-move 25s infinite alternate-reverse' }}></div>
+        <div className="absolute bottom-[-20%] left-[20%] w-[50%] h-[40%] rounded-full opacity-10 blur-[100px]" style={{ backgroundColor: 'var(--secondary)', animation: 'blob-move 30s infinite alternate' }}></div>
+      </div>
+
       <Navbar onCartOpen={() => setIsCartOpen(true)} />
-      <main style={{ flex: 1 }}>
+      <main style={{ flex: 1 }} className="relative z-10">
         <Routes>
           <Route path="/" element={
             <>
@@ -82,7 +89,7 @@ function Layout() {
           <Route path="/reviews" element={<ProtectedRoute><MyReviewsPage /></ProtectedRoute>} />
         </Routes>
       </main>
-      <Footer />
+      <Footer className="relative z-10" />
       <CartDrawer
         cart={cart}
         isOpen={isCartOpen}

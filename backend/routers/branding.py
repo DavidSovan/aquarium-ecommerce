@@ -21,6 +21,7 @@ def get_public_branding(response: Response, db: Session = Depends(get_db)):
         db.refresh(branding)
     return {
         "store_name": branding.store_name,
+        "tagline": branding.tagline,
         "store_logo": branding.store_logo,
         "favicon": branding.favicon,
         "footer_logo": branding.footer_logo,

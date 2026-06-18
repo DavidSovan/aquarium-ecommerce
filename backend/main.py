@@ -128,6 +128,14 @@ async def lifespan(app: FastAPI):
     except Exception:
         pass
 
+    try:
+        conn = engine.connect()
+        conn.execute(text("ALTER TABLE branding_settings ADD COLUMN tagline VARCHAR(500) DEFAULT 'Premium aquatic products for enthusiasts and professionals.' NOT NULL"))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
     _DEFAULTS = [
         ("homepage_video_enabled", "false", "Enable background video on storefront homepage"),
         ("homepage_video_url", "", "Direct MP4 URL for homepage background video"),
@@ -142,7 +150,7 @@ async def lifespan(app: FastAPI):
                     db.add(Setting(key=key, value=value, description=desc))
 
             if not db.query(BrandingSettings).first():
-                db.add(BrandingSettings(store_name="Fashion Store"))
+                db.add(BrandingSettings(store_name="Fashion Store", tagline="Premium aquatic products for enthusiasts and professionals."))
 
             if not db.query(ThemeSettings).first():
                 db.add(ThemeSettings(name="Default Theme", is_active=True))
