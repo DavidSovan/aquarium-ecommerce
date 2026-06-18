@@ -108,6 +108,11 @@ def delete_address(
     if address.user_id != current_user.id and current_user.role not in ("admin", "staff"):
         raise HTTPException(status_code=403, detail="Not authorized to delete this address")
 
+    # Set foreign keys in Order table to None to prevent IntegrityError
+    from models.order import Order
+    db.query(Order).filter(Order.shipping_address_id == address_id).update({Order.shipping_address_id: None})
+    db.query(Order).filter(Order.billing_address_id == address_id).update({Order.billing_address_id: None})
+
     db.delete(address)
     db.commit()
     return {"message": "Address deleted successfully"}

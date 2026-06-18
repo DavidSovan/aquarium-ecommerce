@@ -96,13 +96,13 @@ export function Shop() {
   const selectedCategoryName = categories.find(c => c.id === Number(categoryId))?.name;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
-      {/* ── Hero banner ───────────────────────────────────────────────── */}
+    <div className="min-h-screen pb-16" style={{ backgroundColor: 'var(--bg)' }}>
+      {/* ── Premium Hero banner ───────────────────────────────────────── */}
       <div
-        className="relative overflow-hidden"
+        className="relative flex items-center justify-center overflow-hidden"
         style={heroBanners.length === 0
-          ? { background: 'linear-gradient(135deg, var(--header-bg) 0%, var(--primary) 40%, var(--accent) 100%)' }
-          : { minHeight: '42vh' }
+          ? { background: 'linear-gradient(135deg, var(--header-bg) 0%, var(--primary) 40%, var(--accent) 100%)', minHeight: '50vh' }
+          : { minHeight: '50vh' }
         }
       >
         {heroBanners.map((banner, i) => (
@@ -115,158 +115,181 @@ export function Shop() {
               backgroundPosition: 'center',
               opacity: i === currentBannerIndex ? 1 : 0,
               zIndex: i === currentBannerIndex ? 1 : 0,
-              transform: i === currentBannerIndex ? 'scale(1)' : 'scale(1.05)',
+              transform: i === currentBannerIndex ? 'scale(1)' : 'scale(1.1)',
             }}
           />
         ))}
-        {heroBanners.length > 0 && (
-          <div className="absolute inset-0 z-10" style={{
-            background: 'linear-gradient(135deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0.10) 100%)'
-          }} />
-        )}
-        <div className="relative z-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase mb-4"
+        {/* Dynamic Gradient Overlay */}
+        <div className="absolute inset-0 z-10" style={{
+          background: 'linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%)'
+        }} />
+
+        {/* Ambient Glow Orbs */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full mix-blend-screen opacity-30 z-10 animate-blob"
+             style={{ background: 'var(--primary)', filter: 'blur(100px)' }}></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full mix-blend-screen opacity-30 z-10 animate-blob animation-delay-2000"
+             style={{ background: 'var(--accent)', filter: 'blur(100px)' }}></div>
+             
+        <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 flex flex-col items-center text-center">
+          <div className="max-w-3xl glass-panel p-8 sm:p-12 rounded-3xl" style={{
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+          }}>
+            <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-6"
               style={{
-                backgroundColor: 'rgba(255,255,255,0.12)',
-                color: 'rgba(255,255,255,0.85)',
-                backdropFilter: 'blur(8px)',
-                border: '1px solid rgba(255,255,255,0.15)',
+                backgroundColor: 'rgba(0,0,0,0.3)',
+                color: '#fff',
+                border: '1px solid rgba(255,255,255,0.1)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)'
               }}>
-              <span style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: 'var(--accent)' }} />
-              {heroBanners.length > 0 ? heroBanners[currentBannerIndex]?.subtitle || 'Premium Collection' : 'Premium Collection'}
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: 'var(--accent)', boxShadow: '0 0 10px var(--accent)' }} />
+              {heroBanners.length > 0 ? heroBanners[currentBannerIndex]?.subtitle || 'Exclusive Collection' : 'Exclusive Collection'}
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight"
-              style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
-              {heroBanners[currentBannerIndex]?.title || 'Shop'}
+            
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-400 mb-6 drop-shadow-lg"
+              style={{ lineHeight: 1.1 }}>
+              {heroBanners[currentBannerIndex]?.title || 'Our Collection'}
             </h1>
-            <p className="mt-4 text-lg sm:text-xl max-w-xl" style={{ color: 'rgba(255,255,255,0.8)' }}>
-              {heroBanners[currentBannerIndex]?.description || 'Explore our curated collection of aquatic life, supplies, and accessories.'}
+            
+            <p className="text-lg sm:text-xl max-w-2xl mx-auto font-medium" style={{ color: 'rgba(255,255,255,0.85)', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+              {heroBanners[currentBannerIndex]?.description || 'Discover a premium selection of aquatic life and high-end accessories curated for your perfect aquarium.'}
             </p>
+            
+            {heroBanners[currentBannerIndex]?.button_text && (
+              <a href={heroBanners[currentBannerIndex].button_link || '#products'}
+                className="group inline-flex items-center justify-center gap-3 mt-8 px-8 py-4 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all hover:-translate-y-1"
+                style={{
+                  background: 'linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%)',
+                  color: '#fff',
+                  boxShadow: '0 10px 25px -5px color-mix(in srgb, var(--primary) 50%, transparent), inset 0 2px 0 rgba(255,255,255,0.2)',
+                }}>
+                <span>{heroBanners[currentBannerIndex].button_text}</span>
+                <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </a>
+            )}
           </div>
-          {heroBanners[currentBannerIndex]?.button_text && (
-            <a href={heroBanners[currentBannerIndex].button_link || '#products'}
-              className="inline-flex items-center gap-2 mt-6 px-6 py-3 rounded-xl font-semibold text-sm transition-all hover:scale-105"
-              style={{
-                backgroundColor: 'var(--button-bg)',
-                color: 'var(--button-text)',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-              }}>
-              {heroBanners[currentBannerIndex].button_text}
-              <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path fillRule="evenodd" d="M6.22 3.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 010-1.06z"/>
-              </svg>
-            </a>
-          )}
         </div>
+        
         {heroBanners.length > 1 && (
-          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex gap-2.5">
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-3 p-2 rounded-full" style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(10px)' }}>
             {heroBanners.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setCurrentBannerIndex(i)}
-                className="rounded-full transition-all duration-300"
+                className="rounded-full transition-all duration-500 ease-out relative overflow-hidden"
                 style={{
-                  width: i === currentBannerIndex ? 28 : 8,
-                  height: 8,
-                  backgroundColor: i === currentBannerIndex ? '#fff' : 'rgba(255,255,255,0.4)',
+                  width: i === currentBannerIndex ? 36 : 12,
+                  height: 12,
+                  backgroundColor: i === currentBannerIndex ? '#fff' : 'rgba(255,255,255,0.3)',
+                  boxShadow: i === currentBannerIndex ? '0 0 10px rgba(255,255,255,0.5)' : 'none',
                 }}
               />
             ))}
           </div>
         )}
-        {heroBanners.length === 0 && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 animate-bounce">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2">
-              <path d="M10 3v14M5 12l5 5 5-5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-        )}
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-7 relative z-30" id="products">
-        {/* ── Filter bar ───────────────────────────────────────────────── */}
-        <div className="theme-surface theme-shadow theme-rounded p-4 sm:p-5" style={{ border: '1px solid color-mix(in srgb, var(--border), transparent 50%)' }}>
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-xs font-semibold theme-text-secondary tracking-wider mb-1.5">Search</label>
-              <div className="relative">
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 theme-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-30" id="products">
+        {/* ── Floating Filter bar ───────────────────────────────────────── */}
+        <div className="theme-surface rounded-2xl p-6 sm:p-8 -mt-12 sm:-mt-16 mb-12 backdrop-blur-xl shadow-2xl transition-all hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] relative overflow-hidden" 
+             style={{ 
+               border: '1px solid color-mix(in srgb, var(--border), transparent 50%)',
+               background: 'color-mix(in srgb, var(--surface) 90%, transparent)' 
+             }}>
+          {/* Subtle gradient accent top border */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[var(--primary)] via-[var(--accent)] to-[var(--primary)] opacity-70"></div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="relative group">
+              <label className="block text-xs font-bold theme-text-secondary tracking-widest uppercase mb-2 ml-1">Search Collection</label>
+              <div className="relative flex items-center">
+                <svg className="absolute left-4 w-5 h-5 theme-text-secondary group-focus-within:text-[var(--primary)] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <input
                   type="text"
-                  placeholder="Search products..."
+                  placeholder="What are you looking for?"
                   value={search}
                   onChange={e => { setSearch(e.target.value); setSkip(0); }}
-                  className="w-full pl-9 pr-3 py-2.5 theme-border theme-rounded text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-shadow"
+                  className="w-full pl-12 pr-4 py-3.5 bg-transparent border-2 border-[color-mix(in_srgb,var(--border),transparent_20%)] rounded-xl text-sm font-medium focus:outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[color-mix(in_srgb,var(--primary)_15%,transparent)] transition-all shadow-sm"
                 />
               </div>
             </div>
 
-            <div className="w-full sm:w-auto">
-              <label className="block text-xs font-semibold theme-text-secondary tracking-wider mb-1.5">Category</label>
-              <select
-                value={categoryId}
-                onChange={e => { setCategoryId(e.target.value); setSkip(0); }}
-                className="w-full sm:w-44 px-3 py-2.5 theme-border theme-rounded text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] theme-surface cursor-pointer"
-              >
-                <option value="">All Categories</option>
-                {categories.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+            <div className="relative group">
+              <label className="block text-xs font-bold theme-text-secondary tracking-widest uppercase mb-2 ml-1">Category</label>
+              <div className="relative">
+                <select
+                  value={categoryId}
+                  onChange={e => { setCategoryId(e.target.value); setSkip(0); }}
+                  className="w-full pl-4 pr-10 py-3.5 bg-transparent border-2 border-[color-mix(in_srgb,var(--border),transparent_20%)] rounded-xl text-sm font-medium focus:outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[color-mix(in_srgb,var(--primary)_15%,transparent)] transition-all cursor-pointer appearance-none shadow-sm"
+                >
+                  <option value="">All Categories</option>
+                  {categories.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none theme-text-secondary group-focus-within:text-[var(--primary)] transition-colors">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </div>
             </div>
 
-            <div className="w-full sm:w-auto">
-              <label className="block text-xs font-semibold theme-text-secondary tracking-wider mb-1.5">Sort</label>
-              <select
-                value={`${sortBy}-${sortOrder}`}
-                onChange={e => { const [b, o] = e.target.value.split('-'); setSortBy(b); setSortOrder(o); setSkip(0); }}
-                className="w-full sm:w-44 px-3 py-2.5 theme-border theme-rounded text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] theme-surface cursor-pointer"
-              >
-                <option value="created_at-desc">Newest</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-                <option value="name-asc">Name: A-Z</option>
-                <option value="name-desc">Name: Z-A</option>
-              </select>
+            <div className="relative group">
+              <label className="block text-xs font-bold theme-text-secondary tracking-widest uppercase mb-2 ml-1">Sort By</label>
+              <div className="relative">
+                <select
+                  value={`${sortBy}-${sortOrder}`}
+                  onChange={e => { const [b, o] = e.target.value.split('-'); setSortBy(b); setSortOrder(o); setSkip(0); }}
+                  className="w-full pl-4 pr-10 py-3.5 bg-transparent border-2 border-[color-mix(in_srgb,var(--border),transparent_20%)] rounded-xl text-sm font-medium focus:outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[color-mix(in_srgb,var(--primary)_15%,transparent)] transition-all cursor-pointer appearance-none shadow-sm"
+                >
+                  <option value="created_at-desc">Newest Arrivals</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
+                  <option value="name-asc">Name: A to Z</option>
+                  <option value="name-desc">Name: Z to A</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none theme-text-secondary group-focus-within:text-[var(--primary)] transition-colors">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" /></svg>
+                </div>
+              </div>
             </div>
           </div>
 
           {hasActiveFilters && (
-            <div className="flex flex-wrap items-center gap-2 mt-4 pt-4" style={{ borderTop: '1px solid color-mix(in srgb, var(--border), transparent 50%)' }}>
-              <span className="text-xs theme-text-secondary font-medium">Active filters:</span>
+            <div className="flex flex-wrap items-center gap-3 mt-6 pt-6 border-t border-[color-mix(in_srgb,var(--border),transparent_50%)] animate-[shopFadeIn_0.3s_ease_forwards]">
+              <span className="text-xs theme-text-secondary font-bold uppercase tracking-wider">Active filters:</span>
               {search && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-full transition-colors"
+                <span className="group inline-flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer border border-[var(--primary)] hover:bg-[var(--primary)] hover:text-white"
                   style={{
-                    backgroundColor: 'color-mix(in srgb, var(--primary) 12%, transparent)',
+                    backgroundColor: 'color-mix(in srgb, var(--primary) 10%, transparent)',
                     color: 'var(--primary)',
-                  }}>
+                  }}
+                  onClick={() => { setSearch(''); setSkip(0); }}>
                   Search: "{search}"
-                  <button onClick={() => { setSearch(''); setSkip(0); }} className="hover:opacity-70 transition-opacity">
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
+                  <svg className="w-3.5 h-3.5 transition-transform group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </span>
               )}
               {categoryId && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-full transition-colors"
+                <span className="group inline-flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer border border-[var(--primary)] hover:bg-[var(--primary)] hover:text-white"
                   style={{
-                    backgroundColor: 'color-mix(in srgb, var(--primary) 12%, transparent)',
+                    backgroundColor: 'color-mix(in srgb, var(--primary) 10%, transparent)',
                     color: 'var(--primary)',
-                  }}>
+                  }}
+                  onClick={() => { setCategoryId(''); setSkip(0); }}>
                   {selectedCategoryName || `Category #${categoryId}`}
-                  <button onClick={() => { setCategoryId(''); setSkip(0); }} className="hover:opacity-70 transition-opacity">
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
+                  <svg className="w-3.5 h-3.5 transition-transform group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </span>
               )}
-              <button onClick={clearFilters} className="text-xs underline ml-1 transition-opacity hover:opacity-70"
-                style={{ color: 'var(--text-secondary)' }}>
+              <button onClick={clearFilters} className="text-xs font-bold uppercase tracking-wider underline ml-2 transition-all hover:text-[var(--primary)] theme-text-secondary">
                 Clear all
               </button>
             </div>
@@ -275,67 +298,69 @@ export function Shop() {
 
         {/* ── Results summary ─────────────────────────────────────────── */}
         {!loading && products.length > 0 && (
-          <div className="flex items-center justify-between mt-6 mb-5">
-            <p className="text-sm theme-text-secondary">
-              Showing <span className="font-semibold theme-text-primary">{skip + 1}</span>
+          <div className="flex items-center justify-between mb-8 animate-[shopFadeIn_0.4s_ease_forwards]">
+            <p className="text-sm font-medium theme-text-secondary bg-[color-mix(in_srgb,var(--surface),transparent_50%)] px-4 py-2 rounded-lg border border-[color-mix(in_srgb,var(--border),transparent_50%)] shadow-sm">
+              Showing <span className="font-bold text-[var(--primary)]">{skip + 1}</span>
               {' '}-{' '}
-              <span className="font-semibold theme-text-primary">{Math.min(skip + limit, total)}</span>
+              <span className="font-bold text-[var(--primary)]">{Math.min(skip + limit, total)}</span>
               {' '}of{' '}
-              <span className="font-semibold theme-text-primary">{total}</span> products
+              <span className="font-bold text-[var(--primary)]">{total}</span> premium products
             </p>
           </div>
         )}
 
         {/* ── Product grid / Loading / Empty ───────────────────────────── */}
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6 mt-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="theme-surface theme-rounded overflow-hidden animate-pulse">
-                <div className="aspect-square" style={{ backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }} />
-                <div className="p-3 sm:p-4 space-y-2.5">
-                  <div className="h-2.5 rounded" style={{ width: '40%', backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }} />
-                  <div className="h-3.5 rounded" style={{ width: '75%', backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }} />
-                  <div className="h-4 rounded" style={{ width: '50%', backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }} />
-                  <div className="flex justify-between items-center pt-1">
-                    <div className="h-2.5 rounded" style={{ width: '30%', backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }} />
-                    <div className="h-7 rounded" style={{ width: '35%', backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }} />
+              <div key={i} className="theme-surface rounded-2xl overflow-hidden shadow-sm border border-[color-mix(in_srgb,var(--border),transparent_50%)] animate-pulse">
+                <div className="aspect-[4/5] bg-[color-mix(in_srgb,var(--border),transparent_70%)] relative overflow-hidden">
+                  <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.1)] to-transparent"></div>
+                </div>
+                <div className="p-5 space-y-4">
+                  <div className="h-3 rounded-full bg-[color-mix(in_srgb,var(--border),transparent_60%)] w-1/3" />
+                  <div className="h-4 rounded-full bg-[color-mix(in_srgb,var(--border),transparent_60%)] w-3/4" />
+                  <div className="flex justify-between items-center pt-2">
+                    <div className="h-5 rounded-full bg-[color-mix(in_srgb,var(--border),transparent_60%)] w-1/4" />
+                    <div className="h-10 rounded-xl bg-[color-mix(in_srgb,var(--border),transparent_60%)] w-10" />
                   </div>
                 </div>
               </div>
             ))}
           </div>
         ) : products.length === 0 ? (
-          <div className="text-center py-20 sm:py-28">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: 'color-mix(in srgb, var(--border), transparent 50%)' }}>
-              <svg className="w-9 h-9 theme-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+          <div className="text-center py-24 px-4 theme-surface rounded-3xl border border-[color-mix(in_srgb,var(--border),transparent_50%)] shadow-sm">
+            <div className="w-24 h-24 mx-auto mb-6 rounded-3xl flex items-center justify-center rotate-12 shadow-lg"
+              style={{ background: 'linear-gradient(135deg, color-mix(in srgb, var(--surface) 50%, var(--border)), var(--surface))' }}>
+              <svg className="w-10 h-10 theme-text-secondary -rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold theme-text-primary">No products found</h3>
-            <p className="mt-2 text-sm theme-text-secondary max-w-xs mx-auto">
-              Try adjusting your search or filter criteria to find what you're looking for.
+            <h3 className="text-2xl font-black theme-text-primary mb-3">No aquatic treasures found</h3>
+            <p className="text-base theme-text-secondary max-w-md mx-auto mb-8 leading-relaxed">
+              We couldn't find any products matching your sophisticated criteria. Try adjusting your search or discovering new categories.
             </p>
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="mt-6 theme-btn-primary text-sm font-medium no-underline inline-flex items-center gap-2"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-wider text-white transition-all hover:-translate-y-1 shadow-[0_10px_20px_-10px_var(--primary)]"
+                style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%)' }}
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                Clear all filters
+                Reset All Filters
               </button>
             )}
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6 mt-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8">
               {products.map((product, i) => (
                 <div
                   key={product.id}
-                  className="opacity-0 animate-[shopFadeIn_0.4s_ease_forwards]"
-                  style={{ animationDelay: `${(i % 4) * 80}ms` }}
+                  className="opacity-0 animate-[shopFadeIn_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards]"
+                  style={{ animationDelay: `${i * 100}ms` }}
                 >
                   <ProductCard
                     product={product}
@@ -349,47 +374,31 @@ export function Shop() {
 
             {/* ── Pagination ────────────────────────────────────────────── */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-12 pb-10">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mt-16 pt-8 border-t border-[color-mix(in_srgb,var(--border),transparent_50%)]">
                 <button
                   onClick={() => setSkip(Math.max(0, skip - limit))}
                   disabled={currentPage <= 1}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2.5 text-sm font-medium theme-rounded transition-all hover:scale-105 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
-                  style={{
-                    backgroundColor: 'color-mix(in srgb, var(--surface), var(--bg) 50%)',
-                    border: '1px solid color-mix(in srgb, var(--border), transparent 30%)',
-                    color: 'var(--text-primary)',
-                  }}
+                  className="group inline-flex items-center gap-2 px-5 py-3 text-sm font-bold uppercase tracking-wider rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed theme-surface border-2 border-[color-mix(in_srgb,var(--border),transparent_20%)] hover:border-[var(--primary)] hover:text-[var(--primary)] hover:shadow-[0_10px_20px_-10px_color-mix(in_srgb,var(--primary)_50%,transparent)]"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <svg className="w-5 h-5 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                   </svg>
-                  <span className="hidden sm:inline">Previous</span>
+                  <span>Previous</span>
                 </button>
 
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-2 bg-[color-mix(in_srgb,var(--surface),transparent_50%)] p-2 rounded-2xl border border-[color-mix(in_srgb,var(--border),transparent_50%)] shadow-sm">
                   {getPageNumbers().map((p, idx) =>
                     p === '...' ? (
-                      <span key={`ellipsis-${idx}`} className="px-2 py-2 text-sm theme-text-secondary select-none">...</span>
+                      <span key={`ellipsis-${idx}`} className="px-3 py-2 text-sm font-bold theme-text-secondary select-none">...</span>
                     ) : (
                       <button
                         key={p}
                         onClick={() => setSkip((p - 1) * limit)}
-                        className="min-w-[38px] h-[38px] px-2 text-sm font-medium theme-rounded transition-all active:scale-90"
-                        style={currentPage === p ? {
-                          backgroundColor: 'var(--primary)',
-                          color: '#fff',
-                          boxShadow: '0 2px 8px color-mix(in srgb, var(--primary) 40%, transparent)',
-                        } : {
-                          backgroundColor: 'color-mix(in srgb, var(--surface), var(--bg) 50%)',
-                          color: 'var(--text-secondary)',
-                          border: '1px solid color-mix(in srgb, var(--border), transparent 30%)',
-                        }}
-                        onMouseEnter={e => {
-                          if (currentPage !== p) e.currentTarget.style.borderColor = 'var(--primary)';
-                        }}
-                        onMouseLeave={e => {
-                          if (currentPage !== p) e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--border), transparent 30%)';
-                        }}
+                        className={`min-w-[44px] h-[44px] flex items-center justify-center text-sm font-bold rounded-xl transition-all ${
+                          currentPage === p 
+                            ? 'bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] text-white shadow-[0_8px_16px_-6px_var(--primary)] scale-105' 
+                            : 'hover:bg-[color-mix(in_srgb,var(--primary)_10%,transparent)] hover:text-[var(--primary)] theme-text-secondary'
+                        }`}
                       >
                         {p}
                       </button>
@@ -400,16 +409,11 @@ export function Shop() {
                 <button
                   onClick={() => setSkip(skip + limit)}
                   disabled={currentPage >= totalPages}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2.5 text-sm font-medium theme-rounded transition-all hover:scale-105 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
-                  style={{
-                    backgroundColor: 'color-mix(in srgb, var(--surface), var(--bg) 50%)',
-                    border: '1px solid color-mix(in srgb, var(--border), transparent 30%)',
-                    color: 'var(--text-primary)',
-                  }}
+                  className="group inline-flex items-center gap-2 px-5 py-3 text-sm font-bold uppercase tracking-wider rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed theme-surface border-2 border-[color-mix(in_srgb,var(--border),transparent_20%)] hover:border-[var(--primary)] hover:text-[var(--primary)] hover:shadow-[0_10px_20px_-10px_color-mix(in_srgb,var(--primary)_50%,transparent)]"
                 >
-                  <span className="hidden sm:inline">Next</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  <span>Next Page</span>
+                  <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7-7" />
                   </svg>
                 </button>
               </div>
@@ -420,8 +424,20 @@ export function Shop() {
 
       <style>{`
         @keyframes shopFadeIn {
-          from { opacity: 0; transform: translateY(16px); }
-          to   { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: translateY(24px) scale(0.98); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes blob {
+          0% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
         }
       `}</style>
     </div>

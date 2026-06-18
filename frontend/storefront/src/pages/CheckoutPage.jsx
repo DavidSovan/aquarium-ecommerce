@@ -275,7 +275,7 @@ export function CheckoutPage() {
                 <div className="text-center py-6 theme-rounded"
                   style={{ border: '1px dashed color-mix(in srgb, var(--border), transparent 30%)' }}>
                   <p className="text-sm theme-text-secondary mb-3">No addresses found.</p>
-                  <button type="button" className="text-sm theme-text-link font-medium underline">Add an address</button>
+                  <Link to="/addresses" className="text-sm theme-text-link font-medium underline">Add an address</Link>
                 </div>
               ) : (
                 <div className="space-y-3">

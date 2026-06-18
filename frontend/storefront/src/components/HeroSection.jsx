@@ -34,15 +34,7 @@ export function HeroSection() {
   }
 
   return (
-    <section style={{
-      position: 'relative',
-      minHeight: '92vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      overflow: 'hidden',
-      backgroundColor: 'var(--header-bg)',
-    }}>
+    <section className="relative flex items-center justify-center overflow-hidden" style={{ minHeight: '95vh', backgroundColor: 'var(--header-bg)' }}>
       {showMedia ? (
         isVideo ? (
           <>
@@ -52,60 +44,101 @@ export function HeroSection() {
               autoPlay loop muted playsInline preload="auto"
               onCanPlay={() => setVideoReady(true)}
               onError={() => setVideoError(true)}
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: videoReady ? 1 : 0, transition: 'opacity 0.8s ease' }}
+              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
+              style={{ opacity: videoReady ? 1 : 0 }}
             />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(12,20,69,0.72) 0%, rgba(10,36,99,0.55) 50%, rgba(0,0,0,0.60) 100%)' }} />
+            <div className="absolute inset-0 z-10" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.8) 100%)' }} />
           </>
         ) : (
           <>
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${mediaUrl(backgroundVideoUrl)})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(12,20,69,0.72) 0%, rgba(10,36,99,0.55) 50%, rgba(0,0,0,0.60) 100%)' }} />
+            <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${mediaUrl(backgroundVideoUrl)})`, transform: 'scale(1.05)' }} />
+            <div className="absolute inset-0 z-10" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.8) 100%)' }} />
           </>
         )
       ) : (
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, var(--header-bg) 0%, var(--primary) 30%, var(--accent) 65%, var(--secondary) 100%)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--header-bg) 0%, var(--primary) 40%, var(--accent) 100%)' }} />
       )}
 
-      <div style={{ position: 'relative', zIndex: 10, maxWidth: 720, margin: '0 auto', padding: '0 1.5rem', textAlign: 'center' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)', color: '#a8d8f0', fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', padding: '0.35rem 1rem', borderRadius: 999, marginBottom: '1.5rem' }}>
-          <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'var(--accent)', boxShadow: '0 0 8px var(--accent)' }} />
-          Premium Aquatic Collection
-        </div>
+      {/* Ambient Glow Orbs */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full mix-blend-screen opacity-30 z-10 animate-[blob_20s_infinite_alternate]"
+           style={{ background: 'var(--primary)', filter: 'blur(100px)' }}></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full mix-blend-screen opacity-30 z-10 animate-[blob_25s_infinite_alternate-reverse]"
+           style={{ background: 'var(--accent)', filter: 'blur(100px)' }}></div>
 
-        <h1 style={{ fontSize: 'clamp(2.4rem, 6vw, 4.2rem)', fontWeight: 800, lineHeight: 1.1, color: '#ffffff', margin: '0 0 1.2rem', textShadow: '0 2px 20px rgba(0,0,0,0.35)', letterSpacing: '-0.02em' }}>
-          Welcome to{' '}
-          <span style={{ background: 'linear-gradient(90deg, var(--accent), var(--secondary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-            {storeName}
-          </span>
-        </h1>
+      <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 flex flex-col items-center text-center">
+        <div className="max-w-4xl p-8 sm:p-14 rounded-[2.5rem]" style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: '1px solid rgba(255,255,255,0.15)',
+          boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.5)'
+        }}>
+          <div className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full text-xs font-bold tracking-widest uppercase mb-8"
+            style={{
+              backgroundColor: 'rgba(0,0,0,0.4)',
+              color: '#fff',
+              border: '1px solid rgba(255,255,255,0.15)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 10px rgba(0,0,0,0.3)'
+            }}>
+            <span className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ backgroundColor: 'var(--accent)', boxShadow: '0 0 12px var(--accent)' }} />
+            Premium Aquatic Collection
+          </div>
 
-        <p style={{ fontSize: 'clamp(1rem, 2.5vw, 1.2rem)', color: 'rgba(255,255,255,0.78)', lineHeight: 1.7, marginBottom: '2.5rem' }}>
-          Discover our handcrafted selection of aquatic wonders —<br />
-          from vibrant fish to stunning live corals and rare invertebrates.
-        </p>
+          <h1 className="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-500 mb-8 drop-shadow-2xl"
+            style={{ lineHeight: 1.05 }}>
+            Welcome to <br />
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] filter drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+              {storeName}
+            </span>
+          </h1>
 
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '3rem' }}>
-          <Link to="/shop" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: 'var(--button-padding)', borderRadius: 'var(--button-radius)', fontSize: '1rem', fontWeight: 600, textDecoration: 'none', background: 'var(--button-bg)', color: 'var(--button-text)', boxShadow: 'var(--button-shadow)', transition: 'transform 0.18s ease, box-shadow 0.18s ease', cursor: 'pointer' }}>
-            Browse Shop
-            <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-            </svg>
-          </Link>
-          <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: 'var(--button-padding)', borderRadius: 'var(--button-radius)', fontSize: '1rem', fontWeight: 600, textDecoration: 'none', background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', color: '#ffffff', border: '1px solid rgba(255,255,255,0.25)', cursor: 'pointer' }}>
-            Get Started
-          </Link>
-        </div>
+          <p className="text-lg sm:text-2xl max-w-2xl mx-auto font-medium leading-relaxed mb-10" style={{ color: 'rgba(255,255,255,0.85)', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+            Discover our handcrafted selection of aquatic wonders — <br className="hidden sm:block" />
+            from vibrant fish to stunning live corals and rare invertebrates.
+          </p>
 
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: 2, height: 40, background: 'linear-gradient(to bottom, rgba(255,255,255,0.6), transparent)', borderRadius: 2 }} />
+          <div className="flex flex-col sm:flex-row gap-5 justify-center items-center">
+            <Link to="/shop" 
+              className="group inline-flex items-center justify-center gap-3 w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all hover:-translate-y-1"
+              style={{
+                background: 'linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%)',
+                color: '#fff',
+                boxShadow: '0 10px 25px -5px color-mix(in srgb, var(--primary) 50%, transparent), inset 0 2px 0 rgba(255,255,255,0.2)',
+              }}>
+              <span>Browse Shop</span>
+              <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </Link>
+            <Link to="/register" 
+              className="group inline-flex items-center justify-center gap-3 w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all hover:-translate-y-1"
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                backdropFilter: 'blur(10px)',
+                color: '#fff',
+                border: '1px solid rgba(255,255,255,0.2)',
+                boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)',
+              }}>
+              <span>Get Started</span>
+            </Link>
+          </div>
         </div>
       </div>
 
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 80, zIndex: 5 }}>
-        <svg viewBox="0 0 1440 80" fill="none" preserveAspectRatio="none" style={{ width: '100%', height: '100%' }}>
+      <div className="absolute bottom-0 left-0 right-0 h-24 z-10">
+        <svg viewBox="0 0 1440 80" fill="none" preserveAspectRatio="none" className="w-full h-full">
           <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z" fill="var(--bg)" />
         </svg>
       </div>
+
+      <style>{`
+        @keyframes blob {
+          0% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+      `}</style>
     </section>
   );
 }

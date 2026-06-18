@@ -25,8 +25,7 @@ import { MyAddressesPage } from './pages/MyAddressesPage';
 import { MyReviewsPage } from './pages/MyReviewsPage';
 
 function Layout() {
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const { cart, updateItem, removeItem } = useCart();
+  const { cart, updateItem, removeItem, isCartOpen, setIsCartOpen } = useCart();
   const { storeName, homepageSections } = useSiteSettings();
 
   useEffect(() => {

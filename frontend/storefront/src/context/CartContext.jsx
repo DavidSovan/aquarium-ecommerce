@@ -18,6 +18,7 @@ export function CartProvider({ children }) {
   const { user } = useAuth();
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const fetchCart = useCallback(async () => {
     const cartId = getCartId();
@@ -44,6 +45,7 @@ export function CartProvider({ children }) {
       const res = await cartService.addItem(getCartId(), productId, quantity, customizations);
       setCart(res.data);
       if (res.data.id) setCartId(res.data.id);
+      setIsCartOpen(true);
     } finally {
       setLoading(false);
     }
@@ -94,7 +96,7 @@ export function CartProvider({ children }) {
   const itemCount = cart?.items?.reduce((sum, i) => sum + i.quantity, 0) || 0;
 
   return (
-    <CartContext.Provider value={{ cart, loading, itemCount, fetchCart, addItem, updateItem, removeItem, mergeCart, clearCart }}>
+    <CartContext.Provider value={{ cart, loading, itemCount, isCartOpen, setIsCartOpen, fetchCart, addItem, updateItem, removeItem, mergeCart, clearCart }}>
       {children}
     </CartContext.Provider>
   );
