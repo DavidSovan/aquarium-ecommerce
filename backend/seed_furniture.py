@@ -470,9 +470,9 @@ def seed():
 
         products_data = [
             # Living Room
-            {"name": "Mid-Century Velvet Sofa", "price": 899.99, "cat": "Living Room", "stock": 15, "brand": "ModaLiving", "thumb": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500&q=80"},
-            {"name": "Farmhouse Coffee Table", "price": 349.99, "cat": "Living Room", "stock": 25, "brand": "Rustic Charm", "thumb": "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=500&q=80"},
-            {"name": "L-shaped Sectional Sofa", "price": 1299.99, "cat": "Living Room", "stock": 10, "brand": "ComfortCraft", "thumb": "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=500&q=80"},
+            {"name": "Mid-Century Velvet Sofa", "price": 899.99, "cat": "Living Room", "stock": 15, "brand": "ModaLiving", "thumb": "https://harwinfurn.com/cdn/shop/files/BrookeGreenSectionalRight-3-1400x1400.jpg?v=1723932282"},
+            {"name": "Farmhouse Coffee Table", "price": 349.99, "cat": "Living Room", "stock": 25, "brand": "Rustic Charm", "thumb": "https://i5.walmartimages.com/seo/Afuhokles-Lift-Top-Coffee-Table-4-1-Multi-Function-Convertible-Tables-Storage-Hidden-Compartment-Farmhouse-Table-Living-Room-Rustic-Brown_0e2d4d71-0608-47c7-a8e8-a4c3911f8812.6c97ad1a70d57fc60b8652f9114565b6.jpeg"},
+            {"name": "L-shaped Sectional Sofa", "price": 1299.99, "cat": "Living Room", "stock": 10, "brand": "ComfortCraft", "thumb": "https://m.media-amazon.com/images/I/81MXAouvL1L._AC_UF894,1000_QL80_.jpg"},
             {"name": "Glass Top TV Stand", "price": 279.99, "cat": "Living Room", "stock": 20, "brand": "EntertainMe", "thumb": "https://images.unsplash.com/photo-1532372576444-dda954194ad0?w=500&q=80"},
             {"name": "Accent Armchair", "price": 449.99, "cat": "Living Room", "stock": 18, "brand": "ModaLiving", "thumb": "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=500&q=80"},
             # Bedroom
