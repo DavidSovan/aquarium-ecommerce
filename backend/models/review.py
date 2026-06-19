@@ -9,7 +9,7 @@ class Review(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False, index=True)
-    user_id = Column(String(36), nullable=False, index=True)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
     rating = Column(Integer, nullable=False)
     title = Column(String(255), nullable=True)
     content = Column(Text, nullable=True)
@@ -19,6 +19,7 @@ class Review(Base):
                         onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
     product = relationship("Product", back_populates="reviews")
+    user = relationship("User")
 
     __table_args__ = (
         Index("idx_reviews_product_id", "product_id"),

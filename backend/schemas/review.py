@@ -15,6 +15,14 @@ class ReviewUpdate(BaseModel):
     content: Optional[str] = None
 
 
+class UserBrief(BaseModel):
+    id: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class ReviewResponse(BaseModel):
     id: int
     product_id: int
@@ -25,6 +33,7 @@ class ReviewResponse(BaseModel):
     is_approved: bool
     created_at: datetime
     updated_at: datetime
+    user: Optional[UserBrief] = None
 
     model_config = ConfigDict(from_attributes=True)
 
