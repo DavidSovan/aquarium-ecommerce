@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import driverService from '../services/driverService';
 import wsService from '../services/websocket';
 import { useAuth } from '../context/AuthContext';
-
+import { mediaUrl } from '../utils/mediaUrl';
 const STATUS_META = {
   pending:    { label: 'Pending',    dot: 'bg-yellow-400', text: 'text-yellow-700', bg: 'bg-yellow-50' },
   processing: { label: 'Processing', dot: 'bg-blue-400',  text: 'text-blue-700',  bg: 'bg-blue-50' },
@@ -292,9 +292,21 @@ export function DriverDashboard() {
                           <div className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-3">Package Contents</div>
                           <div className="divide-y divide-gray-50">
                             {order.items.slice(0, 5).map(item => (
-                              <div key={item.id} className="flex items-center justify-between py-2.5 text-sm">
-                                <span className="text-gray-900 font-medium truncate mr-3">{item.product_name}</span>
-                                <span className="text-gray-600 font-bold bg-gray-100 px-2.5 py-1 rounded-lg">x{item.quantity}</span>
+                              <div key={item.id} className="flex items-center py-4 text-sm gap-5">
+                                {item.product_thumbnail ? (
+                                  <div className="w-24 h-24 shrink-0 bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 flex items-center justify-center shadow-sm">
+                                    <img src={mediaUrl(item.product_thumbnail)} alt={item.product_name} className="w-full h-full object-cover" />
+                                  </div>
+                                ) : (
+                                  <div className="w-24 h-24 shrink-0 bg-gray-100 rounded-2xl border border-gray-200 flex items-center justify-center text-gray-400 shadow-sm">
+                                    <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                  </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-gray-900 font-black text-lg truncate">{item.product_name}</div>
+                                  <div className="text-sm text-gray-500 mt-1 font-medium">SKU: {item.product_sku || 'N/A'}</div>
+                                </div>
+                                <span className="text-gray-800 font-black bg-gray-100 px-4 py-2 rounded-xl shrink-0 text-lg shadow-sm border border-gray-200">x{item.quantity}</span>
                               </div>
                             ))}
                             {order.items.length > 5 && (

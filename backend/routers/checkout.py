@@ -290,6 +290,7 @@ def checkout(
             unit_price=item.unit_price,
             total_price=item.total_price,
             customizations=item.customizations,
+            product_thumbnail=item.product.thumbnail if getattr(item, 'product', None) else None,
         ) for item in order.items],
         shipping_address_id=order.shipping_address_id,
         billing_address_id=order.billing_address_id,

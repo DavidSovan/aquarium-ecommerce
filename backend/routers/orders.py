@@ -339,6 +339,7 @@ def _order_to_response(order: Order, user: Optional[User] = None) -> OrderRespon
             unit_price=item.unit_price,
             total_price=item.total_price,
             customizations=item.customizations,
+            product_thumbnail=item.product.thumbnail if getattr(item, 'product', None) else None,
         ) for item in order.items],
         shipping_address_id=order.shipping_address_id,
         shipping_address_snapshot=order.shipping_address_snapshot,

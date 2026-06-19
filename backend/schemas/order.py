@@ -30,6 +30,7 @@ class OrderItemResponse(BaseModel):
     unit_price: float
     total_price: float
     customizations: Optional[Any] = None
+    product_thumbnail: Optional[str] = None
 
 
 class AssignDriverRequest(BaseModel):
