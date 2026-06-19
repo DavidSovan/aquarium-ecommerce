@@ -6,7 +6,7 @@ export function Footer() {
   const { storeName, tagline, storeLogo, footerLogo, copyrightText, contactEmail, contactPhone, contactAddress, socialLinks } = useSiteSettings();
 
   return (
-    <footer className="relative overflow-hidden mt-auto" style={{ backgroundColor: 'var(--footer-bg)', color: '#fff' }}>
+    <footer className="relative overflow-hidden mt-auto z-[1]" style={{ backgroundColor: 'var(--footer-bg)', color: '#fff' }}>
       {/* Decorative Top Border */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[var(--primary)] via-[var(--accent)] to-[var(--primary)] opacity-50"></div>
       
