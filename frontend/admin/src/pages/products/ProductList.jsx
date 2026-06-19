@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import productService from '../../services/productService';
 import categoryService from '../../services/categoryService';
+import mediaService from '../../services/mediaService';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 
 const TYPE_ICONS = {
@@ -65,6 +66,23 @@ function CustomizationManager({ productId, onClose }) {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [confirmDeleteValue, setConfirmDeleteValue] = useState(null);
   const inputRef = useRef(null);
+  const fileRef = useRef(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleUploadImage = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const res = await mediaService.upload(file);
+      setNewValue({...newValue, image_url: res.data.url});
+    } catch (err) {
+      setError('Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
 
   const loadOptions = async () => {
     setLoading(true);
@@ -328,12 +346,27 @@ function CustomizationManager({ productId, onClose }) {
                       />
                     </div>
                     {opt.type !== 'text' && (
-                      <input
-                        placeholder="Image URL (optional)"
-                        value={newValue.image_url}
-                        onChange={e => setNewValue({...newValue, image_url: e.target.value})}
-                        className="flex-1 min-w-[120px] px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                      />
+                      <div className="flex items-center gap-2">
+                        <input type="file" ref={fileRef} onChange={handleUploadImage} accept="image/*" className="hidden" />
+                        <button
+                          onClick={() => fileRef.current?.click()}
+                          disabled={uploadingImage}
+                          className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
+                        >
+                          {uploadingImage ? 'Uploading...' : (newValue.image_url ? 'Change Image' : 'Upload Image')}
+                        </button>
+                        {newValue.image_url && (
+                          <div className="relative group">
+                            <img src={newValue.image_url} alt="Value" className="w-8 h-8 rounded object-cover border border-gray-200" />
+                            <button
+                              onClick={() => setNewValue({...newValue, image_url: ''})}
+                              className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     )}
                     <div className="flex gap-1.5">
                       <button
