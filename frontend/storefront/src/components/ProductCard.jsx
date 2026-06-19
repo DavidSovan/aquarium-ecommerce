@@ -58,37 +58,22 @@ export function ProductCard({ product, onAddToCart, onToggleWishlist, isInWishli
         )}
         
         {/* Overlay Actions */}
-        <div className="absolute inset-0 z-10 flex flex-col justify-between p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 50%, rgba(0,0,0,0.1) 100%)' }}>
-          
-          <div className="flex justify-end pointer-events-auto">
-            <button
-              onClick={(e) => { e.preventDefault(); onToggleWishlist?.(product.id); }}
-              className="w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-300 hover:scale-110 active:scale-95"
-              style={{ 
-                backgroundColor: 'rgba(255,255,255,0.15)',
-                border: '1px solid rgba(255,255,255,0.3)',
-                color: isInWishlist ? '#ff4b4b' : '#fff',
-                boxShadow: isInWishlist ? '0 0 15px rgba(255,75,75,0.4)' : '0 4px 10px rgba(0,0,0,0.1)',
-              }}
-              aria-label="Toggle wishlist"
-            >
-              <svg className="w-5 h-5 transition-transform" fill={isInWishlist ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth={isInWishlist ? 1 : 2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            </button>
-          </div>
-          
-          <div className="flex justify-center translate-y-4 group-hover:translate-y-0 transition-transform duration-300 pointer-events-auto pb-2">
-            <span className="px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider backdrop-blur-md transition-all duration-300 hover:scale-105 active:scale-95"
-              style={{
-                backgroundColor: 'rgba(255,255,255,0.2)',
-                border: '1px solid rgba(255,255,255,0.4)',
-                color: '#fff',
-                boxShadow: '0 8px 20px rgba(0,0,0,0.2)',
-              }}>
-              Quick View
-            </span>
-          </div>
+        <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <button
+            onClick={(e) => { e.preventDefault(); onToggleWishlist?.(product.id); }}
+            className="w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-300 hover:scale-110 active:scale-95"
+            style={{ 
+              backgroundColor: 'rgba(255,255,255,0.15)',
+              border: '1px solid rgba(255,255,255,0.3)',
+              color: isInWishlist ? '#ff4b4b' : '#fff',
+              boxShadow: isInWishlist ? '0 0 15px rgba(255,75,75,0.4)' : '0 4px 10px rgba(0,0,0,0.1)',
+            }}
+            aria-label="Toggle wishlist"
+          >
+            <svg className="w-5 h-5 transition-transform" fill={isInWishlist ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth={isInWishlist ? 1 : 2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </button>
         </div>
       </Link>
       

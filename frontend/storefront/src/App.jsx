@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { useState, useEffect, useLayoutEffect } from 'react';
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider, useCart } from './context/CartContext';
 import { WishlistProvider, useWishlist } from './context/WishlistContext';
@@ -23,6 +23,14 @@ import { ProfilePage } from './pages/ProfilePage';
 import { MyOrdersPage } from './pages/MyOrdersPage';
 import { MyAddressesPage } from './pages/MyAddressesPage';
 import { MyReviewsPage } from './pages/MyReviewsPage';
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
 
 function Layout() {
   const { cart, updateItem, removeItem, isCartOpen, setIsCartOpen } = useCart();
@@ -103,6 +111,7 @@ function Layout() {
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         <CartProvider>
           <WishlistProvider>

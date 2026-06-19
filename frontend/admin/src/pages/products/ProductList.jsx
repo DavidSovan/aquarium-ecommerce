@@ -449,6 +449,7 @@ export function ProductList() {
   const [skip, setSkip] = useState(0);
   const limit = 10;
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategoryId, setFilterCategoryId] = useState('');
   const [sortBy, setSortBy] = useState('created_at');
   const [sortOrder, setSortOrder] = useState('desc');
   const [showForm, setShowForm] = useState(false);
@@ -466,7 +467,7 @@ export function ProductList() {
     categoryService.getCategories().then(res => setCategories(res.data)).catch(() => {});
   }, []);
 
-  useEffect(() => { loadProducts(); }, [skip, searchTerm, sortBy, sortOrder]);
+  useEffect(() => { loadProducts(); }, [skip, searchTerm, filterCategoryId, sortBy, sortOrder]);
 
   useEffect(() => {
     if (toast) {
@@ -480,6 +481,7 @@ export function ProductList() {
     try {
       const params = { skip, limit, sort_by: sortBy, sort_order: sortOrder };
       if (searchTerm) params.search = searchTerm;
+      if (filterCategoryId) params.category_id = parseInt(filterCategoryId);
       const res = await productService.getProducts(params);
       setProducts(res.data.items);
       setTotal(res.data.total);
@@ -636,6 +638,16 @@ export function ProductList() {
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
+        <select
+          value={filterCategoryId}
+          onChange={(e) => { setFilterCategoryId(e.target.value); setSkip(0); }}
+          className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[150px]"
+        >
+          <option value="">All Categories</option>
+          {categories.map(c => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
         {SORT_FIELDS.map(f => (
           <button key={f.value} onClick={() => toggleSort(f.value)}
             className={`px-3 py-2 text-sm border rounded-lg transition-colors ${
