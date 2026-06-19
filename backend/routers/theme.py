@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from config.database import get_db
 from models.theme import ThemeSettings
 from models.user import User
-from schemas.theme import ThemeSettingsResponse, ThemeSettingsUpdate, ThemeCSSResponse
+from schemas.theme import ThemeSettingsResponse, ThemeSettingsUpdate, ThemeCSSResponse, ActiveThemeCSSPair
 from dependencies.auth import require_role
 from typing import List
 
@@ -11,16 +11,8 @@ router = APIRouter(prefix="/settings/theme", tags=["theme"])
 public_router = APIRouter(tags=["theme"])
 
 
-@public_router.get("/settings/theme/active", response_model=ThemeCSSResponse)
-def get_active_theme_css(response: Response, db: Session = Depends(get_db)):
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    theme = db.query(ThemeSettings).filter(ThemeSettings.is_active == True).first()
-    if not theme:
-        theme = ThemeSettings(name="Default Theme", is_active=True)
-        db.add(theme)
-        db.commit()
-        db.refresh(theme)
-
+def build_theme_response(theme):
+    if not theme: return None
     css_vars = {
         "--primary": theme.primary_color,
         "--secondary": theme.secondary_color,
@@ -60,6 +52,23 @@ def get_active_theme_css(response: Response, db: Session = Depends(get_db)):
         is_dark_mode=theme.is_dark_mode,
     )
 
+@public_router.get("/settings/theme/active", response_model=ActiveThemeCSSPair)
+def get_active_theme_css(response: Response, db: Session = Depends(get_db)):
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    theme_light = db.query(ThemeSettings).filter(ThemeSettings.is_active == True).first()
+    theme_dark = db.query(ThemeSettings).filter(ThemeSettings.is_active_dark == True).first()
+    
+    if not theme_light:
+        theme_light = ThemeSettings(name="Default Theme", is_active=True)
+        db.add(theme_light)
+        db.commit()
+        db.refresh(theme_light)
+
+    return ActiveThemeCSSPair(
+        light=build_theme_response(theme_light),
+        dark=build_theme_response(theme_dark)
+    )
+
 
 @router.get("", response_model=List[ThemeSettingsResponse])
 def list_themes(
@@ -96,10 +105,15 @@ def update_theme(
     for key, value in update_data.items():
         setattr(theme, key, value)
 
-    if data.is_active:
+    if data.is_active is not None and data.is_active:
         db.query(ThemeSettings).filter(
             ThemeSettings.id != theme_id
         ).update({"is_active": False})
+
+    if data.is_active_dark is not None and data.is_active_dark:
+        db.query(ThemeSettings).filter(
+            ThemeSettings.id != theme_id
+        ).update({"is_active_dark": False})
 
     db.commit()
     db.refresh(theme)
@@ -116,6 +130,8 @@ def create_theme(
     db.add(theme)
     if data.is_active:
         db.query(ThemeSettings).filter(ThemeSettings.id != theme.id).update({"is_active": False})
+    if data.is_active_dark:
+        db.query(ThemeSettings).filter(ThemeSettings.id != theme.id).update({"is_active_dark": False})
     db.commit()
     db.refresh(theme)
     return theme

@@ -141,51 +141,59 @@ function MediaPicker({ value, onSelect, onClear }) {
   );
 }
 
-function ThemeCard({ theme, isSelected, onClick, onActivate, onDuplicate, onDelete }) {
-  const miniColors = [
-    theme.primary_color,
-    theme.secondary_color,
-    theme.accent_color,
-    theme.header_color,
-    theme.button_bg_color,
-  ];
+function ThemeCard({ theme, onClick, onActivate, onActivateDark, onDuplicate, onDelete }) {
+  // Use simplified variables for the preview
+  const previewStyle = {
+    '--primary': theme.primary_color,
+    '--secondary': theme.secondary_color,
+    '--accent': theme.accent_color,
+    '--header-bg': theme.header_color,
+    '--button-bg': theme.button_bg_color,
+    '--text-primary': theme.text_primary_color,
+  };
 
   return (
-    <div
-      onClick={onClick}
-      className={`relative rounded-lg border-2 cursor-pointer transition-all overflow-hidden ${
-        theme.is_active ? 'border-blue-500 ring-2 ring-blue-200' :
-        isSelected ? 'border-blue-300 bg-blue-50' : 'border-gray-200 hover:border-gray-300 bg-white'
+    <div 
+      className={`relative rounded-xl border-2 transition-all cursor-pointer overflow-hidden ${
+        (theme.is_active || theme.is_active_dark) ? 'border-blue-500 ring-2 ring-blue-200' : 
+        'border-gray-200 hover:border-gray-300 hover:shadow-md'
       }`}
+      onClick={() => onClick(theme)}
     >
       {theme.preview_image ? (
-        <div className="h-28 overflow-hidden">
+        <div className="h-28 overflow-hidden bg-gray-100">
           <img src={toFullUrl(theme.preview_image)} alt={theme.name} className="w-full h-full object-cover" />
         </div>
       ) : (
         <div className="h-28 flex items-center justify-center" style={{ backgroundColor: theme.background_color }}>
-          <div className="flex gap-1.5">
-            {miniColors.map((c, i) => (
-              <div key={i} className="w-6 h-6 rounded-full border border-white shadow-sm" style={{ backgroundColor: c }} />
-            ))}
+          <div className="flex gap-2">
+            <div className="w-6 h-6 rounded-full" style={{ backgroundColor: theme.primary_color }}></div>
+            <div className="w-6 h-6 rounded-full" style={{ backgroundColor: theme.secondary_color }}></div>
+            <div className="w-6 h-6 rounded-full" style={{ backgroundColor: theme.accent_color }}></div>
           </div>
         </div>
       )}
-      <div className="p-3">
-        <div className="flex items-center justify-between">
-          <h3 className="font-bold text-sm truncate">{theme.name}</h3>
-          {theme.is_active && <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium">Active</span>}
+      
+      <div className="p-3 bg-white">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-bold text-sm truncate pr-2">{theme.name}</h3>
+          <div className="flex flex-col items-end gap-1 shrink-0">
+            {theme.is_active && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium">Light</span>}
+            {theme.is_active_dark && <span className="text-[10px] bg-gray-800 text-gray-100 px-1.5 py-0.5 rounded font-medium">Dark</span>}
+          </div>
         </div>
-        <div className="flex gap-1 mt-1.5 text-xs text-gray-400">
+        
+        <div className="flex flex-wrap gap-2 text-xs mt-2">
           {!theme.is_active && (
-            <>
-              <button onClick={e => { e.stopPropagation(); onActivate(theme); }} className="text-blue-600 hover:text-blue-700">Activate</button>
-              <span>|</span>
-              <button onClick={e => { e.stopPropagation(); onDuplicate(theme); }} className="text-gray-500 hover:text-gray-700">Duplicate</button>
-              <span>|</span>
-              <button onClick={e => { e.stopPropagation(); onDelete(theme); }} className="text-red-500 hover:text-red-700">Delete</button>
-            </>
+            <button onClick={e => { e.stopPropagation(); onActivate(theme, false); }} className="text-blue-600 hover:text-blue-700 font-medium">Set Light</button>
           )}
+          {!theme.is_active_dark && (
+            <button onClick={e => { e.stopPropagation(); onActivate(theme, true); }} className="text-gray-600 hover:text-gray-900 font-medium">Set Dark</button>
+          )}
+          <div className="flex gap-2 ml-auto">
+            <button onClick={e => { e.stopPropagation(); onDuplicate(theme); }} className="text-gray-500 hover:text-gray-700">Dup</button>
+            <button onClick={e => { e.stopPropagation(); onDelete(theme); }} className="text-red-500 hover:text-red-700">Del</button>
+          </div>
         </div>
       </div>
     </div>
@@ -211,7 +219,7 @@ export function ThemeSettings() {
     try {
       const res = await themeService.listThemes();
       setThemes(res.data);
-      const active = res.data.find(t => t.is_active);
+      const active = res.data.find(t => t.is_active || t.is_active_dark);
       if (active) {
         setActiveTheme(active);
         setForm(active);
@@ -244,10 +252,16 @@ export function ThemeSettings() {
     finally { setSaving(false); }
   };
 
-  const handleActivate = async (theme) => {
+  const handleActivate = async (theme, isDark = false) => {
     setError(null);
     try {
-      await themeService.updateTheme(theme.id, { is_active: true });
+      const payload = { ...theme };
+      if (isDark) {
+        payload.is_active_dark = true;
+      } else {
+        payload.is_active = true;
+      }
+      await themeService.updateTheme(theme.id, payload);
       load();
     } catch (err) { setError(err.response?.data?.detail || 'Failed to activate'); }
   };

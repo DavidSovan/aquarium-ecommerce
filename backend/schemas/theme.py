@@ -6,6 +6,7 @@ from typing import Optional
 class ThemeSettingsBase(BaseModel):
     name: str = "Default Theme"
     is_active: bool = False
+    is_active_dark: bool = False
     is_dark_mode: bool = False
     preview_image: Optional[str] = None
     primary_color: str = "#2563eb"
@@ -55,6 +56,7 @@ class ThemeSettingsResponse(ThemeSettingsBase):
 class ThemeSettingsUpdate(BaseModel):
     name: Optional[str] = None
     is_active: Optional[bool] = None
+    is_active_dark: Optional[bool] = None
     is_dark_mode: Optional[bool] = None
     preview_image: Optional[str] = None
     primary_color: Optional[str] = None
@@ -98,3 +100,7 @@ class ThemeCSSResponse(BaseModel):
     container_width: str
     grid_columns: int
     is_dark_mode: bool
+
+class ActiveThemeCSSPair(BaseModel):
+    light: Optional[ThemeCSSResponse] = None
+    dark: Optional[ThemeCSSResponse] = None

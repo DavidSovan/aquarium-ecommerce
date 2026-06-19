@@ -9,6 +9,7 @@ class ThemeSettings(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), default="Default Theme", nullable=False)
     is_active = Column(Boolean, default=False, nullable=False)
+    is_active_dark = Column(Boolean, default=False, nullable=False)
     is_dark_mode = Column(Boolean, default=False, nullable=False)
 
     primary_color = Column(String(7), default="#2563eb", nullable=False)

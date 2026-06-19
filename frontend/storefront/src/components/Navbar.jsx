@@ -2,12 +2,14 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+import { useTheme } from '../context/ThemeContext';
 import { mediaUrl } from '../utils/mediaUrl';
 
 export function Navbar({ onCartOpen }) {
   const { user, logout } = useAuth();
   const { itemCount } = useCart();
   const { storeName, storeLogo } = useSiteSettings();
+  const { isDarkMode, toggleDarkMode } = useTheme();
   const location = useLocation();
 
   return (
@@ -50,8 +52,19 @@ export function Navbar({ onCartOpen }) {
 
           {/* Actions */}
           <div className="flex items-center gap-4 sm:gap-6">
+            <button onClick={toggleDarkMode} className="p-2 text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors rounded-full hover:bg-[color-mix(in_srgb,var(--primary)_15%,transparent)]" aria-label="Toggle Theme">
+              {isDarkMode ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
+            </button>
             {user ? (
-              <div className="hidden sm:flex items-center gap-4 border-r pr-6 border-[color-mix(in_srgb,var(--border),transparent_50%)]">
+              <div className="hidden sm:flex items-center gap-4 border-l pl-4 border-[color-mix(in_srgb,var(--border),transparent_50%)]">
                 <Link to="/profile" className="flex items-center gap-2 text-sm font-semibold text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors">
                   <div className="w-8 h-8 rounded-full bg-[color-mix(in_srgb,var(--primary)_15%,transparent)] flex items-center justify-center text-[var(--primary)]">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -65,7 +78,7 @@ export function Navbar({ onCartOpen }) {
                 </button>
               </div>
             ) : (
-              <div className="hidden sm:flex items-center gap-3 border-r pr-6 border-[color-mix(in_srgb,var(--border),transparent_50%)]">
+              <div className="hidden sm:flex items-center gap-3 border-l pl-4 border-[color-mix(in_srgb,var(--border),transparent_50%)]">
                 <Link to="/login" className="text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors px-2">Login</Link>
                 <Link to="/register" className="px-5 py-2 rounded-xl text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_20px_-6px_var(--primary)]" style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%)' }}>
                   Register

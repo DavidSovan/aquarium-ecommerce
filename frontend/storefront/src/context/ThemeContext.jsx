@@ -66,21 +66,45 @@ const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
   const [cssVars, setCssVars] = useState(initialVars);
+  const [lightVars, setLightVars] = useState(null);
+  const [darkVars, setDarkVars] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    try { const stored = localStorage.getItem(DARK_KEY); return stored !== null ? stored === 'true' : true; } catch { return true; }
+    try { const stored = localStorage.getItem(DARK_KEY); return stored !== null ? stored === 'true' : false; } catch { return false; }
   });
   const [ready, setReady] = useState(!!cached);
+
+  const toggleDarkMode = useCallback(() => {
+    setIsDarkMode(prev => {
+      const next = !prev;
+      const varsToApply = next && darkVars ? darkVars : (lightVars || DEFAULT_CSS);
+      applyVars(varsToApply, next);
+      writeCache(varsToApply, next);
+      setCssVars(varsToApply);
+      return next;
+    });
+  }, [lightVars, darkVars]);
 
   const loadTheme = useCallback(async () => {
     try {
       const res = await api.get('/settings/theme/active');
-      const { css_variables, is_dark_mode } = res.data;
-      if (css_variables && Object.keys(css_variables).length > 0) {
-        applyVars(css_variables, is_dark_mode);
-        writeCache(css_variables, is_dark_mode);
-        setCssVars(css_variables);
-        setIsDarkMode(is_dark_mode);
-      }
+      const { light, dark } = res.data;
+      
+      const newLightVars = light?.css_variables || DEFAULT_CSS;
+      const newDarkVars = dark?.css_variables || DEFAULT_CSS;
+      
+      setLightVars(newLightVars);
+      setDarkVars(newDarkVars);
+      
+      // Determine what variables to apply right now
+      // Need to re-read isDarkMode from state/local to avoid stale closure issues
+      let currentDark = false;
+      try { const stored = localStorage.getItem(DARK_KEY); currentDark = stored !== null ? stored === 'true' : false; } catch {}
+      
+      const varsToApply = currentDark ? newDarkVars : newLightVars;
+      
+      applyVars(varsToApply, currentDark);
+      writeCache(varsToApply, currentDark);
+      setCssVars(varsToApply);
     } catch (err) {
       console.error('Failed to load theme:', err);
     } finally {
@@ -95,7 +119,7 @@ export function ThemeProvider({ children }) {
   }, [loadTheme]);
 
   return (
-    <ThemeContext.Provider value={{ cssVars, isDarkMode, ready, reload: loadTheme }}>
+    <ThemeContext.Provider value={{ cssVars, isDarkMode, toggleDarkMode, ready, reload: loadTheme }}>
       {children}
     </ThemeContext.Provider>
   );
