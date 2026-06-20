@@ -6,3 +6,6 @@ venv/
 .env.*
 ! .env.example
 uploads/
+*.db
+*.mp4
+*.mov

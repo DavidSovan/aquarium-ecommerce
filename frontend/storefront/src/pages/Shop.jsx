@@ -96,7 +96,7 @@ export function Shop() {
   const selectedCategoryName = categories.find(c => c.id === Number(categoryId))?.name;
 
   return (
-    <div className="min-h-screen pb-16" style={{ backgroundColor: 'var(--bg)' }}>
+    <div className="flex-1 w-full flex flex-col pb-16" style={{ backgroundColor: 'var(--bg)' }}>
       {/* ── Premium Hero banner ───────────────────────────────────────── */}
       <div
         className="relative flex items-center justify-center overflow-hidden"

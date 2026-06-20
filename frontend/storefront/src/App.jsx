@@ -68,7 +68,7 @@ function Layout() {
       </div>
 
       <Navbar onCartOpen={() => setIsCartOpen(true)} />
-      <main style={{ flex: 1 }} className="relative z-10">
+      <main className="flex-1 flex flex-col relative z-10 w-full">
         <Routes>
           <Route path="/" element={
             <>

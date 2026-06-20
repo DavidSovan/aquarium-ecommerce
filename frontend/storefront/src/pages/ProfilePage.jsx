@@ -57,7 +57,7 @@ export function ProfilePage() {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <div className="flex-1 w-full flex flex-col max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       {/* ── Profile header ─────────────────────────────────────────────── */}
       <div className="theme-surface theme-rounded p-6 sm:p-8 mb-6 sm:mb-8"
         style={{ border: '1px solid color-mix(in srgb, var(--border), transparent 50%)' }}>
@@ -145,7 +145,7 @@ export function ProfilePage() {
           ))}
         </div>
       ) : !wishlist?.items?.length ? (
-        <div className="text-center py-14 sm:py-18 theme-surface theme-rounded"
+        <div className="flex-1 flex flex-col items-center justify-center text-center py-14 sm:py-18 theme-surface theme-rounded"
           style={{ border: '1px dashed color-mix(in srgb, var(--border), transparent 30%)' }}>
           <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
             style={{ backgroundColor: 'color-mix(in srgb, var(--error) 12%, transparent)' }}>

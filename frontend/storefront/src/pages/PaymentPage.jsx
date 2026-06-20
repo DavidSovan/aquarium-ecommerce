@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import html2canvas from 'html2canvas';
 import { BakongQRCode } from '../components/BakongQRCode';
 import orderService from '../services/orderService';
 import wsService from '../services/websocket';
@@ -20,7 +21,9 @@ export function PaymentPage() {
   const [paymentStatus, setPaymentStatus] = useState('pending');
   const [pollingActive, setPollingActive] = useState(true);
   const [retrying, setRetrying] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
   const pollRef = useRef(null);
+  const qrRef = useRef(null);
 
   const confettiParticles = useRef(
     Array.from({ length: 20 }, () => ({
@@ -130,16 +133,60 @@ export function PaymentPage() {
     }
   }, [orderId]);
 
+  const handleDownload = async () => {
+    if (!qrRef.current) return;
+    setIsCapturing(true);
+    try {
+      const canvas = await html2canvas(qrRef.current, { useCORS: true, backgroundColor: '#ffffff' });
+      const url = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `QR_Code_${order.order_number}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Download failed', err);
+    } finally {
+      setIsCapturing(false);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!qrRef.current) return;
+    setIsCapturing(true);
+    try {
+      const canvas = await html2canvas(qrRef.current, { useCORS: true, backgroundColor: '#ffffff' });
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        const file = new File([blob], `QR_Code_${order.order_number}.png`, { type: 'image/png' });
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: 'Payment QR Code',
+            text: `Scan to pay for order #${order.order_number}`,
+            files: [file]
+          });
+        } else {
+          alert('Sharing is not supported on this browser or device.');
+        }
+      });
+    } catch (err) {
+      console.error('Share failed', err);
+    } finally {
+      setIsCapturing(false);
+    }
+  };
+
   const fmt = (m, s) => `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-[60vh]">
+    <div className="flex-1 w-full flex items-center justify-center">
       <div className="w-8 h-8 border-4 border-[var(--border)] border-t-[var(--primary)] rounded-full animate-spin" />
     </div>
   );
 
   if (error || !order) return (
-    <div className="max-w-lg mx-auto px-4 py-20 text-center">
+    <div className="flex-1 w-full flex flex-col items-center justify-center max-w-lg mx-auto px-4 py-20 text-center">
       <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ backgroundColor: 'color-mix(in srgb, var(--error) 15%, transparent)' }}>
         <svg className="w-8 h-8" style={{ color: 'var(--error)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
@@ -153,7 +200,7 @@ export function PaymentPage() {
 
 
   if (paymentStatus === 'paid') return (
-    <div className="max-w-lg mx-auto px-4 py-20 text-center payment-success-wrapper">
+    <div className="flex-1 w-full flex flex-col items-center justify-center max-w-lg mx-auto px-4 py-20 text-center payment-success-wrapper">
       {/* Confetti particles */}
       {confettiParticles.map((p, i) => (
         <div
@@ -225,7 +272,7 @@ export function PaymentPage() {
 
 
   if (paymentStatus === 'failed' || timeLeft === 0) return (
-    <div className="max-w-lg mx-auto px-4 py-20 text-center">
+    <div className="flex-1 w-full flex flex-col items-center justify-center max-w-lg mx-auto px-4 py-20 text-center">
       <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ backgroundColor: 'color-mix(in srgb, var(--error) 15%, transparent)' }}>
         <svg className="w-8 h-8" style={{ color: 'var(--error)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
@@ -243,16 +290,29 @@ export function PaymentPage() {
   const expSec = timeLeft % 60;
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-8">
+    <div className="flex-1 w-full flex flex-col max-w-lg mx-auto px-4 py-8">
       <h1 className="text-xl font-bold theme-text-primary text-center mb-2">Scan to Pay</h1>
       <p className="text-sm theme-text-secondary text-center mb-8">Order #{order.order_number}</p>
 
       <div className="theme-surface theme-rounded p-6" style={{ border: '1px solid color-mix(in srgb, var(--border), transparent 50%)' }}>
-        <BakongQRCode 
-          khqrString={order?.payment_qr} 
-          amount={order?.total} 
-          merchantName={storeName} 
-        />
+        <div ref={qrRef} className="bg-white p-4 rounded-xl mb-6 flex flex-col items-center justify-center">
+          <BakongQRCode 
+            khqrString={order?.payment_qr} 
+            amount={order?.total} 
+            merchantName={storeName} 
+          />
+        </div>
+
+        <div className="flex gap-3 justify-center mb-6">
+          <button onClick={handleShare} disabled={isCapturing} className="flex-1 text-sm font-bold inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-[color-mix(in_srgb,var(--border),transparent_50%)] bg-[var(--surface)] text-[var(--text-primary)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all shadow-sm disabled:opacity-50 active:scale-95">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+            Share
+          </button>
+          <button onClick={handleDownload} disabled={isCapturing} className="flex-1 text-sm font-bold inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-[color-mix(in_srgb,var(--border),transparent_50%)] bg-[var(--surface)] text-[var(--text-primary)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all shadow-sm disabled:opacity-50 active:scale-95">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+            Download
+          </button>
+        </div>
 
         <div className="flex justify-center mb-6">
           <div className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"

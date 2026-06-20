@@ -7,7 +7,7 @@ import { mediaUrl } from '../utils/mediaUrl';
 
 function LoadingSkeleton() {
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-pulse">
+    <div className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-pulse flex flex-col">
       <div className="h-10 rounded-full w-64 mb-10 bg-[color-mix(in_srgb,var(--border),transparent_60%)]" />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
@@ -43,7 +43,7 @@ export function CartPage() {
   if (loading) return <LoadingSkeleton />;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 flex flex-col">
       {/* ── Header ────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10">
         <div className="flex items-center gap-4">
@@ -68,7 +68,7 @@ export function CartPage() {
       </div>
 
       {!cart?.items?.length ? (
-        <div className="flex flex-col items-center justify-center py-20 px-4 text-center border-2 border-dashed border-[color-mix(in_srgb,var(--border),transparent_50%)] rounded-3xl bg-[color-mix(in_srgb,var(--surface)_30%,transparent)]">
+        <div className="flex-1 flex flex-col items-center justify-center py-20 px-4 text-center border-2 border-dashed border-[color-mix(in_srgb,var(--border),transparent_50%)] rounded-3xl bg-[color-mix(in_srgb,var(--surface)_30%,transparent)]">
           <div className="w-24 h-24 mb-6 rounded-full bg-[color-mix(in_srgb,var(--text-secondary)_10%,transparent)] flex items-center justify-center">
             <svg className="w-12 h-12 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />

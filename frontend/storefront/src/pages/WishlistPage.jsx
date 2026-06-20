@@ -7,7 +7,7 @@ import { useSiteSettings } from '../context/SiteSettingsContext';
 
 function LoadingSkeleton() {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 animate-pulse">
+    <div className="flex-1 w-full max-w-4xl mx-auto px-4 py-8 animate-pulse flex flex-col">
       <div className="h-9 rounded w-48 mb-8" style={{ backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }} />
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {Array.from({ length: 3 }).map((_, i) => (
@@ -38,11 +38,11 @@ export function WishlistPage() {
   if (loading) return <LoadingSkeleton />;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="flex-1 w-full max-w-4xl mx-auto px-4 py-8 flex flex-col">
       <h1 className="text-2xl sm:text-3xl font-extrabold theme-text-primary mb-8">My Wishlist</h1>
 
       {!wishlist?.items?.length ? (
-        <div className="text-center py-16 sm:py-20">
+        <div className="flex-1 flex flex-col items-center justify-center text-center py-16 sm:py-20">
           <div className="w-20 h-20 mx-auto mb-5 rounded-full flex items-center justify-center"
             style={{ backgroundColor: 'color-mix(in srgb, var(--border), transparent 50%)' }}>
             <svg className="w-9 h-9 theme-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>

@@ -56,21 +56,21 @@ export function MyReviewsPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '5rem 0' }}>
+      <div style={{ flex: 1, width: '100%', display: 'flex', justifyContent: 'center', padding: '5rem 0' }}>
         <div className="theme-spinner" />
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: '2rem 1rem' }}>
+    <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', maxWidth: 800, margin: '0 auto', padding: '2rem 1rem' }}>
       <h1 className="theme-text-primary" style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>My Reviews</h1>
       <p className="theme-text-secondary" style={{ marginBottom: '1.5rem' }}>
         {total > 0 ? `You have written ${total} review${total !== 1 ? 's' : ''}.` : 'You haven\'t written any reviews yet.'}
       </p>
 
       {reviews.length === 0 ? (
-        <div className="theme-surface theme-border theme-rounded" style={{ padding: '3rem', textAlign: 'center' }}>
+        <div className="theme-surface theme-border theme-rounded" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem', textAlign: 'center' }}>
           <p className="theme-text-secondary" style={{ marginBottom: '1rem' }}>No reviews yet.</p>
           <Link to="/shop" className="theme-btn-primary" style={{ padding: '0.625rem 1.5rem', borderRadius: 'var(--button-radius)', textDecoration: 'none', display: 'inline-block' }}>
             Browse Products

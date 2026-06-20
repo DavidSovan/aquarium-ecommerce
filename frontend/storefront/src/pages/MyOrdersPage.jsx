@@ -128,14 +128,14 @@ export function MyOrdersPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '5rem 0' }}>
+      <div style={{ flex: 1, width: '100%', display: 'flex', justifyContent: 'center', padding: '5rem 0' }}>
         <div style={{ width: 32, height: 32, border: '4px solid var(--border)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: '2rem 1rem' }}>
+    <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', maxWidth: 800, margin: '0 auto', padding: '2rem 1rem' }}>
       <h1 className="theme-text-primary" style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '2rem' }}>My Orders</h1>
 
       {confirmOrder && (
@@ -164,7 +164,7 @@ export function MyOrdersPage() {
       )}
 
       {orders.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '3rem 0' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '3rem 0' }}>
           <p className="theme-text-secondary" style={{ marginBottom: '1rem' }}>No orders yet.</p>
           <Link to="/shop" className="theme-btn-primary" style={{ padding: '0.625rem 1.5rem', borderRadius: 'var(--button-radius)', textDecoration: 'none', display: 'inline-block', fontSize: '0.875rem' }}>
             Browse Products

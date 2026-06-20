@@ -184,7 +184,7 @@ export function CheckoutPage() {
 
   if (!cart?.items?.length) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
+      <div className="flex-1 w-full flex flex-col items-center justify-center py-24 px-4 text-center">
         <div className="w-24 h-24 mb-6 rounded-full bg-[color-mix(in_srgb,var(--text-secondary)_10%,transparent)] flex items-center justify-center">
           <svg className="w-12 h-12 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
@@ -206,7 +206,7 @@ export function CheckoutPage() {
   const total = cart.subtotal - discount;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div className="flex-1 w-full flex flex-col max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       {/* ── Header + steps ─────────────────────────────────────────────── */}
       <div className="mb-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">

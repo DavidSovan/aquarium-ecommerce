@@ -51,14 +51,14 @@ export function MyAddressesPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '5rem 0' }}>
+      <div style={{ flex: 1, width: '100%', display: 'flex', justifyContent: 'center', padding: '5rem 0' }}>
         <div style={{ width: 32, height: 32, border: '4px solid var(--border)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: '2rem 1rem' }}>
+    <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', maxWidth: 800, margin: '0 auto', padding: '2rem 1rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h1 className="theme-text-primary" style={{ fontSize: '1.75rem', fontWeight: 700 }}>My Addresses</h1>
         <button onClick={() => { setShowForm(true); setEditing(null); setForm({ full_name: '', phone: '', country: '', city: '', address_line: '', postal_code: '', is_default: false, latitude: null, longitude: null }); }}
@@ -107,7 +107,9 @@ export function MyAddressesPage() {
       )}
 
       {addresses.length === 0 ? (
-        <p className="theme-text-secondary" style={{ textAlign: 'center', padding: '3rem 0' }}>No addresses saved</p>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '3rem 0' }}>
+          <p className="theme-text-secondary">No addresses saved</p>
+        </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
           {addresses.map(addr => (

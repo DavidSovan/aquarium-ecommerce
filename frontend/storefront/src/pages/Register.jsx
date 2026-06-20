@@ -33,7 +33,7 @@ export function Register() {
   };
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center px-4">
+    <div className="flex-1 w-full flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md theme-surface theme-shadow theme-rounded p-8">
         <h1 className="text-2xl font-bold theme-text-primary mb-6">Create Account - {storeName}</h1>
 

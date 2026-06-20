@@ -25,7 +25,7 @@ export function BakongQRCode({ khqrString, amount, merchantName }) {
       height: 500,
       data: khqrString,
       margin: 10,
-      type: 'svg',
+      type: 'canvas',
       qrOptions: {
         errorCorrectionLevel: 'M',
       },
@@ -107,7 +107,7 @@ export function BakongQRCode({ khqrString, amount, merchantName }) {
           position: 'relative',
           width: '100%',
           maxWidth: 340,
-          aspectRatio: '1470 / 2079',
+          paddingBottom: '141.428%',
           borderRadius: 16,
           overflow: 'hidden',
           boxShadow: '0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08)',
@@ -134,20 +134,19 @@ export function BakongQRCode({ khqrString, amount, merchantName }) {
           style={{
             position: 'absolute',
             left: '26%',
-            top: '28.5%',
+            top: '30.5%',
             width: '48%',
-            aspectRatio: '1 / 1',
+            paddingBottom: '48%',
           }}
         >
           {/* .qr */}
           <div
             style={{
               position: 'absolute',
-              left: '50%',
-              top: '50%',
+              left: '13%',
+              top: '13%',
               width: '74%',
-              aspectRatio: '1 / 1',
-              transform: 'translate(-50%, -50%)',
+              height: '74%',
               background: '#ffffff',
               borderRadius: 10,
               boxShadow: '0 2px 12px rgba(0,0,0,.06)',
