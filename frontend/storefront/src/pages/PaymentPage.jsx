@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import QRCode from 'qrcode';
+import { BakongQRCode } from '../components/BakongQRCode';
 import orderService from '../services/orderService';
 import wsService from '../services/websocket';
 import { useAuth } from '../context/AuthContext';
@@ -19,9 +19,32 @@ export function PaymentPage() {
   const [timeLeft, setTimeLeft] = useState(null);
   const [paymentStatus, setPaymentStatus] = useState('pending');
   const [pollingActive, setPollingActive] = useState(true);
-  const [qrDataUrl, setQrDataUrl] = useState(null);
   const [retrying, setRetrying] = useState(false);
   const pollRef = useRef(null);
+
+  const confettiParticles = useRef(
+    Array.from({ length: 20 }, () => ({
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      tx: (Math.random() - 0.5) * 200,
+      ty: -(Math.random() * 150 + 50),
+      color: ['#10b981', '#34d399', '#6ee7b7', '#fbbf24', '#f59e0b', '#818cf8', '#a78bfa', '#f472b6'][Math.floor(Math.random() * 8)],
+      size: Math.random() * 6 + 4,
+      rotation: Math.random() * 360,
+      duration: Math.random() * 0.8 + 0.8,
+      delay: Math.random() * 0.3,
+    }))
+  ).current;
+
+  const sparkles = useRef(
+    Array.from({ length: 6 }, () => ({
+      x: Math.random() * 80 + 10,
+      y: Math.random() * 80 + 10,
+      size: Math.random() * 4 + 4,
+      duration: Math.random() * 1 + 1.2,
+      delay: Math.random() * 1.5 + 0.5,
+    }))
+  ).current;
 
   useEffect(() => {
     document.title = `Payment - ${storeName}`;
@@ -42,16 +65,6 @@ export function PaymentPage() {
           const remaining = Math.max(0, Math.floor((new Date(o.payment_expires_at).getTime() - Date.now()) / 1000));
           setTimeLeft(remaining);
           if (remaining <= 0) setPollingActive(false);
-        }
-        if (o.payment_qr) {
-          QRCode.toDataURL(o.payment_qr, {
-            width: 280,
-            margin: 2,
-            errorCorrectionLevel: 'H',
-            color: { dark: '#000000', light: '#ffffff' },
-          }, (err, url) => {
-            if (!err && url) setQrDataUrl(url);
-          });
         }
       })
       .catch(() => setError('Failed to load order'))
@@ -105,21 +118,10 @@ export function PaymentPage() {
     setRetrying(true);
     try {
       const res = await orderService.retryPayment(orderId);
+      setOrder(prev => ({ ...prev, ...res.data }));
       setPaymentStatus('pending');
       const remaining = Math.max(0, Math.floor((new Date(res.data.payment_expires_at).getTime() - Date.now()) / 1000));
       setTimeLeft(remaining);
-      if (res.data.payment_qr) {
-        QRCode.toDataURL(res.data.payment_qr, {
-          width: 280, margin: 2,
-          errorCorrectionLevel: 'H',
-          color: { dark: '#000000', light: '#ffffff' },
-        }, (err, url) => {
-          if (err) console.error('QR generation error:', err);
-          if (!err && url) setQrDataUrl(url);
-        });
-      } else {
-        console.error('No payment_qr in retry response');
-      }
       setTimeout(() => setPollingActive(true), 3000);
     } catch {
       setError('Failed to retry payment');
@@ -149,18 +151,78 @@ export function PaymentPage() {
     </div>
   );
 
+
   if (paymentStatus === 'paid') return (
-    <div className="max-w-lg mx-auto px-4 py-20 text-center">
-      <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ backgroundColor: 'color-mix(in srgb, var(--success) 15%, transparent)' }}>
-        <svg className="w-8 h-8" style={{ color: 'var(--success)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m6-3.75a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <div className="max-w-lg mx-auto px-4 py-20 text-center payment-success-wrapper">
+      {/* Confetti particles */}
+      {confettiParticles.map((p, i) => (
+        <div
+          key={`confetti-${i}`}
+          className="confetti-particle"
+          style={{
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            backgroundColor: p.color,
+            borderRadius: i % 3 === 0 ? '50%' : '2px',
+            transform: `rotate(${p.rotation}deg)`,
+            '--duration': `${p.duration}s`,
+            '--delay': `${p.delay}s`,
+            '--tx': `${p.tx}px`,
+            '--ty': `${p.ty}px`,
+            animation: `confettiBurst ${p.duration}s ease-out ${p.delay}s forwards`,
+            translate: `0 0`,
+          }}
+        />
+      ))}
+
+      {/* Sparkle elements */}
+      {sparkles.map((s, i) => (
+        <div
+          key={`sparkle-${i}`}
+          className="payment-sparkle"
+          style={{
+            left: `${s.x}%`,
+            top: `${s.y}%`,
+            width: `${s.size}px`,
+            height: `${s.size}px`,
+            '--duration': `${s.duration}s`,
+            '--delay': `${s.delay}s`,
+          }}
+        />
+      ))}
+
+      {/* Animated checkmark circle */}
+      <div
+        className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center payment-success-icon"
+        style={{ backgroundColor: 'color-mix(in srgb, var(--success) 15%, transparent)' }}
+      >
+        <svg className="w-10 h-10" style={{ color: 'var(--success)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+          <path
+            className="payment-success-check"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M5 13l4 4L19 7"
+          />
         </svg>
       </div>
-      <h2 className="text-xl font-bold theme-text-primary mb-2">Payment Successful!</h2>
-      <p className="text-sm theme-text-secondary mb-6">Payment for #{order.order_number} confirmed.</p>
-      <Link to="/orders" className="theme-btn-primary text-sm font-medium no-underline inline-flex items-center gap-2 px-6 py-2.5 rounded-lg">View Order</Link>
+
+      <h2 className="text-2xl font-bold theme-text-primary mb-2 payment-success-title">
+        Payment Successful!
+      </h2>
+      <p className="text-sm theme-text-secondary mb-8 payment-success-subtitle">
+        Payment for #{order.order_number} confirmed.
+      </p>
+      <Link
+        to="/orders"
+        className="theme-btn-primary text-sm font-medium no-underline inline-flex items-center gap-2 px-8 py-3 rounded-lg payment-success-btn"
+      >
+        View Order
+      </Link>
     </div>
   );
+
 
   if (paymentStatus === 'failed' || timeLeft === 0) return (
     <div className="max-w-lg mx-auto px-4 py-20 text-center">
@@ -186,28 +248,11 @@ export function PaymentPage() {
       <p className="text-sm theme-text-secondary text-center mb-8">Order #{order.order_number}</p>
 
       <div className="theme-surface theme-rounded p-6" style={{ border: '1px solid color-mix(in srgb, var(--border), transparent 50%)' }}>
-        <div className="flex justify-center mb-6">
-          {qrDataUrl ? (
-            <div className="relative inline-block">
-              <img src={qrDataUrl} alt="Payment QR" className="w-56 h-56 rounded-xl"
-                style={{ border: '1px solid color-mix(in srgb, var(--border), transparent 30%)' }} />
-              {/* Removed Bakong Logo Overlay */}
-            </div>
-          ) : (
-            <div className="w-56 h-56 rounded-xl flex items-center justify-center theme-text-secondary text-sm"
-              style={{ backgroundColor: 'color-mix(in srgb, var(--border), transparent 60%)' }}>
-              <svg className="w-8 h-8 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-            </div>
-          )}
-        </div>
-
-        <div className="text-center mb-6">
-          <p className="text-xs theme-text-secondary uppercase tracking-wider mb-1">Amount</p>
-          <p className="text-2xl font-bold theme-text-primary">${Number(order.total).toFixed(2)}</p>
-        </div>
+        <BakongQRCode 
+          khqrString={order?.payment_qr} 
+          amount={order?.total} 
+          merchantName={storeName} 
+        />
 
         <div className="flex justify-center mb-6">
           <div className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"
