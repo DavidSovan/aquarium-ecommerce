@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { mediaUrl } from '../utils/mediaUrl';
 import { reviewService } from '../services/reviewService';
 import { StarRating } from '../components/StarRating';
 import { useSiteSettings } from '../context/SiteSettingsContext';
@@ -82,7 +83,7 @@ export function MyReviewsPage() {
               <div style={{ display: 'flex', gap: '1rem', padding: '1rem' }}>
                 <Link to={`/product/${review.product.slug}`} style={{ flexShrink: 0, width: 80, height: 80, borderRadius: 8, overflow: 'hidden', backgroundColor: 'var(--surface-alt)' }}>
                   {review.product.thumbnail ? (
-                    <img src={review.product.thumbnail} alt={review.product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={mediaUrl(review.product.thumbnail)} alt={review.product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
                     <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.75rem' }}>No img</div>
                   )}

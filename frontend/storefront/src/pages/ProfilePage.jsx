@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { mediaUrl } from '../utils/mediaUrl';
 import { useAuth } from '../context/AuthContext';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -171,7 +172,7 @@ export function ProfilePage() {
                 <div className="aspect-square overflow-hidden"
                   style={{ backgroundColor: 'color-mix(in srgb, var(--surface), var(--bg) 50%)' }}>
                   {item.product.thumbnail ? (
-                    <img src={item.product.thumbnail} alt={item.product.name}
+                    <img src={mediaUrl(item.product.thumbnail)} alt={item.product.name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center theme-text-secondary text-xs">No image</div>

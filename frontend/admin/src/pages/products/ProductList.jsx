@@ -3,6 +3,7 @@ import productService from '../../services/productService';
 import categoryService from '../../services/categoryService';
 import mediaService from '../../services/mediaService';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { toFullUrl } from '../../utils/mediaUrl';
 
 const TYPE_ICONS = {
   dropdown: (
@@ -311,7 +312,7 @@ function CustomizationManager({ productId, onClose }) {
                         )}
                         {val.image_url && (
                           <span className="flex-shrink-0 w-4 h-4 rounded overflow-hidden" title={val.image_url}>
-                            <img src={val.image_url} alt="" className="w-full h-full object-cover" onError={e => e.target.style.display = 'none'} />
+                            <img src={toFullUrl(val.image_url)} alt="" className="w-full h-full object-cover" onError={e => e.target.style.display = 'none'} />
                           </span>
                         )}
                         <button
@@ -357,7 +358,7 @@ function CustomizationManager({ productId, onClose }) {
                         </button>
                         {newValue.image_url && (
                           <div className="relative group">
-                            <img src={newValue.image_url} alt="Value" className="w-8 h-8 rounded object-cover border border-gray-200" />
+                            <img src={toFullUrl(newValue.image_url)} alt="Value" className="w-8 h-8 rounded object-cover border border-gray-200" />
                             <button
                               onClick={() => setNewValue({...newValue, image_url: ''})}
                               className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -490,9 +491,11 @@ export function ProductList() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [customizeTarget, setCustomizeTarget] = useState(null);
   const [toast, setToast] = useState(null);
+  const [formError, setFormError] = useState('');
+  const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
   const [form, setForm] = useState({
     name: '', price: '', stock_quantity: '', category_id: '', sku: '',
-    short_description: '', description: '', thumbnail: '', brand: '',
+    short_description: '', description: '', thumbnail: '', thumbnailFile: null, brand: '',
     is_featured: false, is_active: true, is_customizable: false,
   });
 
@@ -525,12 +528,35 @@ export function ProductList() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError('');
+
+    if (form.thumbnail && form.thumbnailFile) {
+      setFormError("Please provide either an Image URL or upload an image, not both.");
+      return;
+    }
+
     try {
+      let finalThumbnail = form.thumbnail;
+      if (form.thumbnailFile) {
+        setUploadingThumbnail(true);
+        try {
+          const res = await mediaService.upload(form.thumbnailFile);
+          finalThumbnail = res.data.url;
+        } catch (err) {
+          setFormError('Failed to upload image');
+          setUploadingThumbnail(false);
+          return;
+        }
+        setUploadingThumbnail(false);
+      }
+
       const data = {
         ...form,
+        thumbnail: finalThumbnail,
         price: parseFloat(form.price),
         stock_quantity: parseInt(form.stock_quantity),
       };
+      delete data.thumbnailFile;
       if (data.category_id) data.category_id = parseInt(data.category_id);
       else delete data.category_id;
       if (editingProduct) {
@@ -549,11 +575,12 @@ export function ProductList() {
 
   const handleEdit = (product) => {
     setEditingProduct(product);
+    setFormError('');
     setForm({
       name: product.name, price: product.price, stock_quantity: product.stock_quantity,
       category_id: product.category_id || '', sku: product.sku || '',
       short_description: product.short_description || '',
-      description: product.description || '', thumbnail: product.thumbnail || '',
+      description: product.description || '', thumbnail: product.thumbnail || '', thumbnailFile: null,
       brand: product.brand || '',
       is_featured: product.is_featured, is_active: product.is_active,
       is_customizable: product.is_customizable || false,
@@ -571,11 +598,14 @@ export function ProductList() {
     } catch { setToast({ type: 'error', message: 'Failed to delete' }); }
   };
 
-  const resetForm = () => setForm({
-    name: '', price: '', stock_quantity: '', category_id: '', sku: '',
-    short_description: '', description: '', thumbnail: '', brand: '',
-    is_featured: false, is_active: true, is_customizable: false,
-  });
+  const resetForm = () => {
+    setFormError('');
+    setForm({
+      name: '', price: '', stock_quantity: '', category_id: '', sku: '',
+      short_description: '', description: '', thumbnail: '', thumbnailFile: null, brand: '',
+      is_featured: false, is_active: true, is_customizable: false,
+    });
+  };
 
   const toggleSort = (field) => {
     if (sortBy === field) {
@@ -733,17 +763,62 @@ export function ProductList() {
                   <input placeholder="e.g. AquaCorp" value={form.brand} onChange={e => setForm({...form, brand: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
                 </div>
               </div>
-              <div className="space-y-1">
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider">Thumbnail URL</label>
-                <div className="flex gap-3 items-start">
-                  <div className="flex-1">
-                    <input placeholder="https://example.com/image.jpg" value={form.thumbnail} onChange={e => setForm({...form, thumbnail: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+              <div className="space-y-3">
+                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider">Product Image</label>
+                {formError && (
+                  <div className="p-2 mb-2 text-sm text-red-700 bg-red-100 rounded-lg">
+                    {formError}
                   </div>
-                  {form.thumbnail && (
+                )}
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <span className="text-sm font-medium text-gray-700">Image URL</span>
+                    <input 
+                      placeholder="https://example.com/image.jpg" 
+                      value={form.thumbnail} 
+                      onChange={e => setForm({...form, thumbnail: e.target.value})} 
+                      disabled={!!form.thumbnailFile}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed" 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-end">
+                      <span className="text-sm font-medium text-gray-700">Upload Image</span>
+                      {form.thumbnailFile && (
+                        <button type="button" onClick={() => setForm({...form, thumbnailFile: null})} className="text-xs text-red-600 hover:text-red-800">Clear</button>
+                      )}
+                    </div>
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      ref={el => { if (el && !form.thumbnailFile) el.value = ''; }}
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        setForm({...form, thumbnailFile: file || null});
+                      }} 
+                      disabled={!!form.thumbnail}
+                      className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed" 
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 items-center mt-2">
+                  {(form.thumbnail || form.thumbnailFile) && (
                     <div className="w-14 h-14 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
-                      <img src={form.thumbnail} alt="" className="w-full h-full object-cover" onError={e => { e.target.style.display = 'none'; }} />
+                      <img 
+                        src={form.thumbnailFile ? URL.createObjectURL(form.thumbnailFile) : toFullUrl(form.thumbnail)} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover" 
+                        onError={e => { e.target.style.display = 'none'; }} 
+                      />
                     </div>
                   )}
+                  <div className="flex-1 text-xs text-gray-500">
+                    {(form.thumbnail && !form.thumbnailFile) && "Using Image URL. Clear the URL to enable file upload."}
+                    {(form.thumbnailFile && !form.thumbnail) && "Using uploaded file. Clear the file to enable Image URL."}
+                  </div>
                 </div>
               </div>
               <div className="space-y-1">
@@ -781,8 +856,8 @@ export function ProductList() {
                 </div>
               </div>
               <div className="flex gap-3 pt-2 border-t border-gray-200">
-                <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
-                  {editingProduct ? 'Update Product' : 'Create Product'}
+                <button type="submit" disabled={uploadingThumbnail} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:bg-blue-400 disabled:cursor-not-allowed">
+                  {uploadingThumbnail ? 'Uploading Image...' : (editingProduct ? 'Update Product' : 'Create Product')}
                 </button>
                 <button type="button" onClick={() => setShowForm(false)} className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium">
                   Cancel
@@ -829,7 +904,7 @@ export function ProductList() {
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
                           {p.thumbnail ? (
-                            <img src={p.thumbnail} alt="" className="w-10 h-10 rounded-lg object-cover border border-gray-200" />
+                            <img src={toFullUrl(p.thumbnail)} alt="" className="w-10 h-10 rounded-lg object-cover border border-gray-200" />
                           ) : (
                             <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
                               <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>

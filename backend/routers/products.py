@@ -8,6 +8,10 @@ from models.product import Product
 from models.category import Category
 from models.user import User
 from models.product_option import ProductOption
+from models.wishlist import WishlistItem
+from models.cart import CartItem
+from models.inventory import InventoryLog
+from models.order import OrderItem
 from schemas.product import (
     ProductCreate,
     ProductUpdate,
@@ -284,6 +288,16 @@ def delete_product(
     db_product = db.query(Product).filter(Product.id == product_id).first()
     if not db_product:
         raise HTTPException(status_code=404, detail="Product not found")
+
+    # Prevent deletion if the product has been ordered
+    has_orders = db.query(OrderItem).filter(OrderItem.product_id == product_id).first()
+    if has_orders:
+        raise HTTPException(status_code=400, detail="Cannot delete product because it has been ordered. Please deactivate it instead.")
+
+    # Manually cascade delete related items that do not have ORM cascades configured
+    db.query(WishlistItem).filter(WishlistItem.product_id == product_id).delete(synchronize_session=False)
+    db.query(CartItem).filter(CartItem.product_id == product_id).delete(synchronize_session=False)
+    db.query(InventoryLog).filter(InventoryLog.product_id == product_id).delete(synchronize_session=False)
 
     db.delete(db_product)
     db.commit()

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { mediaUrl } from '../utils/mediaUrl';
 
 export function ProductCard({ product, onAddToCart, onToggleWishlist, isInWishlist }) {
   const [imgLoaded, setImgLoaded] = useState(false);
@@ -31,7 +32,7 @@ export function ProductCard({ product, onAddToCart, onToggleWishlist, isInWishli
                 </div>
               )}
               <img
-                src={product.thumbnail}
+                src={mediaUrl(product.thumbnail)}
                 alt={product.name}
                 onLoad={() => setImgLoaded(true)}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
