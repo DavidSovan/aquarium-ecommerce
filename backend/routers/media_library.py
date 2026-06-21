@@ -87,7 +87,7 @@ async def upload_media(
             from PIL import Image
             img = Image.open(file_path)
             width, height = img.size
-        except ImportError:
+        except Exception:
             pass
 
     media_entry = MediaLibrary(

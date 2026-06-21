@@ -120,6 +120,22 @@ const icons = {
       <polyline points="6 17 11 12 6 7" />
     </svg>
   ),
+  theme: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c1.06 0 1.93-.8 2-1.84a1.86 1.86 0 0 0-.54-1.35c-.41-.4-.64-.95-.64-1.53 0-1.18.96-2.14 2.14-2.14h2.51A4.53 4.53 0 0 0 22 10.61C22 5.86 17.52 2 12 2z"/>
+      <circle cx="6.5" cy="10.5" r="1.5"/>
+      <circle cx="10.5" cy="5.5" r="1.5"/>
+      <circle cx="15.5" cy="6.5" r="1.5"/>
+    </svg>
+  ),
+  branding: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 19l7-7 3 3-7 7-3-3z"/>
+      <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
+      <path d="M2 2l7.586 7.586"/>
+      <circle cx="11" cy="11" r="2"/>
+    </svg>
+  ),
   close: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
       <line x1="18" y1="6" x2="6" y2="18" />
@@ -155,6 +171,8 @@ const navSections = [
       { path: '/admin/media', label: 'Media Library', icon: 'media' },
       { path: '/admin/cms-blocks', label: 'CMS Blocks', icon: 'cms' },
       { path: '/admin/settings/homepage', label: 'Homepage', icon: 'homepage' },
+      { path: '/admin/settings/theme', label: 'Theme', icon: 'theme' },
+      { path: '/admin/settings/branding', label: 'Branding', icon: 'branding' },
     ],
   },
   {

@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useSiteSettings } from '../context/SiteSettingsContext';
@@ -146,7 +146,6 @@ export function Navbar({ onCartOpen }) {
               </button>
             </div>
 
-            {/* Navigation Links */}
             <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-3 custom-scrollbar relative z-10">
               <div className="flex flex-col gap-3">
                 <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-4 w-full px-5 py-4 rounded-2xl text-xl font-bold transition-all active:scale-95 border border-transparent ${location.pathname === '/' ? 'bg-[color-mix(in_srgb,var(--primary)_15%,transparent)] text-[var(--primary)] border-[color-mix(in_srgb,var(--primary)_30%,transparent)] shadow-sm' : 'text-[var(--text-secondary)] hover:bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)] hover:text-[var(--text-primary)] border-[color-mix(in_srgb,var(--border),transparent_20%)]'}`}>

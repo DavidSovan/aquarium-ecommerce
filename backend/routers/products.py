@@ -76,7 +76,15 @@ def list_products(
         )
 
     if category_id is not None:
-        query = query.filter(Product.category_id == category_id)
+        def get_all_category_ids(db_session: Session, cid: int):
+            ids = [cid]
+            cat = db_session.query(Category).filter(Category.id == cid).first()
+            if cat:
+                for child in cat.children:
+                    ids.extend(get_all_category_ids(db_session, child.id))
+            return ids
+        cat_ids = get_all_category_ids(db, category_id)
+        query = query.filter(Product.category_id.in_(cat_ids))
 
     if brand:
         query = query.filter(Product.brand.ilike(f"%{brand}%"))
