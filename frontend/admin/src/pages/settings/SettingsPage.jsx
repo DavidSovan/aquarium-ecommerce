@@ -77,14 +77,7 @@ const ICONS = {
   ),
 };
 
-const SETTINGS_LINKS = [
-  { path: '/admin/settings/theme',    label: 'Theme',     desc: 'Colors, fonts & button styles',     icon: ICONS.palette,      accent: '#534AB7' },
-  { path: '/admin/settings/branding', label: 'Branding',  desc: 'Logo, favicon & social links',      icon: ICONS.star,         accent: '#185FA5' },
-  { path: '/admin/settings/homepage', label: 'Homepage',  desc: 'Hero sections & banners',           icon: ICONS.home,         accent: '#0F6E56' },
-  { path: '/admin/banners',           label: 'Banners',   desc: 'Scheduled promo banners',           icon: ICONS.megaphone,    accent: '#BA7517' },
-  { path: '/admin/cms-blocks',        label: 'CMS Blocks',desc: 'Drag-and-drop content blocks',      icon: ICONS.grid,         accent: '#993556' },
-  { path: '/admin/media',             label: 'Media',     desc: 'Images, videos & assets',           icon: ICONS.photo,        accent: '#185FA5' },
-];
+const SETTINGS_LINKS = [];
 
 const BOOL_KEYS = new Set(['homepage_video_enabled', 'maintenance_mode', 'enable_delivery_scheduling']);
 
@@ -362,11 +355,13 @@ export function SettingsPage() {
         </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
-        {SETTINGS_LINKS.map(link => (
-          <NavCard key={link.path} link={link} />
-        ))}
-      </div>
+      {SETTINGS_LINKS.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+          {SETTINGS_LINKS.map(link => (
+            <NavCard key={link.path} link={link} />
+          ))}
+        </div>
+      )}
 
       <div className="flex items-center gap-3 mb-5">
         <div className="flex-1 h-px bg-gray-100" />

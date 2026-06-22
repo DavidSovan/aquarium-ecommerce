@@ -284,6 +284,11 @@ select {
   padding-right: 2.5rem;
 }
 
+option {
+  background-color: var(--surface);
+  color: var(--text-primary);
+}
+
 /* File input styling */
 input[type="file"] {
   font-size: 0.875rem;
