@@ -14,6 +14,10 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
+class GoogleLoginRequest(BaseModel):
+    credential: str
+    is_register: bool = False
+
 
 class LoginResponse(BaseModel):
     access_token: str

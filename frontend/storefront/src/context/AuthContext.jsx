@@ -30,6 +30,22 @@ export function AuthProvider({ children }) {
     return me.data;
   }, []);
 
+  const googleLogin = useCallback(async (credential) => {
+    const res = await authService.googleLogin(credential, false);
+    localStorage.setItem('fashion_token', res.data.access_token);
+    const me = await authService.getMe();
+    setUser(me.data);
+    return me.data;
+  }, []);
+
+  const googleRegister = useCallback(async (credential) => {
+    const res = await authService.googleLogin(credential, true);
+    localStorage.setItem('fashion_token', res.data.access_token);
+    const me = await authService.getMe();
+    setUser(me.data);
+    return me.data;
+  }, []);
+
   const register = useCallback(async (data) => {
     const res = await authService.register(data);
     return res.data;
@@ -41,7 +57,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, loading, login, googleLogin, googleRegister, register, logout, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

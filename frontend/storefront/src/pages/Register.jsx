@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
+
 import { useAuth } from '../context/AuthContext';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 
@@ -10,7 +12,8 @@ export function Register() {
   const [lastName, setLastName] = useState('');
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const { register } = useAuth();
+  const { register, googleRegister } = useAuth();
+
   const { storeName } = useSiteSettings();
   const navigate = useNavigate();
 
@@ -105,7 +108,37 @@ export function Register() {
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm theme-text-secondary">
+        <div className="mt-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500 theme-surface theme-text-secondary">Or continue with</span>
+            </div>
+          </div>
+          <div className="mt-6 flex justify-center">
+            <GoogleLogin
+              onSuccess={async (credentialResponse) => {
+                setSubmitting(true);
+                setError(null);
+                try {
+                  await googleRegister(credentialResponse.credential);
+                  navigate('/', { replace: true });
+                } catch (err) {
+                  setError(err.response?.data?.detail || 'Google Login failed');
+                } finally {
+                  setSubmitting(false);
+                }
+              }}
+              onError={() => {
+                setError('Google Login failed');
+              }}
+            />
+          </div>
+        </div>
+
+        <p className="mt-6 text-center text-sm theme-text-secondary">
           Already have an account? <Link to="/login" className="theme-text-link font-medium">Login</Link>
         </p>
       </div>

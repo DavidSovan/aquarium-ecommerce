@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
+
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -10,7 +12,8 @@ export function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const { login } = useAuth();
+  const { login, googleLogin } = useAuth();
+
   const { mergeCart } = useCart();
   const { mergeWishlist } = useWishlist();
   const { storeName } = useSiteSettings();
@@ -88,7 +91,39 @@ export function Login() {
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm theme-text-secondary">
+        <div className="mt-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500 theme-surface theme-text-secondary">Or continue with</span>
+            </div>
+          </div>
+          <div className="mt-6 flex justify-center">
+            <GoogleLogin
+              onSuccess={async (credentialResponse) => {
+                setSubmitting(true);
+                setError(null);
+                try {
+                  await googleLogin(credentialResponse.credential);
+                  await mergeCart().catch(() => {});
+                  await mergeWishlist().catch(() => {});
+                  navigate(redirect, { replace: true });
+                } catch (err) {
+                  setError(err.response?.data?.detail || 'Google Login failed');
+                } finally {
+                  setSubmitting(false);
+                }
+              }}
+              onError={() => {
+                setError('Google Login failed');
+              }}
+            />
+          </div>
+        </div>
+
+        <p className="mt-6 text-center text-sm theme-text-secondary">
           Don't have an account? <Link to="/register" className="theme-text-link font-medium">Register</Link>
         </p>
       </div>

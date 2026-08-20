@@ -9,6 +9,10 @@ export const authService = {
     return api.post('/auth/login', data);
   },
 
+  googleLogin(credential, isRegister = false) {
+    return api.post('/auth/google', { credential, is_register: isRegister });
+  },
+
   getMe() {
     return api.get('/auth/me');
   },

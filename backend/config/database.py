@@ -3,11 +3,15 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
-DATABASE_URL = os.getenv("DATABASE_URL", "mysql+pymysql://root:@localhost/fashion_store")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./store.db")
 
-engine = create_engine(DATABASE_URL, echo=False)
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False}, echo=False)
+else:
+    engine = create_engine(DATABASE_URL, echo=False)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

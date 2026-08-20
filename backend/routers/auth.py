@@ -10,7 +10,11 @@ from schemas.auth import (
     UserResponse,
     AdminCreateUserRequest,
     UserListResponse,
+    GoogleLoginRequest,
 )
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+import uuid
 from dependencies.auth import (
     hash_password,
     verify_password,
@@ -60,6 +64,55 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
 
     token = create_access_token({"sub": user.id, "role": user.role})
     return LoginResponse(access_token=token)
+
+
+@router.post("/google", response_model=LoginResponse)
+def google_login(data: GoogleLoginRequest, db: Session = Depends(get_db)):
+    client_id = "213431034913-valrbe4pn4jgcaol5h94q2ikg15j6oef.apps.googleusercontent.com"
+    try:
+        idinfo = id_token.verify_oauth2_token(
+            data.credential, google_requests.Request(), client_id
+        )
+        email = idinfo.get("email")
+        if not email:
+            raise HTTPException(status_code=400, detail="No email provided by Google")
+        
+        user = db.query(User).filter(User.email == email).first()
+        if user:
+            if data.is_register:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, 
+                    detail="Email already registered. Please login instead."
+                )
+        else:
+            # Create a new user with dummy password
+            first_name = idinfo.get("given_name")
+            last_name = idinfo.get("family_name")
+            dummy_password = str(uuid.uuid4())
+            user = User(
+                email=email,
+                password_hash=hash_password(dummy_password),
+                first_name=first_name,
+                last_name=last_name,
+                role="customer",
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Account is inactive",
+            )
+            
+        token = create_access_token({"sub": user.id, "role": user.role})
+        return LoginResponse(access_token=token)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Google token",
+        )
 
 
 @router.get("/me", response_model=UserResponse)
